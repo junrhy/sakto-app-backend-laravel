@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('sku');
             $table->json('images')->nullable();
             $table->integer('quantity');
-            $table->string('price');
+            $table->string('unit')->nullable();
+            $table->decimal('price', 5, 2);
             $table->foreignId('category_id')->constrained('inventory_categories');
             $table->timestamps();
         });

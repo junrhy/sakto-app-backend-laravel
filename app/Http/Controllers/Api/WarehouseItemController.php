@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\fnbKitchenOrder;
+use App\Http\Controllers\Controller;
+use App\Models\WarehouseItem;
 use Illuminate\Http\Request;
 
-class FnbKitchenOrderController extends Controller
+class WarehouseItemController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fnbKitchenOrder $fnbKitchenOrder)
+    public function show(WarehouseItem $warehouseItem)
     {
         //
     }
@@ -42,7 +43,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(fnbKitchenOrder $fnbKitchenOrder)
+    public function edit(WarehouseItem $warehouseItem)
     {
         //
     }
@@ -50,7 +51,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbKitchenOrder $fnbKitchenOrder)
+    public function update(Request $request, WarehouseItem $warehouseItem)
     {
         //
     }
@@ -58,7 +59,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbKitchenOrder $fnbKitchenOrder)
+    public function destroy(WarehouseItem $warehouseItem)
     {
         //
     }

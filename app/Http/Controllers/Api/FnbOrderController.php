@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Loan;
+use App\Http\Controllers\Controller;
+use App\Models\fnbOrder;
 use Illuminate\Http\Request;
 
-class LoanController extends Controller
+class FnbOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class LoanController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Loan $loan)
+    public function show(fnbOrder $fnbOrder)
     {
         //
     }
@@ -42,7 +43,7 @@ class LoanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Loan $loan)
+    public function edit(fnbOrder $fnbOrder)
     {
         //
     }
@@ -50,7 +51,7 @@ class LoanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Loan $loan)
+    public function update(Request $request, fnbOrder $fnbOrder)
     {
         //
     }
@@ -58,7 +59,7 @@ class LoanController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Loan $loan)
+    public function destroy(fnbOrder $fnbOrder)
     {
         //
     }

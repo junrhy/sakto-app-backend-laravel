@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\RentalProperty;
+use App\Http\Controllers\Controller;
+use App\Models\Help;
 use Illuminate\Http\Request;
 
-class RentalPropertyController extends Controller
+class HelpController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class RentalPropertyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(RentalProperty $rentalProperty)
+    public function show(Help $help)
     {
         //
     }
@@ -42,7 +43,7 @@ class RentalPropertyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(RentalProperty $rentalProperty)
+    public function edit(Help $help)
     {
         //
     }
@@ -50,7 +51,7 @@ class RentalPropertyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RentalProperty $rentalProperty)
+    public function update(Request $request, Help $help)
     {
         //
     }
@@ -58,7 +59,7 @@ class RentalPropertyController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RentalProperty $rentalProperty)
+    public function destroy(Help $help)
     {
         //
     }

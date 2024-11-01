@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\fnbSale;
+use App\Http\Controllers\Controller;
+use App\Models\fnbReservation;
 use Illuminate\Http\Request;
 
-class FnbSaleController extends Controller
+class FnbReservationController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class FnbSaleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fnbSale $fnbSale)
+    public function show(fnbReservation $fnbReservation)
     {
         //
     }
@@ -42,7 +43,7 @@ class FnbSaleController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(fnbSale $fnbSale)
+    public function edit(fnbReservation $fnbReservation)
     {
         //
     }
@@ -50,7 +51,7 @@ class FnbSaleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbSale $fnbSale)
+    public function update(Request $request, fnbReservation $fnbReservation)
     {
         //
     }
@@ -58,7 +59,7 @@ class FnbSaleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbSale $fnbSale)
+    public function destroy(fnbReservation $fnbReservation)
     {
         //
     }

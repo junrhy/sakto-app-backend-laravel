@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Patient;
+use App\Http\Controllers\Controller;
+use App\Models\TransportationFleet;
 use Illuminate\Http\Request;
 
-class PatientController extends Controller
+class TransportationFleetController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Patient $patient)
+    public function show(TransportationFleet $transportationFleet)
     {
         //
     }
@@ -42,7 +43,7 @@ class PatientController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Patient $patient)
+    public function edit(TransportationFleet $transportationFleet)
     {
         //
     }
@@ -50,7 +51,7 @@ class PatientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Patient $patient)
+    public function update(Request $request, TransportationFleet $transportationFleet)
     {
         //
     }
@@ -58,7 +59,7 @@ class PatientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Patient $patient)
+    public function destroy(TransportationFleet $transportationFleet)
     {
         //
     }

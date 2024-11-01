@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\fnbOrder;
+use App\Http\Controllers\Controller;
+use App\Models\RetailOrder;
 use Illuminate\Http\Request;
 
-class FnbOrderController extends Controller
+class RetailOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class FnbOrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fnbOrder $fnbOrder)
+    public function show(RetailOrder $retailOrder)
     {
         //
     }
@@ -42,7 +43,7 @@ class FnbOrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(fnbOrder $fnbOrder)
+    public function edit(RetailOrder $retailOrder)
     {
         //
     }
@@ -50,7 +51,7 @@ class FnbOrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbOrder $fnbOrder)
+    public function update(Request $request, RetailOrder $retailOrder)
     {
         //
     }
@@ -58,7 +59,7 @@ class FnbOrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbOrder $fnbOrder)
+    public function destroy(RetailOrder $retailOrder)
     {
         //
     }

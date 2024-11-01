@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\PatientCheckup;
+use App\Http\Controllers\Controller;
+use App\Models\PatientDentalChart;
 use Illuminate\Http\Request;
 
-class PatientCheckupController extends Controller
+class PatientDentalChartController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class PatientCheckupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(PatientCheckup $patientCheckup)
+    public function show(PatientDentalChart $patientDentalChart)
     {
         //
     }
@@ -42,7 +43,7 @@ class PatientCheckupController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PatientCheckup $patientCheckup)
+    public function edit(PatientDentalChart $patientDentalChart)
     {
         //
     }
@@ -50,7 +51,7 @@ class PatientCheckupController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PatientCheckup $patientCheckup)
+    public function update(Request $request, PatientDentalChart $patientDentalChart)
     {
         //
     }
@@ -58,7 +59,7 @@ class PatientCheckupController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PatientCheckup $patientCheckup)
+    public function destroy(PatientDentalChart $patientDentalChart)
     {
         //
     }

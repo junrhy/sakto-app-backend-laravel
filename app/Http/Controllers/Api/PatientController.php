@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\LoanBill;
+use App\Http\Controllers\Controller;
+use App\Models\Patient;
 use Illuminate\Http\Request;
 
-class LoanBillController extends Controller
+class PatientController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class LoanBillController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LoanBill $loanBill)
+    public function show(Patient $patient)
     {
         //
     }
@@ -42,7 +43,7 @@ class LoanBillController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(LoanBill $loanBill)
+    public function edit(Patient $patient)
     {
         //
     }
@@ -50,7 +51,7 @@ class LoanBillController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LoanBill $loanBill)
+    public function update(Request $request, Patient $patient)
     {
         //
     }
@@ -58,7 +59,7 @@ class LoanBillController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(LoanBill $loanBill)
+    public function destroy(Patient $patient)
     {
         //
     }

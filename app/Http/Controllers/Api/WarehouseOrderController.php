@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\TransportationCargoMonitoring;
+use App\Http\Controllers\Controller;
+use App\Models\WarehouseOrder;
 use Illuminate\Http\Request;
 
-class TransportationCargoMonitoringController extends Controller
+class WarehouseOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TransportationCargoMonitoring $transportationCargoMonitoring)
+    public function show(WarehouseOrder $warehouseOrder)
     {
         //
     }
@@ -42,7 +43,7 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TransportationCargoMonitoring $transportationCargoMonitoring)
+    public function edit(WarehouseOrder $warehouseOrder)
     {
         //
     }
@@ -50,7 +51,7 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TransportationCargoMonitoring $transportationCargoMonitoring)
+    public function update(Request $request, WarehouseOrder $warehouseOrder)
     {
         //
     }
@@ -58,7 +59,7 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TransportationCargoMonitoring $transportationCargoMonitoring)
+    public function destroy(WarehouseOrder $warehouseOrder)
     {
         //
     }

@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\WarehouseReceiving;
+use App\Http\Controllers\Controller;
+use App\Models\Payroll;
 use Illuminate\Http\Request;
 
-class WarehouseReceivingController extends Controller
+class PayrollController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class WarehouseReceivingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(WarehouseReceiving $warehouseReceiving)
+    public function show(Payroll $payroll)
     {
         //
     }
@@ -42,7 +43,7 @@ class WarehouseReceivingController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(WarehouseReceiving $warehouseReceiving)
+    public function edit(Payroll $payroll)
     {
         //
     }
@@ -50,7 +51,7 @@ class WarehouseReceivingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, WarehouseReceiving $warehouseReceiving)
+    public function update(Request $request, Payroll $payroll)
     {
         //
     }
@@ -58,7 +59,7 @@ class WarehouseReceivingController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(WarehouseReceiving $warehouseReceiving)
+    public function destroy(Payroll $payroll)
     {
         //
     }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRentalItemRequest;
 use App\Http\Requests\UpdateRentalItemRequest;
 use App\Models\RentalItem;

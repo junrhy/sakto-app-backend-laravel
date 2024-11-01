@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\Api\InventoryController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -11,11 +11,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Inventory Routes
     Route::prefix('inventories')->group(function () {
-        Route::get('/', [InventoryController::class, 'index']);
-        Route::post('/', [InventoryController::class, 'store']);
-        Route::get('/{inventory}', [InventoryController::class, 'show']);
-        Route::put('/{inventory}', [InventoryController::class, 'update']);
-        Route::delete('/{inventory}', [InventoryController::class, 'destroy']);
+        Route::apiResource('/', InventoryController::class);
         Route::delete('/bulk-destroy', [InventoryController::class, 'bulkDestroy']);
     });
 

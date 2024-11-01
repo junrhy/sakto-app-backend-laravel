@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\fnbTable;
+use App\Http\Controllers\Controller;
+use App\Models\TransportationShipmentTracking;
 use Illuminate\Http\Request;
 
-class FnbTableController extends Controller
+class TransportationShipmentTrackingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class FnbTableController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fnbTable $fnbTable)
+    public function show(TransportationShipmentTracking $transportationShipmentTracking)
     {
         //
     }
@@ -42,7 +43,7 @@ class FnbTableController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(fnbTable $fnbTable)
+    public function edit(TransportationShipmentTracking $transportationShipmentTracking)
     {
         //
     }
@@ -50,7 +51,7 @@ class FnbTableController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbTable $fnbTable)
+    public function update(Request $request, TransportationShipmentTracking $transportationShipmentTracking)
     {
         //
     }
@@ -58,7 +59,7 @@ class FnbTableController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbTable $fnbTable)
+    public function destroy(TransportationShipmentTracking $transportationShipmentTracking)
     {
         //
     }

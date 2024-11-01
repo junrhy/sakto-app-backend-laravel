@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\RetailItem;
+use App\Http\Controllers\Controller;
+use App\Models\RentalProperty;
 use Illuminate\Http\Request;
 
-class RetailItemController extends Controller
+class RentalPropertyController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class RetailItemController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(RetailItem $retailItem)
+    public function show(RentalProperty $rentalProperty)
     {
         //
     }
@@ -42,7 +43,7 @@ class RetailItemController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(RetailItem $retailItem)
+    public function edit(RentalProperty $rentalProperty)
     {
         //
     }
@@ -50,7 +51,7 @@ class RetailItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RetailItem $retailItem)
+    public function update(Request $request, RentalProperty $rentalProperty)
     {
         //
     }
@@ -58,7 +59,7 @@ class RetailItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RetailItem $retailItem)
+    public function destroy(RentalProperty $rentalProperty)
     {
         //
     }

@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\InventoryCategory;
+use App\Http\Controllers\Controller;
+use App\Models\fnbTable;
 use Illuminate\Http\Request;
 
-class InventoryCategoryController extends Controller
+class FnbTableController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class InventoryCategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(InventoryCategory $inventoryCategory)
+    public function show(fnbTable $fnbTable)
     {
         //
     }
@@ -42,7 +43,7 @@ class InventoryCategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(InventoryCategory $inventoryCategory)
+    public function edit(fnbTable $fnbTable)
     {
         //
     }
@@ -50,7 +51,7 @@ class InventoryCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, InventoryCategory $inventoryCategory)
+    public function update(Request $request, fnbTable $fnbTable)
     {
         //
     }
@@ -58,7 +59,7 @@ class InventoryCategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(InventoryCategory $inventoryCategory)
+    public function destroy(fnbTable $fnbTable)
     {
         //
     }

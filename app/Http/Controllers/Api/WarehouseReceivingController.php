@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\TransportationFleet;
+use App\Http\Controllers\Controller;
+use App\Models\WarehouseReceiving;
 use Illuminate\Http\Request;
 
-class TransportationFleetController extends Controller
+class WarehouseReceivingController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class TransportationFleetController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(TransportationFleet $transportationFleet)
+    public function show(WarehouseReceiving $warehouseReceiving)
     {
         //
     }
@@ -42,7 +43,7 @@ class TransportationFleetController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TransportationFleet $transportationFleet)
+    public function edit(WarehouseReceiving $warehouseReceiving)
     {
         //
     }
@@ -50,7 +51,7 @@ class TransportationFleetController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TransportationFleet $transportationFleet)
+    public function update(Request $request, WarehouseReceiving $warehouseReceiving)
     {
         //
     }
@@ -58,7 +59,7 @@ class TransportationFleetController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(TransportationFleet $transportationFleet)
+    public function destroy(WarehouseReceiving $warehouseReceiving)
     {
         //
     }

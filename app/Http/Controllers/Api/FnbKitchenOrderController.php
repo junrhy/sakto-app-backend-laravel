@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api; 
 
-use App\Models\Payroll;
+use App\Http\Controllers\Controller;
+use App\Models\fnbKitchenOrder;
 use Illuminate\Http\Request;
 
-class PayrollController extends Controller
+class FnbKitchenOrderController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +35,7 @@ class PayrollController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Payroll $payroll)
+    public function show(fnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -42,7 +43,7 @@ class PayrollController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Payroll $payroll)
+    public function edit(fnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -50,7 +51,7 @@ class PayrollController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Payroll $payroll)
+    public function update(Request $request, fnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -58,7 +59,7 @@ class PayrollController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Payroll $payroll)
+    public function destroy(fnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
