@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Inventory;
-use App\Models\InventoryCategory;
+use App\Models\RetailItem;
+use App\Models\RetailCategory;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -15,7 +15,7 @@ class InventoryController extends Controller
     public function index()
     {
         $inventories = [
-            'products' => Inventory::all(),
+            'products' => RetailItem::all(),
         ];
 
         return response()->json([
@@ -30,7 +30,7 @@ class InventoryController extends Controller
      */
     public function create()
     {
-        $categories = InventoryCategory::all();
+        $categories = RetailCategory::all();
         return response()->json([
             'status' => 'success',
             'message' => 'Categories retrieved successfully',
@@ -43,7 +43,7 @@ class InventoryController extends Controller
      */
     public function store(Request $request)
     {
-        $inventory = Inventory::create($request->all());
+        $inventory = RetailItem::create($request->all());
         return response()->json([
             'status' => 'success',
             'message' => 'Inventory created successfully',
@@ -54,7 +54,7 @@ class InventoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Inventory $inventory)
+    public function show(RetailItem $inventory)
     {
         return response()->json([
             'status' => 'success',
@@ -66,7 +66,7 @@ class InventoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Inventory $inventory)
+    public function edit(RetailItem $inventory)
     {
         return response()->json([
             'status' => 'success',
@@ -78,7 +78,7 @@ class InventoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Inventory $inventory)
+    public function update(Request $request, RetailItem $inventory)
     {
         $inventory->update($request->all());
         return response()->json([
@@ -91,7 +91,7 @@ class InventoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Inventory $inventory)
+    public function destroy(RetailItem $inventory)
     {
         $inventory->delete();
         return response()->json([
@@ -113,7 +113,7 @@ class InventoryController extends Controller
             'ids.*' => 'exists:inventories,id'
         ]);
 
-        Inventory::whereIn('id', $request->ids)->delete();
+        RetailßItem::whereIn('id', $request->ids)->delete();
 
         return response()->json([
             'status' => 'success',

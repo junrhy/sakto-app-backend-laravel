@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Inventory;
-use App\Models\InventoryCategory;
+use App\Models\RetailItem;
+use App\Models\RetailCategory;
 use Illuminate\Database\Seeder;
 
 class RetailItemSeeder extends Seeder
@@ -111,13 +111,13 @@ class RetailItemSeeder extends Seeder
             ]
         ];
 
-        InventoryCategory::create([
+        RetailCategory::create([
             'id' => 1,
             'name' => 'Retail'
         ]);
 
         foreach ($items as $item) {
-            Inventory::create([
+            RetailItem::create([
                 'name' => $item['name'],
                 'sku' => $item['sku'],
                 'quantity' => $item['quantity'],

@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class InventoryCategory extends Model
+class RetailCategory extends Model
 {
     protected $fillable = ['name'];
 
-    public function inventories()
+    public function items()
     {
-        return $this->hasMany(Inventory::class);
+        return $this->hasMany(RetailItem::class);
     }
 }

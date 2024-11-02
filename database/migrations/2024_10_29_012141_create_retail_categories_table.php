@@ -11,15 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventories', function (Blueprint $table) {
+        Schema::create('retail_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('sku');
-            $table->json('images')->nullable();
-            $table->integer('quantity');
-            $table->string('unit')->nullable();
-            $table->decimal('price');
-            $table->foreignId('category_id')->constrained('inventory_categories');
             $table->timestamps();
         });
     }
@@ -29,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventories');
+        Schema::dropIfExists('retail_categories');
     }
 };
