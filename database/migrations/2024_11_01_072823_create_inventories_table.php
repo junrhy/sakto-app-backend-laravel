@@ -18,7 +18,7 @@ return new class extends Migration
             $table->json('images')->nullable();
             $table->integer('quantity');
             $table->string('unit')->nullable();
-            $table->decimal('price', 5, 2);
+            $table->decimal('price');
             $table->foreignId('category_id')->constrained('inventory_categories');
             $table->timestamps();
         });
