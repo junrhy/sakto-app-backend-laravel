@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->json('items');
             $table->decimal('total_amount');
-            $table->decimal('cash_received');
-            $table->decimal('change');
+            $table->decimal('cash_received')->nullable();
+            $table->decimal('change')->nullable();
+            $table->string('payment_method')->nullable();
             $table->timestamps();
         });
     }

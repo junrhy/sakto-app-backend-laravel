@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\RetailSale;
+use App\Models\RetailItem;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
@@ -32,11 +33,20 @@ class RetailSaleController extends Controller
         $request->validate([
             'items' => 'required|array',
             'total_amount' => 'required|numeric',
-            'cash_received' => 'required|numeric',
-            'change' => 'required|numeric',
+            'payment_method' => 'required|string',
         ]);
     
         $retailSale = RetailSale::create($request->all());
+        
+        // Update the inventory
+        $items = $retailSale->items;
+        foreach ($items as $item) {
+            $retailItem = RetailItem::find($item['id']);
+            $retailItem->update([
+                'quantity' => $retailItem->quantity - $item['quantity']
+            ]);
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Retail sale created successfully',
