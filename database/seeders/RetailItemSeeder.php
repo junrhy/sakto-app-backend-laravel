@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\RetailItem;
 use App\Models\RetailCategory;
 use Illuminate\Database\Seeder;
-
+use Illuminate\Support\Facades\DB;
 class RetailItemSeeder extends Seeder
 {
     /**
@@ -111,8 +111,10 @@ class RetailItemSeeder extends Seeder
             ]
         ];
 
+        RetailItem::truncate();
+        DB::table('retail_categories')->delete();
+
         RetailCategory::create([
-            'id' => 1,
             'name' => 'Retail'
         ]);
 
@@ -122,8 +124,8 @@ class RetailItemSeeder extends Seeder
                 'sku' => $item['sku'],
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
-                'images' => json_encode($item['images']),
-                'category_id' => 1
+                'images' => $item['images'],
+                'category_id' => RetailCategory::where('name', 'Retail')->first()->id
             ]);
         }
     }
