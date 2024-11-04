@@ -16,6 +16,7 @@ class InventoryController extends Controller
     {
         $inventories = [
             'products' => RetailItem::all(),
+            'categories' => RetailCategory::all(),
         ];
 
         return response()->json([
@@ -26,23 +27,15 @@ class InventoryController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $categories = RetailCategory::all();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Categories retrieved successfully',
-            'data' => $categories
-        ]);
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'sku' => 'required|string|max:255',
+        ]);
+    
         $inventory = RetailItem::create($request->all());
         return response()->json([
             'status' => 'success',
@@ -54,8 +47,9 @@ class InventoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(RetailItem $inventory)
+    public function show(Request $request)
     {
+        $inventory = RetailItem::find($request->id);
         return response()->json([
             'status' => 'success',
             'message' => 'Inventory retrieved successfully',
@@ -66,8 +60,9 @@ class InventoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(RetailItem $inventory)
+    public function edit(Request $request)
     {
+        $inventory = RetailItem::find($request->id);
         return response()->json([
             'status' => 'success',
             'message' => 'Inventory retrieved successfully',
@@ -78,8 +73,9 @@ class InventoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, RetailItem $inventory)
+    public function update(Request $request)
     {
+        $inventory = RetailItem::find($request->id);
         $inventory->update($request->all());
         return response()->json([
             'status' => 'success',
@@ -91,8 +87,9 @@ class InventoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RetailItem $inventory)
+    public function destroy(Request $request)
     {
+        $inventory = RetailItem::find($request->id);
         $inventory->delete();
         return response()->json([
             'status' => 'success',
@@ -110,10 +107,10 @@ class InventoryController extends Controller
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:inventories,id'
+            'ids.*' => 'exists:retail_items,id'
         ]);
 
-        RetailßItem::whereIn('id', $request->ids)->delete();
+        RetailItem::whereIn('id', $request->ids)->delete();
 
         return response()->json([
             'status' => 'success',

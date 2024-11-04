@@ -14,8 +14,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Inventory Routes
     Route::prefix('inventory')->group(function () {
-        Route::apiResource('/', InventoryController::class);
-        Route::delete('/bulk-destroy', [InventoryController::class, 'bulkDestroy']);
+        Route::get('/', [InventoryController::class, 'index']);
+        Route::post('/', [InventoryController::class, 'store']);
+        Route::get('/{id}', [InventoryController::class, 'show']);
+        Route::put('/{id}', [InventoryController::class, 'update']);
+        Route::delete('/{id}', [InventoryController::class, 'destroy']);
+        Route::post('/bulk-destroy', [InventoryController::class, 'bulkDestroy']);
     });
 
     // Future authenticated routes will go here...
