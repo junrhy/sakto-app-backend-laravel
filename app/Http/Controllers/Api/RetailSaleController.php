@@ -14,7 +14,12 @@ class RetailSaleController extends Controller
      */
     public function index()
     {
-        //
+        $retailSales = RetailSale::all();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $retailSales
+        ], 200);
     }
 
     /**

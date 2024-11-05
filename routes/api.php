@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Pos Retail Routes
     Route::prefix('pos-retail')->group(function () {
+        Route::get('/sales', [RetailSaleController::class, 'index']);
         Route::post('/', [RetailSaleController::class, 'store']);
     });
 
