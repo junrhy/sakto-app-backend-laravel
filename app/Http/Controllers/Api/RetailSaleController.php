@@ -34,6 +34,7 @@ class RetailSaleController extends Controller
             'items' => 'required|array',
             'total_amount' => 'required|numeric',
             'payment_method' => 'required|string',
+            'client_identifier' => 'required',
         ]);
     
         $retailSale = RetailSale::create($request->all());

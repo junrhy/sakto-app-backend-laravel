@@ -34,6 +34,7 @@ class InventoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:255',
+            'client_identifier' => 'required',
         ]);
     
         $inventory = RetailItem::create($request->all());
