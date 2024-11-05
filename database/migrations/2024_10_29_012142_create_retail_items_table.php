@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('unit')->nullable();
             $table->decimal('price');
             $table->foreignId('category_id')->constrained('retail_categories');
+            $table->string('barcode')->nullable();
+            $table->string('client_identifier')->nullable();
             $table->timestamps();
         });
     }

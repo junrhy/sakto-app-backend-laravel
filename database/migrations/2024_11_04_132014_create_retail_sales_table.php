@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('cash_received')->nullable();
             $table->decimal('change')->nullable();
             $table->string('payment_method')->nullable();
+            $table->string('client_identifier')->nullable();
             $table->timestamps();
         });
     }

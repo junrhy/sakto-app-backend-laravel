@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('retail_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('client_identifier')->nullable();
             $table->timestamps();
         });
     }
