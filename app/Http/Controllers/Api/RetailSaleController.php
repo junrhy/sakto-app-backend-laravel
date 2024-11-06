@@ -87,8 +87,24 @@ class RetailSaleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(RetailSale $retailSale)
+    public function destroy($id)
     {
-        //
+        $retailSale = RetailSale::find($id);
+        $retailSale->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Retail sale deleted successfully'
+        ], 200);
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        RetailSale::destroy($request->input('ids'));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Retail sales deleted successfully'
+        ], 200);
     }
 }

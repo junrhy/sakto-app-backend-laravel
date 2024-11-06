@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('pos-retail')->group(function () {
         Route::get('/sales', [RetailSaleController::class, 'index']);
         Route::post('/', [RetailSaleController::class, 'store']);
+        Route::delete('/sale/{id}', [RetailSaleController::class, 'destroy']);
+        Route::post('/sales/bulk-delete', [RetailSaleController::class, 'bulkDelete']);
     });
 
     // Future authenticated routes will go here...
