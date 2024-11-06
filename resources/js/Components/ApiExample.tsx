@@ -2,6 +2,9 @@ import { useState } from 'react';
 
 type Endpoint = 'list-sales' | 'create-sale' | 'get-sale' | 'list-items' | 'create-item' | 'update-item' | 'delete-item';
 
+// Add base URL constant
+const BASE_URL = 'http://api.sakto.app/api';
+
 interface ApiExampleProps {
     endpoint: Endpoint;
 }
@@ -19,7 +22,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
     const examples: Examples = {
         'list-sales': {
             request: `curl -X GET \\
-  'http://api.example.com/api/retail-sales?page=1&per_page=10' \\
+  '${BASE_URL}/retail-sales?page=1&per_page=10' \\
   -H 'Authorization: Bearer {your_token}'`,
             response: `{
     "status": "success",
@@ -49,7 +52,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'create-sale': {
             request: `curl -X POST \\
-  'http://api.example.com/api/retail-sales' \\
+  '${BASE_URL}/retail-sales' \\
   -H 'Authorization: Bearer {your_token}' \\
   -H 'Content-Type: application/json' \\
   -d '{
@@ -84,7 +87,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'get-sale': {
             request: `curl -X GET \\
-  'http://api.example.com/api/retail-sales/123' \\
+  '${BASE_URL}/retail-sales/123' \\
   -H 'Authorization: Bearer {your_token}'`,
             response: `{
     "status": "success",
@@ -107,7 +110,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'list-items': {
             request: `curl -X GET \\
-  'http://api.example.com/api/inventory?page=1&per_page=10' \\
+  '${BASE_URL}/inventory?page=1&per_page=10' \\
   -H 'Authorization: Bearer {your_token}'`,
             response: `{
     "status": "success",
@@ -131,7 +134,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'create-item': {
             request: `curl -X POST \\
-  'http://api.example.com/api/inventory' \\
+  '${BASE_URL}/inventory' \\
   -H 'Authorization: Bearer {your_token}' \\
   -H 'Content-Type: application/json' \\
   -d '{
@@ -155,7 +158,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'update-item': {
             request: `curl -X PUT \\
-  'http://api.example.com/api/inventory/1' \\
+  '${BASE_URL}/inventory/1' \\
   -H 'Authorization: Bearer {your_token}' \\
   -H 'Content-Type: application/json' \\
   -d '{
@@ -179,7 +182,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         },
         'delete-item': {
             request: `curl -X DELETE \\
-  'http://api.example.com/api/inventory/1' \\
+  '${BASE_URL}/inventory/1' \\
   -H 'Authorization: Bearer {your_token}'`,
             response: `{
     "status": "success",
