@@ -70,12 +70,12 @@ export default function Welcome({
                 </nav>
 
                 {/* Main Content */}
-                <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
-                    <div className="grid grid-cols-12 gap-6">
+                <div className="w-full px-4 sm:px-6 lg:px-8 py-6" style={{ height: 'calc(100vh - 64px - 48px)' }}>
+                    <div className="grid grid-cols-12 gap-6 h-full">
                         {/* Sidebar */}
-                        <div className="col-span-2">
-                            <div className="sticky top-6">
-                                <nav className="space-y-4">
+                        <div className="col-span-2 bg-white dark:bg-zinc-900 rounded-lg shadow overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                <nav className="p-4 space-y-4">
                                     <div>
                                         <a href="#introduction" className="block px-3 py-2 text-sm font-medium text-gray-900 dark:text-white rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800">
                                             Introduction
@@ -186,109 +186,117 @@ export default function Welcome({
                         </div>
 
                         {/* Main content */}
-                        <div className="col-span-6">
-                            <div className="prose dark:prose-invert max-w-none">
-                                <section id="introduction">
-                                    <h1>API Documentation</h1>
-                                    <p>
-                                        Welcome to the API documentation. This API provides endpoints
-                                        for managing retail sales, inventory, and other related
-                                        functionalities.
-                                    </p>
-                                </section>
+                        <div className="col-span-6 bg-white dark:bg-zinc-900 rounded-lg shadow overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                <div className="p-6">
+                                    <div className="prose dark:prose-invert max-w-none">
+                                        <section id="introduction">
+                                            <h1>API Documentation</h1>
+                                            <p>
+                                                Welcome to the API documentation. This API provides endpoints
+                                                for managing retail sales, inventory, and other related
+                                                functionalities.
+                                            </p>
+                                        </section>
 
-                                <section id="authentication" className="mt-12">
-                                    <h2>Authentication</h2>
-                                    <p>
-                                        All API endpoints require authentication using Bearer tokens.
-                                        Include the token in the Authorization header of your requests.
-                                    </p>
-                                    <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                        <code>
-                                            Authorization: Bearer your-token-here
-                                        </code>
+                                        <section id="authentication" className="mt-12">
+                                            <h2>Authentication</h2>
+                                            <p>
+                                                All API endpoints require authentication using Bearer tokens.
+                                                Include the token in the Authorization header of your requests.
+                                            </p>
+                                            <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                <code>
+                                                    Authorization: Bearer your-token-here
+                                                </code>
+                                            </div>
+                                        </section>
+
+                                        {/* Retail Sales Section */}
+                                        <section id="retail-sales" className="mt-12">
+                                            <h2>Retail Sales</h2>
+                                            
+                                            <div id="list-sales" className="mt-6">
+                                                <h3>List Sales</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">GET /api/retail-sales</h4>
+                                                    <p className="mt-2">Retrieve a list of retail sales with optional filtering and pagination</p>
+                                                </div>
+                                            </div>
+
+                                            <div id="create-sale" className="mt-6">
+                                                <h3>Create Sale</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">POST /api/retail-sales</h4>
+                                                    <p className="mt-2">Create a new retail sale transaction</p>
+                                                </div>
+                                            </div>
+
+                                            <div id="get-sale" className="mt-6">
+                                                <h3>Get Sale Details</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">GET /api/retail-sales/{'{id}'}</h4>
+                                                    <p className="mt-2">Retrieve detailed information about a specific sale</p>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        {/* Inventory Section */}
+                                        <section id="inventory" className="mt-12">
+                                            <h2>Inventory</h2>
+
+                                            <div id="list-items" className="mt-6">
+                                                <h3>List Items</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">GET /api/inventory</h4>
+                                                    <p className="mt-2">Retrieve a list of inventory items with optional filtering and pagination</p>
+                                                </div>
+                                            </div>
+
+                                            <div id="create-item" className="mt-6">
+                                                <h3>Create Item</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">POST /api/inventory</h4>
+                                                    <p className="mt-2">Add a new item to inventory</p>
+                                                </div>
+                                            </div>
+
+                                            <div id="update-item" className="mt-6">
+                                                <h3>Update Item</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">PUT /api/inventory/{'{id}'}</h4>
+                                                    <p className="mt-2">Update an existing inventory item</p>
+                                                </div>
+                                            </div>
+
+                                            <div id="delete-item" className="mt-6">
+                                                <h3>Delete Item</h3>
+                                                <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
+                                                    <h4 className="text-[#FF2D20] font-semibold">DELETE /api/inventory/{'{id}'}</h4>
+                                                    <p className="mt-2">Remove an item from inventory</p>
+                                                </div>
+                                            </div>
+                                        </section>
                                     </div>
-                                </section>
-
-                                {/* Retail Sales Section */}
-                                <section id="retail-sales" className="mt-12">
-                                    <h2>Retail Sales</h2>
-                                    
-                                    <div id="list-sales" className="mt-6">
-                                        <h3>List Sales</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">GET /api/retail-sales</h4>
-                                            <p className="mt-2">Retrieve a list of retail sales with optional filtering and pagination</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="create-sale" className="mt-6">
-                                        <h3>Create Sale</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">POST /api/retail-sales</h4>
-                                            <p className="mt-2">Create a new retail sale transaction</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="get-sale" className="mt-6">
-                                        <h3>Get Sale Details</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">GET /api/retail-sales/{'{id}'}</h4>
-                                            <p className="mt-2">Retrieve detailed information about a specific sale</p>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* Inventory Section */}
-                                <section id="inventory" className="mt-12">
-                                    <h2>Inventory</h2>
-
-                                    <div id="list-items" className="mt-6">
-                                        <h3>List Items</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">GET /api/inventory</h4>
-                                            <p className="mt-2">Retrieve a list of inventory items with optional filtering and pagination</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="create-item" className="mt-6">
-                                        <h3>Create Item</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">POST /api/inventory</h4>
-                                            <p className="mt-2">Add a new item to inventory</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="update-item" className="mt-6">
-                                        <h3>Update Item</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">PUT /api/inventory/{'{id}'}</h4>
-                                            <p className="mt-2">Update an existing inventory item</p>
-                                        </div>
-                                    </div>
-
-                                    <div id="delete-item" className="mt-6">
-                                        <h3>Delete Item</h3>
-                                        <div className="bg-gray-100 dark:bg-zinc-800 p-4 rounded-md mt-4">
-                                            <h4 className="text-[#FF2D20] font-semibold">DELETE /api/inventory/{'{id}'}</h4>
-                                            <p className="mt-2">Remove an item from inventory</p>
-                                        </div>
-                                    </div>
-                                </section>
+                                </div>
                             </div>
                         </div>
 
                         {/* Sample Request/Response Panel */}
-                        <div className="col-span-4">
-                            <ApiExample endpoint={selectedEndpoint} />
+                        <div className="col-span-4 bg-white dark:bg-zinc-900 rounded-lg shadow overflow-hidden">
+                            <div className="h-full overflow-y-auto">
+                                <div className="p-6">
+                                    <ApiExample endpoint={selectedEndpoint} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <footer className="bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700">
-                    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-                        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                <footer className="bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700 h-12">
+                    <div className="w-full px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             Laravel v{laravelVersion} (PHP v{phpVersion})
                         </p>
                     </div>

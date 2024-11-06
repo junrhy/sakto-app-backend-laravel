@@ -189,7 +189,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
     };
 
     return (
-        <div className="sticky top-6 space-y-6">
+        <div className="space-y-6">
             {/* Sample Request */}
             <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
                 <div className="px-4 py-2 bg-gray-200 dark:bg-zinc-700">
