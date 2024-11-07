@@ -14,29 +14,23 @@ class FnbMenuItemController extends Controller
      */
     public function index()
     {
-        $fnbMenuItems = [
-            "fnb_menu_items" => [
-                [
-                    "id" => 1,
-                    "name" => "Sample FNB Menu Item",
-                    "price" => 10.99,
-                    "category" => "Sample Category",
-                    "image" => "sample-image.jpg"
-                ],
-                [
-                    "id" => 2,
-                    "name" => "Sample FNB Menu Item 2",
-                    "price" => 15.99,
-                    "category" => "Sample Category 2",
-                    "image" => "sample-image-2.jpg"
-                ]
-            ]
-        ];
+        $fnbMenuItems = fnbMenuItem::all()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'price' => $item->price,
+                'category' => $item->category,
+                'image' => $item->image ?? 'https://via.placeholder.com/150',
+                'client_identifier' => $item->client_identifier
+            ];
+        });
 
         return response()->json([
             'status' => 'success',
             'message' => 'FNB Menu Items retrieved successfully',
-            'data' => $fnbMenuItems
+            'data' => [
+                'fnb_menu_items' => $fnbMenuItems
+            ]
         ]);
     }
 
