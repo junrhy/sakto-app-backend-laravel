@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\RetailSaleController;
+use App\Http\Controllers\Api\MenuController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -29,6 +30,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [RetailSaleController::class, 'store']);
         Route::delete('/sale/{id}', [RetailSaleController::class, 'destroy']);
         Route::post('/sales/bulk-delete', [RetailSaleController::class, 'bulkDelete']);
+    });
+
+    // F & B Menu Items Routes
+    Route::prefix('fnb-menu-items')->group(function () {
+        Route::get('/', [FnbMenuItemController::class, 'index']);
+        Route::post('/', [FnbMenuItemController::class, 'store']);
+        Route::get('/{id}', [FnbMenuItemController::class, 'show']);
+        Route::put('/{id}', [FnbMenuItemController::class, 'update']);
+        Route::delete('/{id}', [FnbMenuItemController::class, 'destroy']);
+        Route::post('/bulk-destroy', [FnbMenuItemController::class, 'bulkDestroy']);
     });
 
     // Future authenticated routes will go here...
