@@ -14,7 +14,30 @@ class FnbMenuItemController extends Controller
      */
     public function index()
     {
-        return fnbMenuItem::all();
+        $fnbMenuItems = [
+            "fnb_menu_items" => [
+                [
+                    "id" => 1,
+                    "name" => "Sample FNB Menu Item",
+                    "price" => 10.99,
+                    "category" => "Sample Category",
+                    "image" => "sample-image.jpg"
+                ],
+                [
+                    "id" => 2,
+                    "name" => "Sample FNB Menu Item 2",
+                    "price" => 15.99,
+                    "category" => "Sample Category 2",
+                    "image" => "sample-image-2.jpg"
+                ]
+            ]
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'FNB Menu Items retrieved successfully',
+            'data' => $fnbMenuItems
+        ]);
     }
 
     /**
@@ -34,7 +57,8 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'client_identifier' => 'nullable|string'
         ]);
 
         if ($request->hasFile('image')) {
@@ -70,7 +94,8 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:2048',
+            'client_identifier' => 'nullable|string'
         ]);
 
         if ($request->hasFile('image')) {
@@ -102,7 +127,7 @@ class FnbMenuItemController extends Controller
     {
         $validated = $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:menu_items,id'
+            'ids.*' => 'exists:fnb_menu_items,id'
         ]);
 
         $fnbMenuItems = fnbMenuItem::whereIn('id', $validated['ids'])->get();
