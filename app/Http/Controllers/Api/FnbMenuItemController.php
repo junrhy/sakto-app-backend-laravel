@@ -82,15 +82,17 @@ class FnbMenuItemController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbMenuItem $fnbMenuItem)
+    public function update(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:2048',
+            // 'image' => 'nullable|image|max:2048',
             'client_identifier' => 'nullable|string'
         ]);
+
+        $fnbMenuItem = fnbMenuItem::find($request->id);
 
         if ($request->hasFile('image')) {
             // Delete old image if exists
@@ -102,14 +104,16 @@ class FnbMenuItemController extends Controller
         }
 
         $fnbMenuItem->update($validated);
-        return $fnbMenuItem;
+        return response()->json(['status' => 'success', 'message' => 'Menu item updated successfully']);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbMenuItem $fnbMenuItem)
+    public function destroy(Request $request)
     {
+        $fnbMenuItem = fnbMenuItem::find($request->id);
+
         if ($fnbMenuItem->image) {
             Storage::delete(str_replace('/storage/', 'public/', $fnbMenuItem->image));
         }
