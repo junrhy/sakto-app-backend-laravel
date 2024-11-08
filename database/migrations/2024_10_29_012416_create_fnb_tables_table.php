@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('fnb_tables', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->integer('seats');
+            $table->enum('status', ['available', 'occupied', 'reserved', 'joined']);
             $table->timestamps();
         });
     }

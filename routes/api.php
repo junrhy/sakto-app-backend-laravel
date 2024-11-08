@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\RetailSaleController;
 use App\Http\Controllers\Api\FnbMenuItemController;
+use App\Http\Controllers\Api\FnbTableController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -40,6 +41,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [FnbMenuItemController::class, 'update']);
         Route::delete('/{id}', [FnbMenuItemController::class, 'destroy']);
         Route::post('/bulk-destroy', [FnbMenuItemController::class, 'bulkDestroy']);
+    });
+
+    // F & B Table Routes
+    Route::prefix('fnb-tables')->group(function () {
+        Route::get('/', [FnbTableController::class, 'index']);
+        Route::post('/', [FnbTableController::class, 'store']);
+        Route::put('/{fnbTable}', [FnbTableController::class, 'update']);
+        Route::delete('/{fnbTable}', [FnbTableController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...
