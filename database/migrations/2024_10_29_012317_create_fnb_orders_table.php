@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('fnb_orders', function (Blueprint $table) {
             $table->id();
+            $table->string('client_identifier')->nullable();
             $table->timestamps();
         });
     }

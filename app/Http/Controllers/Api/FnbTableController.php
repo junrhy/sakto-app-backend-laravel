@@ -24,7 +24,8 @@ class FnbTableController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'seats' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,reserved,joined'
+            'status' => 'required|in:available,occupied,reserved,joined',
+            'client_identifier' => 'nullable|string'
         ]);
 
         $table = FnbTable::create($validated);
@@ -43,7 +44,8 @@ class FnbTableController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string',
             'seats' => 'sometimes|integer|min:1',
-            'status' => 'sometimes|in:available,occupied,reserved,joined'
+            'status' => 'sometimes|in:available,occupied,reserved,joined',
+            'client_identifier' => 'nullable|string'
         ]);
 
         $fnbTable->update($validated);

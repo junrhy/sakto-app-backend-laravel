@@ -11,14 +11,11 @@ class FnbTable extends Model
 
     protected $table = 'fnb_tables';
 
-    protected $fillable = [
-        'name',
-        'seats',
-        'status'
-    ];
+    protected $fillable = ['name', 'seats', 'status', 'client_identifier'];
 
     protected $casts = [
         'seats' => 'integer',
-        'status' => 'string'
+        'status' => 'string',
+        'client_identifier' => 'string'
     ];
 }

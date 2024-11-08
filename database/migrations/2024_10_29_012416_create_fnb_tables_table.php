@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->integer('seats');
             $table->enum('status', ['available', 'occupied', 'reserved', 'joined']);
+            $table->string('client_identifier')->nullable();
             $table->timestamps();
         });
     }
