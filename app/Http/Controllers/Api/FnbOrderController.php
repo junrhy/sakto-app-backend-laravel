@@ -46,7 +46,7 @@ class FnbOrderController extends Controller
         
         $fnbMenuItem = FnbMenuItem::where('id', $request->items[0]['id'])->first();
 
-        $fnbOrder = fnbOrder::where('table_number', $tableNumber)->first();
+        $fnbOrder = fnbOrder::where('table_number', $tableNumber)->where('item', $fnbMenuItem->name)->first();
         if ($fnbOrder) {
             $fnbOrder->update([
                 'quantity' => $request->items[0]['quantity'],
