@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('fnb_orders', function (Blueprint $table) {
             $table->id();
             $table->string('table_number');
-            $table->json('items');
-            $table->string('order_time');
-            $table->string('status');
+            $table->string('item');
+            $table->integer('quantity');
+            $table->decimal('price');
+            $table->decimal('total');
             $table->string('client_identifier')->nullable();
             $table->timestamps();
         });

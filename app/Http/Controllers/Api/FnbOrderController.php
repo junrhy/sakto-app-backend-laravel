@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\FnbTable;
+use App\Models\FnbMenuItem;
 use App\Models\fnbOrder;
 use Illuminate\Http\Request;
 
@@ -20,19 +22,32 @@ class FnbOrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, string $tableNumber)
     {
-        $fnbOrder = fnbOrder::create($request->all());
-        return response()->json($fnbOrder, 201);
-    }
+        $fnbTable = FnbTable::where('name', $tableNumber)->first();
+        if ($fnbTable->status === 'available') {
+            $fnbTable->update(['status' => 'occupied']);
+        }
+        
+        $fnbMenuItem = FnbMenuItem::where('id', $request->items[0]['id'])->first();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, fnbOrder $fnbOrder)
-    {
-        $fnbOrder->update($request->all());
-        return response()->json($fnbOrder);
+        $fnbOrder = fnbOrder::where('table_number', $tableNumber)->first();
+        if ($fnbOrder) {
+            $fnbOrder->update([
+                'quantity' => $request->items[0]['quantity'],
+                'total' => $request->items[0]['total']
+            ]);
+        } else {
+            $fnbOrder = fnbOrder::create([
+                'table_number' => $tableNumber,
+                'item' => $fnbMenuItem->name,
+                'quantity' => $request->items[0]['quantity'],
+                'price' => $request->items[0]['price'],
+                'total' => $request->items[0]['total'],
+                'client_identifier' => $request->client_identifier
+            ]);
+            return response()->json($fnbOrder, 201);
+        }
     }
 
     /**

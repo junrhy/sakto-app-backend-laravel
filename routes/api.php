@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\RetailSaleController;
 use App\Http\Controllers\Api\FnbMenuItemController;
 use App\Http\Controllers\Api\FnbTableController;
+use App\Http\Controllers\Api\FnbOrderController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -52,6 +53,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/join', [FnbTableController::class, 'joinTables']);
         Route::post('/unjoin', [FnbTableController::class, 'unjoinTables']);
         Route::get('/joined', [FnbTableController::class, 'getJoinedTables']);
+    });
+
+    // F & B Order Routes
+    Route::prefix('fnb-orders')->group(function () {
+        Route::get('/{tableNumber}', [FnbOrderController::class, 'index']);
+        Route::post('/{tableNumber}', [FnbOrderController::class, 'store']);
+        Route::put('/{fnbOrder}', [FnbOrderController::class, 'update']);
+        Route::delete('/{fnbOrder}', [FnbOrderController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...
