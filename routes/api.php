@@ -59,8 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('fnb-orders')->group(function () {
         Route::get('/{tableNumber}', [FnbOrderController::class, 'index']);
         Route::post('/{tableNumber}', [FnbOrderController::class, 'store']);
-        Route::put('/{fnbOrder}', [FnbOrderController::class, 'update']);
-        Route::delete('/{fnbOrder}', [FnbOrderController::class, 'destroy']);
+        Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...

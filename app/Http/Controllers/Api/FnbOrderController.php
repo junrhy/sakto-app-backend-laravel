@@ -53,8 +53,10 @@ class FnbOrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbOrder $fnbOrder)
+    public function destroy(string $tableNumber, int $id)
     {
+        $fnbMenuItem = FnbMenuItem::where('id', $id)->first();
+        $fnbOrder = fnbOrder::where('table_number', $tableNumber)->where('item', $fnbMenuItem->name)->first();
         $fnbOrder->delete();
         return response()->json(['message' => 'Order deleted successfully']);
     }
