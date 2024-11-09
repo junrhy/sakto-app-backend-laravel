@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // F & B Order Routes
     Route::prefix('fnb-orders')->group(function () {
-        Route::get('/{tableNumber}', [FnbOrderController::class, 'index']);
+        Route::get('/client/{clientIdentifier}/table/{tableNumber}', [FnbOrderController::class, 'index']);
         Route::post('/{tableNumber}', [FnbOrderController::class, 'store']);
         Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
     });

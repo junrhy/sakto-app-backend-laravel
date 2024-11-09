@@ -13,10 +13,25 @@ class FnbOrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index($clientIdentifier, $tableNumber)
     {
-        $fnbOrders = fnbOrder::all();
-        return response()->json($fnbOrders);
+        $fnbTable = FnbTable::where('name', $tableNumber)->first();
+        $fnbOrders = fnbOrder::where('client_identifier', $clientIdentifier)->where('table_number', $fnbTable->name)->get();
+
+        $items = $fnbOrders->map(function ($order) {
+            return [
+                'id' => $order->id,
+                'table_number' => $order->table_number,
+                'item' => $order->item,
+                'quantity' => $order->quantity,
+                'price' => $order->price,
+                'total' => $order->total
+            ];
+        });
+
+
+
+        return response()->json(['orders' => ['items' => $items]]);
     }
 
     /**
