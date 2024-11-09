@@ -13,15 +13,8 @@ class FnbOrderController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $fnbOrders = fnbOrder::all();
+        return response()->json($fnbOrders);
     }
 
     /**
@@ -29,23 +22,8 @@ class FnbOrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(fnbOrder $fnbOrder)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(fnbOrder $fnbOrder)
-    {
-        //
+        $fnbOrder = fnbOrder::create($request->all());
+        return response()->json($fnbOrder, 201);
     }
 
     /**
@@ -53,7 +31,8 @@ class FnbOrderController extends Controller
      */
     public function update(Request $request, fnbOrder $fnbOrder)
     {
-        //
+        $fnbOrder->update($request->all());
+        return response()->json($fnbOrder);
     }
 
     /**
@@ -61,6 +40,7 @@ class FnbOrderController extends Controller
      */
     public function destroy(fnbOrder $fnbOrder)
     {
-        //
+        $fnbOrder->delete();
+        return response()->json(['message' => 'Order deleted successfully']);
     }
 }

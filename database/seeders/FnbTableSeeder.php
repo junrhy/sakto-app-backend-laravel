@@ -9,6 +9,8 @@ class FnbTableSeeder extends Seeder
 {
     public function run()
     {
+        FnbTable::truncate();
+
         $tables = [
             ['name' => 'Table 1', 'seats' => 4, 'status' => 'available'],
             ['name' => 'Table 2', 'seats' => 2, 'status' => 'available'],

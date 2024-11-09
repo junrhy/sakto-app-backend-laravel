@@ -49,6 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [FnbTableController::class, 'store']);
         Route::put('/{fnbTable}', [FnbTableController::class, 'update']);
         Route::delete('/{fnbTable}', [FnbTableController::class, 'destroy']);
+        Route::post('/join', [FnbTableController::class, 'joinTables']);
+        Route::post('/unjoin', [FnbTableController::class, 'unjoinTables']);
+        Route::get('/joined', [FnbTableController::class, 'getJoinedTables']);
     });
 
     // Future authenticated routes will go here...

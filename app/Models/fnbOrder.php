@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class fnbOrder extends Model
 {
-    //
+    protected $fillable = ['table_number', 'items', 'order_time', 'status'];
 }

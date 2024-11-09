@@ -13,15 +13,17 @@ class FnbMenuItemSeeder extends Seeder
      */
     public function run(): void
     {
+        fnbMenuItem::truncate();
+    
         fnbMenuItem::create([
-            'name' => 'Sample FNB Menu Item',
+            'name' => 'Main',
             'price' => 10.99,
             'category' => 'Sample Category',
             'image' => 'https://picsum.photos/400/300?random=1'
         ]);
 
         fnbMenuItem::create([
-            'name' => 'Sample FNB Menu Item 2',
+            'name' => 'Side',
             'price' => 15.99,
             'category' => 'Sample Category 2',
             'image' => 'https://picsum.photos/400/300?random=2'
@@ -30,7 +32,7 @@ class FnbMenuItemSeeder extends Seeder
         fnbMenuItem::create([
             'name' => 'Sample FNB Menu Item 3',
             'price' => 20.99,
-            'category' => 'Sample Category 3',
+            'category' => 'Drink',
             'image' => 'https://picsum.photos/400/300?random=3'
         ]);
     }
