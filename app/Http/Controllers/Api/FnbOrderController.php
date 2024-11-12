@@ -37,30 +37,32 @@ class FnbOrderController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, string $tableNumber)
+    public function addItemToOrder(Request $request)
     {
-        $fnbTable = FnbTable::where('name', $tableNumber)->first();
+        $fnbTable = FnbTable::where('name', $request->table_number)->first();
         if ($fnbTable->status === 'available') {
             $fnbTable->update(['status' => 'occupied']);
         }
         
-        $fnbMenuItem = FnbMenuItem::where('id', $request->items[0]['id'])->first();
+        $fnbMenuItem = FnbMenuItem::where('id', $request->item_id)->first();
 
-        $fnbOrder = fnbOrder::where('table_number', $tableNumber)->where('item', $fnbMenuItem->name)->first();
+        $fnbOrder = fnbOrder::where('table_number', $request->table_number)->where('item', $fnbMenuItem->name)->first();
         if ($fnbOrder) {
             $fnbOrder->update([
-                'quantity' => $request->items[0]['quantity'],
-                'total' => $request->items[0]['total']
+                'quantity' => $request->quantity,
+                'total' => $request->total
             ]);
+            return response()->json($fnbOrder, 200);
         } else {
             $fnbOrder = fnbOrder::create([
-                'table_number' => $tableNumber,
+                'table_number' => $request->table_number,
                 'item' => $fnbMenuItem->name,
-                'quantity' => $request->items[0]['quantity'],
-                'price' => $request->items[0]['price'],
-                'total' => $request->items[0]['total'],
+                'quantity' => $request->quantity,
+                'price' => $request->price,
+                'total' => $request->total,
                 'client_identifier' => $request->client_identifier
             ]);
+            $fnbOrder->id = $fnbOrder->id;
             return response()->json($fnbOrder, 201);
         }
     }
@@ -70,8 +72,6 @@ class FnbOrderController extends Controller
      */
     public function destroy(string $tableNumber, int $id)
     {
-        // $fnbMenuItem = FnbMenuItem::where('id', $id)->first();
-        // $fnbOrder = fnbOrder::where('table_number', $tableNumber)->where('item', $fnbMenuItem->name)->first();
         $fnbOrder = fnbOrder::where('id', $id)->first();
         $fnbOrder->delete();
         return response()->json(['message' => 'Order deleted successfully']);
