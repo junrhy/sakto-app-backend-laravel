@@ -14,11 +14,12 @@ return new class extends Migration
         Schema::create('fnb_orders', function (Blueprint $table) {
             $table->id();
             $table->string('table_number');
-            $table->string('item');
-            $table->integer('quantity');
-            $table->decimal('price');
-            $table->decimal('total');
-            $table->string('client_identifier')->nullable();
+            $table->string('client_identifier');
+            $table->string('status')->default('active');
+            $table->string('item')->nullable();
+            $table->integer('quantity')->nullable();
+            $table->decimal('price', 10, 2)->nullable();
+            $table->decimal('total', 10, 2)->nullable();
             $table->timestamps();
         });
     }
