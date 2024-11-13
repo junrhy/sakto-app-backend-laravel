@@ -39,6 +39,7 @@ class FnbOrderController extends Controller
      */
     public function addItemToOrder(Request $request)
     {
+
         $fnbTable = FnbTable::where('name', $request->table_number)->first();
         if ($fnbTable->status === 'available') {
             $fnbTable->update(['status' => 'occupied']);
@@ -49,11 +50,12 @@ class FnbOrderController extends Controller
         $fnbOrder = fnbOrder::where('table_number', $request->table_number)->where('item', $fnbMenuItem->name)->first();
         if ($fnbOrder) {
             $fnbOrder->update([
-                'quantity' => $request->quantity,
-                'total' => $request->total
+                'quantity' => $fnbOrder->quantity + $request->quantity,
+                'total' => ($fnbOrder->quantity + $request->quantity) * $request->price
             ]);
             return response()->json($fnbOrder, 200);
         } else {
+            return response()->json(['message' => 'Item not found'], 404);
             $fnbOrder = fnbOrder::create([
                 'table_number' => $request->table_number,
                 'item' => $fnbMenuItem->name,
