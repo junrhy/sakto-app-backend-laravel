@@ -31,7 +31,7 @@ class FnbOrderController extends Controller
 
 
 
-        return response()->json(['orders' => ['items' => $items]]);
+        return response()->json(['order' => ['items' => $items]]);
     }
 
     /**
@@ -55,7 +55,6 @@ class FnbOrderController extends Controller
             ]);
             return response()->json($fnbOrder, 200);
         } else {
-            return response()->json(['message' => 'Item not found'], 404);
             $fnbOrder = fnbOrder::create([
                 'table_number' => $request->table_number,
                 'item' => $fnbMenuItem->name,
