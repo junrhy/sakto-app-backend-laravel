@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RetailSaleController;
 use App\Http\Controllers\Api\FnbMenuItemController;
 use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
+use App\Http\Controllers\Api\FnbReservationController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -62,6 +63,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
         Route::post('/complete', [FnbOrderController::class, 'completeOrder']);
         Route::post('/kitchen-order', [FnbOrderController::class, 'storeKitchenOrder']);
+    });
+
+    // F & B Reservation Routes
+    Route::prefix('fnb-reservations')->group(function () {
+        Route::get('/', [FnbReservationController::class, 'index']);
+        Route::post('/', [FnbReservationController::class, 'store']);
+        Route::delete('/{id}', [FnbReservationController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...

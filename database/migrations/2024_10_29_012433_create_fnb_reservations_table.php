@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('fnb_reservations', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('date');
+            $table->string('time');
+            $table->string('guests');
+            $table->string('table_id');
+            $table->string('notes')->nullable();
+            $table->string('contact')->nullable();
+            $table->string('status');
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

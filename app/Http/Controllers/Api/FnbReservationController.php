@@ -13,54 +13,39 @@ class FnbReservationController extends Controller
      */
     public function index()
     {
-        //
+        $reservations = fnbReservation::all();
+        return response()->json($reservations);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
-    }
+        $validated = $request->validate([
+            'name' => 'required',
+            'date' => 'required',
+            'time' => 'required',
+            'guests' => 'required',
+            'table_id' => 'required',
+            'client_identifier' => 'required',
+            'status' => 'required',
+            'contact' => 'nullable',
+            'notes' => 'nullable',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(fnbReservation $fnbReservation)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(fnbReservation $fnbReservation)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, fnbReservation $fnbReservation)
-    {
-        //
+        $reservation = fnbReservation::create($validated);
+        return response()->json($reservation, 201);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbReservation $fnbReservation)
+    public function destroy($id)
     {
-        //
+        $fnbReservation = fnbReservation::where('id', $id)->first();
+        $fnbReservation->delete();
+        return response()->json(['message' => 'Reservation deleted successfully'], 204);
     }
 }
