@@ -77,4 +77,25 @@ class FnbOrderController extends Controller
         $fnbOrder->delete();
         return response()->json(['message' => 'Order deleted successfully']);
     }
+
+    public function completeOrder(Request $request)
+    {
+        $fnbOrder = fnbOrder::where('table_number', $request->table_number)->get();
+        $fnbOrder->update(['status' => 'completed']);
+
+        $fnbTable = FnbTable::where('name', $request->table_number)->first();
+        $fnbTable->update(['status' => 'available']);
+
+        $fnbSale = FnbSale::create([
+            'table_number' => $request->table_number,
+            'items' => $request->items,
+            'subtotal' => $request->subtotal,
+            'discount' => $request->discount,
+            'discount_type' => $request->discount_type,
+            'total' => $request->total,
+            'client_identifier' => $request->client_identifier
+        ]);
+
+        return response()->json(['message' => 'Order completed successfully']);
+    }
 }

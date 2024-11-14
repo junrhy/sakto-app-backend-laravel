@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/client/{clientIdentifier}/table/{tableNumber}', [FnbOrderController::class, 'index']);
         Route::post('/add-item', [FnbOrderController::class, 'addItemToOrder']);
         Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
+        Route::post('/complete', [FnbOrderController::class, 'completeOrder']);
     });
 
     // Future authenticated routes will go here...
