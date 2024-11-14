@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FnbTable;
 use App\Models\FnbMenuItem;
-use App\Models\fnbOrder;
+use App\Models\FnbOrder;
+use App\Models\FnbSale;
 use Illuminate\Http\Request;
 
 class FnbOrderController extends Controller
@@ -16,7 +17,7 @@ class FnbOrderController extends Controller
     public function index($clientIdentifier, $tableNumber)
     {
         $fnbTable = FnbTable::where('name', $tableNumber)->first();
-        $fnbOrders = fnbOrder::where('client_identifier', $clientIdentifier)->where('table_number', $fnbTable->name)->get();
+        $fnbOrders = FnbOrder::where('client_identifier', $clientIdentifier)->where('table_number', $fnbTable->name)->get();
 
         $items = $fnbOrders->map(function ($order) {
             return [
@@ -47,7 +48,7 @@ class FnbOrderController extends Controller
         
         $fnbMenuItem = FnbMenuItem::where('id', $request->item_id)->first();
 
-        $fnbOrder = fnbOrder::where('table_number', $request->table_number)->where('item', $fnbMenuItem->name)->first();
+        $fnbOrder = FnbOrder::where('table_number', $request->table_number)->where('item', $fnbMenuItem->name)->first();
         if ($fnbOrder) {
             $fnbOrder->update([
                 'quantity' => $fnbOrder->quantity + $request->quantity,
@@ -55,7 +56,7 @@ class FnbOrderController extends Controller
             ]);
             return response()->json($fnbOrder, 200);
         } else {
-            $fnbOrder = fnbOrder::create([
+            $fnbOrder = FnbOrder::create([
                 'table_number' => $request->table_number,
                 'item' => $fnbMenuItem->name,
                 'quantity' => $request->quantity,
@@ -73,18 +74,15 @@ class FnbOrderController extends Controller
      */
     public function destroy(string $tableNumber, int $id)
     {
-        $fnbOrder = fnbOrder::where('id', $id)->first();
+        $fnbOrder = FnbOrder::where('id', $id)->first();
         $fnbOrder->delete();
         return response()->json(['message' => 'Order deleted successfully']);
     }
 
     public function completeOrder(Request $request)
     {
-        $fnbOrder = fnbOrder::where('table_number', $request->table_number)->get();
-        $fnbOrder->update(['status' => 'completed']);
-
-        $fnbTable = FnbTable::where('name', $request->table_number)->first();
-        $fnbTable->update(['status' => 'available']);
+        FnbOrder::where('table_number', $request->table_number)->update(['status' => 'completed']);
+        FnbTable::where('name', $request->table_number)->update(['status' => 'available']);
 
         $fnbSale = FnbSale::create([
             'table_number' => $request->table_number,
