@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/add-item', [FnbOrderController::class, 'addItemToOrder']);
         Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
         Route::post('/complete', [FnbOrderController::class, 'completeOrder']);
+        Route::post('/kitchen-order', [FnbOrderController::class, 'storeKitchenOrder']);
     });
 
     // Future authenticated routes will go here...

@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('fnb_kitchen_orders', function (Blueprint $table) {
             $table->id();
-            $table->string('client_identifier')->nullable();
+            $table->string('table_number');
+            $table->json('items');
+            $table->string('status');
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

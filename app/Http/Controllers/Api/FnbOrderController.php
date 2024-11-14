@@ -7,6 +7,7 @@ use App\Models\FnbTable;
 use App\Models\FnbMenuItem;
 use App\Models\FnbOrder;
 use App\Models\FnbSale;
+use App\Models\FnbKitchenOrder;
 use Illuminate\Http\Request;
 
 class FnbOrderController extends Controller
@@ -81,6 +82,16 @@ class FnbOrderController extends Controller
 
     public function completeOrder(Request $request)
     {
+        $validated = $request->validate([
+            'table_number' => 'required',
+            'items' => 'required',
+            'subtotal' => 'required',
+            'discount' => 'required',
+            'discount_type' => 'required',
+            'total' => 'required',
+            'client_identifier' => 'required'
+        ]);
+
         FnbOrder::where('table_number', $request->table_number)->update(['status' => 'completed']);
         FnbTable::where('name', $request->table_number)->update(['status' => 'available']);
 
@@ -94,6 +105,24 @@ class FnbOrderController extends Controller
             'client_identifier' => $request->client_identifier
         ]);
 
-        return response()->json(['message' => 'Order completed successfully']);
+        return response()->json($fnbSale);
+    }
+
+    public function storeKitchenOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'table_number' => 'required',
+            'items' => 'required',
+            'client_identifier' => 'required'
+        ]);
+
+        FnbKitchenOrder::create([
+            'table_number' => $request->table_number,
+            'items' => json_encode($request->items),
+            'status' => 'pending',
+            'client_identifier' => $request->client_identifier
+        ]);
+
+        return response()->json(['message' => 'Kitchen order created successfully']);
     }
 }

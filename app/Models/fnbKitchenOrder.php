@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class fnbKitchenOrder extends Model
+class FnbKitchenOrder extends Model
 {
-    //
+    protected $fillable = ['table_number', 'items', 'status', 'client_identifier'];
 }
