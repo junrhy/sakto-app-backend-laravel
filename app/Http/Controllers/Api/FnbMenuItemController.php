@@ -20,7 +20,7 @@ class FnbMenuItemController extends Controller
                 'name' => $item->name,
                 'price' => $item->price,
                 'category' => $item->category,
-                'image' => $item->image ?? 'https://via.placeholder.com/150',
+                'public_image_url' => $item->public_image_url,
                 'client_identifier' => $item->client_identifier
             ];
         });
@@ -32,14 +32,6 @@ class FnbMenuItemController extends Controller
                 'fnb_menu_items' => $fnbMenuItems
             ]
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -64,22 +56,6 @@ class FnbMenuItemController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(fnbMenuItem $fnbMenuItem)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(fnbMenuItem $fnbMenuItem)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request)
@@ -96,10 +72,13 @@ class FnbMenuItemController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($fnbMenuItem->image) {
-                Storage::delete(str_replace('/storage/', 'public/', $fnbMenuItem->image));
+                // Extract filename from the full URL/path
+                $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
+                Storage::disk('public')->delete('fnb-menu-items/' . $filename);
             }
-            $path = $request->file('image')->store('menu-items', 'public');
+            $path = $request->file('image')->store('fnb-menu-items', 'public');
             $validated['image'] = Storage::url($path);
+            $validated['public_image_url'] = 'http://127.0.0.1:8001/image/fnb-menu-item/' . str_replace('fnb-menu-items/', '', $path);
         }
 
         $fnbMenuItem->update($validated);
