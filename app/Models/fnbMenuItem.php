@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class fnbMenuItem extends Model
 {
-    protected $fillable = ['name', 'price', 'category', 'image', 'client_identifier'];
+    protected $fillable = ['name', 'price', 'category', 'image', 'public_image_url', 'client_identifier'];
 }

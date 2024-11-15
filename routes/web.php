@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\FnbMenuItemController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -23,5 +24,8 @@ Route::get('/dashboard', function () {
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 //     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 // });
+
+// Route to serve image from storage
+Route::get('/image/fnb-menu-item/{filename}', [FnbMenuItemController::class, 'getImage']);
 
 require __DIR__.'/auth.php';

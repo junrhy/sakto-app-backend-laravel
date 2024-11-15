@@ -51,13 +51,13 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:2048',
             'client_identifier' => 'nullable|string'
         ]);
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('menu-items', 'public');
+            $path = $request->file('image')->store('fnb-menu-items', 'public');
             $validated['image'] = Storage::url($path);
+            $validated['public_image_url'] = 'http://127.0.0.1:8001/image/fnb-menu-item/' . str_replace('fnb-menu-items/', '', $path);
         }
     
         return fnbMenuItem::create($validated);
@@ -88,7 +88,6 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
-            // 'image' => 'nullable|image|max:2048',
             'client_identifier' => 'nullable|string'
         ]);
 
@@ -138,5 +137,11 @@ class FnbMenuItemController extends Controller
 
         fnbMenuItem::whereIn('id', $validated['ids'])->delete();
         return response()->noContent();
+    }
+
+    public function getImage($filename)
+    {
+        $image = Storage::disk('public')->get('fnb-menu-items/' . $filename);
+        return response($image, 200)->header('Content-Type', 'image/jpeg');
     }
 }
