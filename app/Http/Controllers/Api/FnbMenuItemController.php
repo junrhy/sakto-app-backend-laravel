@@ -114,8 +114,11 @@ class FnbMenuItemController extends Controller
         $fnbMenuItem = fnbMenuItem::find($request->id);
 
         if ($fnbMenuItem->image) {
-            Storage::delete(str_replace('/storage/', 'public/', $fnbMenuItem->image));
+            // Extract filename from the full URL/path
+            $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
+            Storage::disk('public')->delete('fnb-menu-items/' . $filename);
         }
+        
         $fnbMenuItem->delete();
         return response()->noContent();
     }
@@ -131,7 +134,8 @@ class FnbMenuItemController extends Controller
         
         foreach ($fnbMenuItems as $fnbMenuItem) {
             if ($fnbMenuItem->image) {
-                Storage::delete(str_replace('/storage/', 'public/', $fnbMenuItem->image));
+                $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
+                Storage::disk('public')->delete('fnb-menu-items/' . $filename);
             }
         }
 
