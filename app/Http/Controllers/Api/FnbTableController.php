@@ -140,4 +140,10 @@ class FnbTableController extends Controller
             ]
         ]);
     }
+
+    public function getTablesOverview()
+    {
+        $tables = FnbTable::select('name', 'seats', 'status')->get();
+        return response()->json($tables);
+    }
 }
