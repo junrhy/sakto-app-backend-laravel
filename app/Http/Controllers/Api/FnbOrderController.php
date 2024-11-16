@@ -125,4 +125,10 @@ class FnbOrderController extends Controller
 
         return response()->json(['message' => 'Kitchen order created successfully']);
     }
+
+    public function getKitchenOrdersOverview()
+    {
+        $kitchenOrders = FnbKitchenOrder::all();
+        return response()->json($kitchenOrders);
+    }
 }
