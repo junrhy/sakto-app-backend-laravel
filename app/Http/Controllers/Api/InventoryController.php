@@ -118,4 +118,20 @@ class InventoryController extends Controller
             'message' => 'Selected inventories deleted successfully'
         ]);
     }
+
+    public function getProductsOverview()
+    {
+        $products = RetailItem::all();
+
+        $inventory = [
+            'products' => $products,
+            'categories' => RetailCategory::all(),
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Products overview retrieved successfully',
+            'data' => $inventory
+        ]);
+    }
 }
