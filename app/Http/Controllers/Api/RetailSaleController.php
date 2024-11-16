@@ -23,14 +23,6 @@ class RetailSaleController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -61,30 +53,6 @@ class RetailSaleController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(RetailSale $retailSale)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RetailSale $retailSale)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, RetailSale $retailSale)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
@@ -105,6 +73,17 @@ class RetailSaleController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Retail sales deleted successfully'
+        ], 200);
+    }
+
+    public function getSalesOverview()
+    {
+        $todaySales = RetailSale::whereDate('created_at', now()->today())->sum('total_amount');
+        $weeklySales = RetailSale::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('total_amount');
+
+        return response()->json([
+            'todaySales' => $todaySales,
+            'weeklySales' => $weeklySales
         ], 200);
     }
 }

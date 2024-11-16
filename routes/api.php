@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [RetailSaleController::class, 'store']);
         Route::delete('/sale/{id}', [RetailSaleController::class, 'destroy']);
         Route::post('/sales/bulk-delete', [RetailSaleController::class, 'bulkDelete']);
+        Route::get('/sales/overview', [RetailSaleController::class, 'getSalesOverview']);
     });
 
     // F & B Menu Items Routes
