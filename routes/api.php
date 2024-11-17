@@ -20,7 +20,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/products-overview', [InventoryController::class, 'getProductsOverview']);
     Route::get('/tables-overview', [FnbTableController::class, 'getTablesOverview']);
     Route::get('/kitchen-orders-overview', [FnbOrderController::class, 'getKitchenOrdersOverview']);
-
+    Route::get('/reservations-overview', [FnbReservationController::class, 'getReservationsOverview']);
+ 
     // Inventory Routes
     Route::prefix('inventory')->group(function () {
         Route::get('/', [InventoryController::class, 'index']);

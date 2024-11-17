@@ -48,4 +48,10 @@ class FnbReservationController extends Controller
         $fnbReservation->delete();
         return response()->json(['message' => 'Reservation deleted successfully'], 204);
     }
+
+    public function getReservationsOverview()
+    {
+        $reservations = fnbReservation::all();
+        return response()->json($reservations);
+    }
 }
