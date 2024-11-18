@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\RetailItem;
 use App\Models\RetailCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class InventoryController extends Controller
 {
@@ -35,9 +36,23 @@ class InventoryController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:255',
             'client_identifier' => 'required',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
         ]);
-    
-        $inventory = RetailItem::create($request->all());
+
+        $data = $request->all();
+        
+        // Handle image uploads if present
+        if ($request->hasFile('images')) {
+            $imageUrls = [];
+            foreach ($request->file('images') as $image) {
+                $imageUrl = Storage::disk('s3')->put('inventory-images', $image);
+                $imageUrls[] = Storage::disk('s3')->url($imageUrl);
+            }
+            $data['images'] = $imageUrls;
+        }
+
+        $inventory = RetailItem::create($data);
+        
         return response()->json([
             'status' => 'success',
             'message' => 'Inventory created successfully',
@@ -133,5 +148,23 @@ class InventoryController extends Controller
             'message' => 'Products overview retrieved successfully',
             'data' => $inventory
         ]);
+    }
+
+    public function uploadImages(Request $request)
+    {
+        $request->validate([
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
+
+        $images = $request->file('images');
+        $imageUrls = [];
+
+        foreach ($images as $image) {
+            $imageUrl = Storage::disk('s3')->put('inventory-images', $image);
+            $imageUrls[] = $imageUrl;
+        }
+
+        return response()->json(['urls' => $imageUrls]);
     }
 }
