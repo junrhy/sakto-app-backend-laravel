@@ -12,9 +12,10 @@ class RetailSaleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $retailSales = RetailSale::all();
+        $clientIdentifier = $request->client_identifier;
+        $retailSales = RetailSale::where('client_identifier', $clientIdentifier)->get();
 
         return response()->json([
             'status' => 'success',
@@ -76,10 +77,11 @@ class RetailSaleController extends Controller
         ], 200);
     }
 
-    public function getSalesOverview()
+    public function getSalesOverview(Request $request)
     {
-        $todaySales = RetailSale::whereDate('created_at', now()->today())->sum('total_amount');
-        $weeklySales = RetailSale::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('total_amount');
+        $clientIdentifier = $request->client_identifier;
+        $todaySales = RetailSale::where('client_identifier', $clientIdentifier)->whereDate('created_at', now()->today())->sum('total_amount');
+        $weeklySales = RetailSale::where('client_identifier', $clientIdentifier)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('total_amount');
 
         return response()->json([
             'todaySales' => $todaySales,

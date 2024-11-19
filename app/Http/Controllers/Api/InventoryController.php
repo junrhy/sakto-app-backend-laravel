@@ -13,11 +13,12 @@ class InventoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $clientIdentifier = $request->client_identifier;
         $inventories = [
-            'products' => RetailItem::all(),
-            'categories' => RetailCategory::all(),
+            'products' => RetailItem::where('client_identifier', $clientIdentifier)->get(),
+            'categories' => RetailCategory::where('client_identifier', $clientIdentifier)->get(),
         ];
 
         return response()->json([

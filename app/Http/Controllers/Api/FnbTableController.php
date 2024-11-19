@@ -8,9 +8,10 @@ use Illuminate\Http\Request;
 
 class FnbTableController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tables = FnbTable::all();
+        $clientIdentifier = $request->client_identifier;
+        $tables = FnbTable::where('client_identifier', $clientIdentifier)->get();
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -130,9 +131,10 @@ class FnbTableController extends Controller
         ]);
     }
 
-    public function getJoinedTables()
+    public function getJoinedTables(Request $request)
     {
-        $joinedTables = FnbTable::where('status', 'joined')->get();
+        $clientIdentifier = $request->client_identifier;
+        $joinedTables = FnbTable::where('status', 'joined')->where('client_identifier', $clientIdentifier)->get();
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -141,9 +143,10 @@ class FnbTableController extends Controller
         ]);
     }
 
-    public function getTablesOverview()
+    public function getTablesOverview(Request $request)
     {
-        $tables = FnbTable::select('name', 'seats', 'status')->get();
+        $clientIdentifier = $request->client_identifier;
+        $tables = FnbTable::select('name', 'seats', 'status')->where('client_identifier', $clientIdentifier)->get();
         return response()->json($tables);
     }
 }

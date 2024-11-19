@@ -12,9 +12,11 @@ class FnbMenuItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $fnbMenuItems = fnbMenuItem::all()->map(function ($item) {
+        $clientIdentifier = $request->client_identifier;
+
+        $fnbMenuItems = fnbMenuItem::where('client_identifier', $clientIdentifier)->get()->map(function ($item) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,

@@ -11,9 +11,10 @@ class FnbReservationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $reservations = fnbReservation::all();
+        $clientIdentifier = $request->client_identifier;
+        $reservations = fnbReservation::where('client_identifier', $clientIdentifier)->get();
         return response()->json($reservations);
     }
 
