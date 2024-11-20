@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('loan_bills', function (Blueprint $table) {
             $table->id();
             $table->foreignId('loan_id')->constrained('loans');
-            $table->decimal('amount', 10, 2);
             $table->date('due_date');
+            $table->decimal('principal', 10, 2);
+            $table->decimal('interest', 10, 2);
+            $table->decimal('total_amount', 10, 2);
             $table->string('status');
             $table->string('client_identifier');
             $table->timestamps();
