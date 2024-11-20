@@ -11,9 +11,14 @@ class LoanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $clientIdentifier = $request->client_identifier;
+        $loans = Loan::where('client_identifier', $clientIdentifier)->get();
+        return response()->json([
+            'success' => true,
+            'data' => ['loans' => $loans]
+        ]);
     }
 
     /**

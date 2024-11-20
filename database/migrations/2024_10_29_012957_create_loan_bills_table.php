@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('loan_bills', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('loan_id')->constrained('loans');
+            $table->decimal('amount', 10, 2);
+            $table->date('due_date');
+            $table->string('status');
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

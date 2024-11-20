@@ -13,6 +13,18 @@ return new class extends Migration
     {
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
+            $table->string('borrower_name');
+            $table->decimal('amount', 10, 2);
+            $table->decimal('interest_rate', 5, 2);
+            $table->date('start_date');
+            $table->date('end_date');
+            $table->string('compounding_frequency');
+            $table->string('status');
+            $table->decimal('total_amount', 10, 2);
+            $table->decimal('paid_amount', 10, 2);
+            $table->decimal('remaining_amount', 10, 2);
+            $table->decimal('overpayment_balance', 10, 2);
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

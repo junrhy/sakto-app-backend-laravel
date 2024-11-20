@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\FnbMenuItemController;
 use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
 use App\Http\Controllers\Api\FnbReservationController;
+use App\Http\Controllers\Api\LoanController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -78,6 +79,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [FnbReservationController::class, 'destroy']);
     });
 
+    // Loan Routes
+    Route::prefix('lending')->group(function () {
+        Route::get('/', [LoanController::class, 'index']);
+        Route::post('/', [LoanController::class, 'store']);
+    });
     // Future authenticated routes will go here...
 });
 
