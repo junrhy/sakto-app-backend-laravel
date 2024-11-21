@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
+use App\Models\LoanPayment;
 use Illuminate\Http\Request;
 
 class LoanController extends Controller
@@ -20,52 +21,82 @@ class LoanController extends Controller
             'data' => ['loans' => $loans]
         ]);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'borrower_name' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'interest_rate' => 'required|numeric|min:0',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'compounding_frequency' => 'required|in:daily,monthly,quarterly,annually',
+            'status' => 'required|in:active,paid,defaulted'
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Loan $loan)
-    {
-        //
-    }
+        $data = $request->all();
+        $data['total_balance'] = $data['amount'] + ($data['amount'] * $data['interest_rate'] / 100);
+        $data['paid_amount'] = 0;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Loan $loan)
-    {
-        //
+        $loan = Loan::create($data);
+        return response()->json([
+            'success' => true,
+            'data' => ['loan' => $loan]
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Loan $loan)
+    public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'borrower_name' => 'required|string',
+            'amount' => 'required|numeric|min:0',
+            'interest_rate' => 'required|numeric|min:0',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'compounding_frequency' => 'required|in:daily,monthly,quarterly,annually',
+            'status' => 'required|in:active,paid,defaulted'
+        ]);
+
+        $data = $request->all();
+        $data['total_balance'] = $data['amount'] + ($data['amount'] * $data['interest_rate'] / 100);
+
+        $loan = Loan::find($id);
+        $data['paid_amount'] = LoanPayment::where('loan_id', $id)->where('client_identifier', $loan->client_identifier)->sum('amount');
+
+        $loan->update($data);
+        return response()->json([
+            'success' => true,
+            'data' => ['loan' => $loan]
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Loan $loan)
+    public function destroy(Request $request)
     {
-        //
+        $request->validate([
+            'ids' => 'required|array'
+        ]);
+        Loan::whereIn('id', $request->ids)->delete();
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array'
+        ]);
+        Loan::whereIn('id', $request->ids)->delete();
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

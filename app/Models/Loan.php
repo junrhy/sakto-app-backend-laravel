@@ -14,10 +14,8 @@ class Loan extends Model
         'end_date',
         'compounding_frequency',
         'status',
-        'total_amount',
+        'total_balance',
         'paid_amount',
-        'remaining_amount',
-        'overpayment_balance',
         'client_identifier'
     ];
 }

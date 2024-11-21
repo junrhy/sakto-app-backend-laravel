@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
 use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\LoanController;
+use App\Http\Controllers\Api\LoanPaymentController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -83,6 +84,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('lending')->group(function () {
         Route::get('/', [LoanController::class, 'index']);
         Route::post('/', [LoanController::class, 'store']);
+        Route::put('/{id}', [LoanController::class, 'update']);
+        Route::delete('/{id}', [LoanController::class, 'destroy']);
+        Route::post('/bulk-destroy', [LoanController::class, 'bulkDestroy']);
+    });
+
+    // Loan Payment Routes
+    Route::prefix('loan-payments')->group(function () {
+        Route::post('/', [LoanPaymentController::class, 'store']);
     });
     // Future authenticated routes will go here...
 });

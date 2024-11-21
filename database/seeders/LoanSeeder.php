@@ -22,10 +22,8 @@ class LoanSeeder extends Seeder
             'end_date' => '2024-12-31',
             'compounding_frequency' => 'monthly',
             'status' => 'active',
-            'total_amount' => 1000,
+            'total_balance' => 1000,
             'paid_amount' => 0,
-            'remaining_amount' => 1000,
-            'overpayment_balance' => 0,
             'client_identifier' => 'c3de000a-9b28-11ef-8470-0242ac1d0002'
         ]);
 
@@ -37,10 +35,8 @@ class LoanSeeder extends Seeder
             'end_date' => '2024-12-31',
             'compounding_frequency' => 'monthly',
             'status' => 'active',
-            'total_amount' => 2000,
+            'total_balance' => 2000,
             'paid_amount' => 0,
-            'remaining_amount' => 2000,
-            'overpayment_balance' => 0,
             'client_identifier' => 'c3de000a-9b28-11ef-8470-0242ac1d0002'
         ]);
 
@@ -52,10 +48,8 @@ class LoanSeeder extends Seeder
             'end_date' => '2024-12-31',
             'compounding_frequency' => 'monthly',
             'status' => 'active',
-            'total_amount' => 3000,
+            'total_balance' => 3000,
             'paid_amount' => 0,
-            'remaining_amount' => 3000,
-            'overpayment_balance' => 0,
             'client_identifier' => 'c3de000a-9b28-11ef-8470-0242ac1d0002'
         ]);
     }
