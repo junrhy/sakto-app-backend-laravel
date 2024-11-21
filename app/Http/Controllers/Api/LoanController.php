@@ -38,15 +38,37 @@ class LoanController extends Controller
         ]);
 
         $data = $request->all();
-        $data['total_interest'] = $data['amount'] * $data['interest_rate'] / 100;
-        $data['total_balance'] = $data['amount'] + $data['total_interest'];
+        
+        // Calculate the number of periods based on compounding frequency
+        $start = strtotime($data['start_date']);
+        $end = strtotime($data['end_date']);
+        $years = ($end - $start) / (365 * 24 * 60 * 60);
+        
+        $n = match($data['compounding_frequency']) {
+            'daily' => 365,
+            'monthly' => 12,
+            'quarterly' => 4,
+            'annually' => 1,
+        };
+
+        // Compound Interest Formula: A = P(1 + r/n)^(nt) - P
+        // Where: A = Total Interest, P = Principal, r = Interest Rate, n = Compounds per year, t = Time in years
+        $principal = $data['amount'];
+        $rate = $data['interest_rate'] / 100;
+        $data['total_interest'] = $principal * (pow(1 + ($rate / $n), ($n * $years))) - $principal;
+        $data['total_balance'] = $principal + $data['total_interest'];
         $data['paid_amount'] = 0;
 
         $loan = Loan::create($data);
+        
+        // Load any relationships if needed
+        $loan = $loan->fresh();
+
         return response()->json([
             'success' => true,
+            'message' => 'Loan created successfully',
             'data' => ['loan' => $loan]
-        ]);
+        ], 201);  // Using 201 Created status code
     }
 
     /**
@@ -65,7 +87,25 @@ class LoanController extends Controller
         ]);
 
         $data = $request->all();
-        $data['total_balance'] = $data['amount'] + ($data['amount'] * $data['interest_rate'] / 100);
+
+        // Calculate the number of periods based on compounding frequency
+        $start = strtotime($data['start_date']);
+        $end = strtotime($data['end_date']);
+        $years = ($end - $start) / (365 * 24 * 60 * 60);
+        
+        $n = match($data['compounding_frequency']) {
+            'daily' => 365,
+            'monthly' => 12,
+            'quarterly' => 4,
+            'annually' => 1,
+        };
+ 
+        // Compound Interest Formula: A = P(1 + r/n)^(nt) - P
+        // Where: A = Total Interest, P = Principal, r = Interest Rate, n = Compounds per year, t = Time in years
+        $principal = $data['amount'];
+        $rate = $data['interest_rate'] / 100;
+        $data['total_interest'] = $principal * (pow(1 + ($rate / $n), ($n * $years))) - $principal;
+        $data['total_balance'] = $principal + $data['total_interest'];
 
         $loan = Loan::find($id);
         $data['paid_amount'] = LoanPayment::where('loan_id', $id)->where('client_identifier', $loan->client_identifier)->sum('amount');
