@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Loan;
 use App\Models\LoanPayment;
+use App\Models\LoanBill;
 use Illuminate\Http\Request;
 
 class LoanController extends Controller
@@ -17,9 +18,10 @@ class LoanController extends Controller
         $clientIdentifier = $request->client_identifier;
         $loans = Loan::where('client_identifier', $clientIdentifier)->get();
         $loan_payments = LoanPayment::where('client_identifier', $clientIdentifier)->get();
+        $loan_bills = LoanBill::where('client_identifier', $clientIdentifier)->get();
         return response()->json([
             'success' => true,
-            'data' => ['loans' => $loans, 'loan_payments' => $loan_payments]
+            'data' => ['loans' => $loans, 'loan_payments' => $loan_payments, 'loan_bills' => $loan_bills]
         ]);
     }
     /**
