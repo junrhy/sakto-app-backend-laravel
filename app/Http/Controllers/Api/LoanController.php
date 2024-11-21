@@ -78,12 +78,9 @@ class LoanController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request)
+    public function destroy(string $id)
     {
-        $request->validate([
-            'ids' => 'required|array'
-        ]);
-        Loan::whereIn('id', $request->ids)->delete();
+        Loan::find($id)->delete();
         return response()->json([
             'success' => true
         ]);
