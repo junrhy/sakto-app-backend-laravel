@@ -16,9 +16,10 @@ class LoanController extends Controller
     {
         $clientIdentifier = $request->client_identifier;
         $loans = Loan::where('client_identifier', $clientIdentifier)->get();
+        $loan_payments = LoanPayment::where('client_identifier', $clientIdentifier)->get();
         return response()->json([
             'success' => true,
-            'data' => ['loans' => $loans]
+            'data' => ['loans' => $loans, 'loan_payments' => $loan_payments]
         ]);
     }
     /**
@@ -37,7 +38,8 @@ class LoanController extends Controller
         ]);
 
         $data = $request->all();
-        $data['total_balance'] = $data['amount'] + ($data['amount'] * $data['interest_rate'] / 100);
+        $data['total_interest'] = $data['amount'] * $data['interest_rate'] / 100;
+        $data['total_balance'] = $data['amount'] + $data['total_interest'];
         $data['paid_amount'] = 0;
 
         $loan = Loan::create($data);

@@ -91,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Loan Payment Routes
     Route::prefix('loan-payments')->group(function () {
-        Route::post('/', [LoanPaymentController::class, 'store']);
+        Route::post('/{loan_id}', [LoanPaymentController::class, 'store']);
     });
     // Future authenticated routes will go here...
 });

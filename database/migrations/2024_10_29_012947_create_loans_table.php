@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->string('compounding_frequency');
             $table->string('status');
+            $table->decimal('total_interest', 10, 2);
             $table->decimal('total_balance', 10, 2);
             $table->decimal('paid_amount', 10, 2);
             $table->string('client_identifier');

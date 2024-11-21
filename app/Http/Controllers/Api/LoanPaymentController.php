@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Loan;
 use App\Models\LoanPayment;
 use Illuminate\Http\Request;
 
@@ -17,43 +18,28 @@ class LoanPaymentController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, string $loan_id)
     {
-        //
-    }
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date'
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(LoanPayment $loanPayment)
-    {
-        //
-    }
+        $data = $request->all();
+        $data['loan_id'] = $loan_id;
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(LoanPayment $loanPayment)
-    {
-        //
-    }
+        $loan = Loan::find($loan_id);
+        $loan->paid_amount += $data['amount'];
+        $loan->save();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, LoanPayment $loanPayment)
-    {
-        //
+        $payment = LoanPayment::create($data);
+
+        return response()->json([
+            'success' => true,
+            'payment' => $payment
+        ]);
     }
 
     /**
