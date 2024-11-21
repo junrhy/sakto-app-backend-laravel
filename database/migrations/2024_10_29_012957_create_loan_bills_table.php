@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('loan_bills', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('loan_id')->constrained('loans');
+            $table->foreignId('loan_id')->constrained('loans')->onDelete('cascade');
             $table->date('due_date');
             $table->decimal('principal', 10, 2);
             $table->decimal('interest', 10, 2);
