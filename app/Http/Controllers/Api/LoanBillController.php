@@ -85,6 +85,7 @@ class LoanBillController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Bill status updated successfully',
+            'data' => ['bill' => $bill]
         ]);
     }
 }
