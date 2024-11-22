@@ -99,6 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('loan-bills')->group(function () {
         Route::get('/{loan_id}', [LoanBillController::class, 'index']);
         Route::post('/{loan_id}', [LoanBillController::class, 'store']);
+        Route::put('/{id}', [LoanBillController::class, 'update']);
+        Route::delete('/{id}', [LoanBillController::class, 'destroy']);
+        Route::put('/{id}/status', [LoanBillController::class, 'updateStatus']);
     });
     // Future authenticated routes will go here...
 });

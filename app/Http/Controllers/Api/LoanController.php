@@ -16,9 +16,9 @@ class LoanController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
-        $loans = Loan::where('client_identifier', $clientIdentifier)->get();
-        $loan_payments = LoanPayment::where('client_identifier', $clientIdentifier)->get();
-        $loan_bills = LoanBill::where('client_identifier', $clientIdentifier)->get();
+        $loans = Loan::where('client_identifier', $clientIdentifier)->orderBy('borrower_name', 'asc')->get();
+        $loan_payments = LoanPayment::where('client_identifier', $clientIdentifier)->orderBy('payment_date', 'desc')->get();
+        $loan_bills = LoanBill::where('client_identifier', $clientIdentifier)->orderBy('due_date', 'desc')->get();
         return response()->json([
             'success' => true,
             'data' => ['loans' => $loans, 'loan_payments' => $loan_payments, 'loan_bills' => $loan_bills]

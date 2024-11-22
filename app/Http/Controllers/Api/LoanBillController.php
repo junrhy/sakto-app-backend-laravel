@@ -28,6 +28,7 @@ class LoanBillController extends Controller
     public function store(Request $request, string $loan_id)
     {
         $request['loan_id'] = $loan_id;
+        $request['bill_number'] = LoanBill::where('loan_id', $loan_id)->count() + 1;
         try {
             $bill = LoanBill::create($request->all());
         } catch (\Exception $e) {
@@ -38,6 +39,52 @@ class LoanBillController extends Controller
             'success' => true,
             'message' => 'Bill created successfully',
             'data' => ['bill' => $bill]
+        ]);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        try {
+            $bill = LoanBill::find($id);
+            $bill->update($request->all());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bill updated successfully',
+            'data' => ['bill' => $bill]
+        ]);
+    }
+
+    public function delete(string $id)
+    {
+        try {
+            $bill = LoanBill::find($id);
+            $bill->delete();
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bill deleted successfully',
+        ]);
+    }
+
+    public function updateStatus(Request $request, string $id)
+    {
+        try {
+            $bill = LoanBill::find($id);
+            $bill->update(['status' => $request->status]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bill status updated successfully',
         ]);
     }
 }

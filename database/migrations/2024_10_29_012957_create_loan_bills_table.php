@@ -14,10 +14,15 @@ return new class extends Migration
         Schema::create('loan_bills', function (Blueprint $table) {
             $table->id();
             $table->foreignId('loan_id')->constrained('loans')->onDelete('cascade');
+            $table->integer('bill_number');
             $table->date('due_date');
             $table->decimal('principal', 10, 2);
             $table->decimal('interest', 10, 2);
             $table->decimal('total_amount', 10, 2);
+            $table->decimal('total_amount_due', 10, 2);
+            $table->decimal('installment_amount', 10, 2)->nullable();
+            $table->decimal('penalty_amount', 10, 2)->default(0);
+            $table->string('note')->nullable();
             $table->string('status');
             $table->string('client_identifier');
             $table->timestamps();
