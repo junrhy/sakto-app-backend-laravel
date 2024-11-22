@@ -20,6 +20,8 @@ return new class extends Migration
             $table->date('end_date');
             $table->string('interest_type')->default('fixed');
             $table->string('compounding_frequency')->default('monthly');
+            $table->string('installment_frequency')->nullable();
+            $table->decimal('installment_amount', 10, 2)->nullable();
             $table->string('status');
             $table->decimal('total_interest', 10, 2);
             $table->decimal('total_balance', 10, 2);

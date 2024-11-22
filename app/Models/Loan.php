@@ -14,6 +14,8 @@ class Loan extends Model
         'end_date',
         'interest_type',
         'compounding_frequency',
+        'installment_frequency',
+        'installment_amount',
         'status',
         'total_interest',
         'total_balance',
