@@ -35,28 +35,42 @@ class LoanController extends Controller
             'interest_rate' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'status' => 'required|in:active,paid,defaulted'
+            'status' => 'required|in:active,paid,defaulted',
+            'interest_type' => 'required|in:fixed,compounding',
+            'compounding_frequency' => 'required_if:interest_type,compounding|in:daily,monthly,quarterly,annually'
         ]);
 
         $data = $request->all();
         
-        // Calculate number of months (including partial months)
+        // Calculate number of months
         $start = strtotime($data['start_date']);
         $end = strtotime($data['end_date']);
         $days = ceil(($end - $start) / (24 * 60 * 60));
-        $months = $days / 30; // Convert days to months
+        $months = $days / 30;
         
-        // Simple Interest Formula: I = P * r * t
-        // Where: I = Interest, P = Principal, r = monthly interest rate, t = time in months
         $principal = $data['amount'];
-        $monthly_rate = $data['interest_rate'] / 100; // Convert percentage to decimal
-        $data['total_interest'] = $principal * $monthly_rate * $months;
+        
+        // Calculate interest based on type
+        if ($data['interest_type'] === 'fixed') {
+            $data['total_interest'] = $this->calculateSimpleInterest(
+                $principal,
+                $data['interest_rate'],
+                $months
+            );
+        } else {
+            $data['total_interest'] = $this->calculateCompoundInterest(
+                $principal,
+                $data['interest_rate'],
+                $data['start_date'],
+                $data['end_date'],
+                $data['compounding_frequency']
+            );
+        }
+        
         $data['total_balance'] = $principal + $data['total_interest'];
         $data['paid_amount'] = 0;
 
         $loan = Loan::create($data);
-        
-        // Load any relationships if needed
         $loan = $loan->fresh();
 
         return response()->json([
@@ -77,26 +91,44 @@ class LoanController extends Controller
             'interest_rate' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'compounding_frequency' => 'required|in:daily,monthly,quarterly,annually',
-            'status' => 'required|in:active,paid,defaulted'
+            'status' => 'required|in:active,paid,defaulted',
+            'interest_type' => 'required|in:fixed,compounding',
+            'compounding_frequency' => 'required_if:interest_type,compounding|in:daily,monthly,quarterly,annually'
         ]);
 
         $data = $request->all();
         
-        // Calculate number of days
+        // Calculate number of months
         $start = strtotime($data['start_date']);
         $end = strtotime($data['end_date']);
         $days = ceil(($end - $start) / (24 * 60 * 60));
+        $months = $days / 30;
         
-        // Simple Interest Formula: I = P * r * t
-        // Where: I = Interest, P = Principal, r = daily interest rate, t = time in days
         $principal = $data['amount'];
-        $daily_rate = ($data['interest_rate'] / 100) / 30; // Monthly rate divided by 30 days
-        $data['total_interest'] = $principal * $daily_rate * $days;
+        
+        // Calculate interest based on type
+        if ($data['interest_type'] === 'fixed') {
+            $data['total_interest'] = $this->calculateSimpleInterest(
+                $principal,
+                $data['interest_rate'],
+                $months
+            );
+        } else {
+            $data['total_interest'] = $this->calculateCompoundInterest(
+                $principal,
+                $data['interest_rate'],
+                $data['start_date'],
+                $data['end_date'],
+                $data['compounding_frequency']
+            );
+        }
+        
         $data['total_balance'] = $principal + $data['total_interest'];
 
         $loan = Loan::find($id);
-        $data['paid_amount'] = LoanPayment::where('loan_id', $id)->where('client_identifier', $loan->client_identifier)->sum('amount');
+        $data['paid_amount'] = LoanPayment::where('loan_id', $id)
+            ->where('client_identifier', $loan->client_identifier)
+            ->sum('amount');
 
         $loan->update($data);
         return response()->json([
@@ -125,5 +157,43 @@ class LoanController extends Controller
         return response()->json([
             'success' => true
         ]);
+    }
+
+    /**
+     * Calculate simple interest
+     */
+    private function calculateSimpleInterest($principal, $rate, $months)
+    {
+        // Simple Interest Formula: I = P * r * t
+        // Where: I = Interest, P = Principal, r = monthly interest rate, t = time in months
+        $monthly_rate = $rate / 100; // Convert percentage to decimal
+        return $principal * $monthly_rate * $months;
+    }
+
+    /**
+     * Calculate compound interest
+     */
+    private function calculateCompoundInterest($principal, $rate, $start_date, $end_date, $frequency)
+    {
+        $start = strtotime($start_date);
+        $end = strtotime($end_date);
+        $days = ceil(($end - $start) / (24 * 60 * 60));
+        
+        // Convert annual rate to the rate per period based on frequency
+        $periods_per_year = [
+            'daily' => 365,
+            'monthly' => 12,
+            'quarterly' => 4,
+            'annually' => 1
+        ];
+        
+        $n = $periods_per_year[$frequency];
+        $r = ($rate / 100) / $n; // Rate per period
+        $t = $days / 365; // Time in years
+        
+        // Compound Interest Formula: A = P(1 + r)^(nt) - P
+        // Where: A = Interest, P = Principal, r = rate per period, n = number of times interest is compounded per year, t = time in years
+        $total_amount = $principal * pow((1 + $r), ($n * $t));
+        return $total_amount - $principal;
     }
 }

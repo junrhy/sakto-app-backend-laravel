@@ -12,6 +12,7 @@ class Loan extends Model
         'interest_rate',
         'start_date',
         'end_date',
+        'interest_type',
         'compounding_frequency',
         'status',
         'total_interest',

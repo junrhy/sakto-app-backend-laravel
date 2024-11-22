@@ -18,7 +18,8 @@ return new class extends Migration
             $table->decimal('interest_rate', 5, 2);
             $table->date('start_date');
             $table->date('end_date');
-            $table->string('compounding_frequency');
+            $table->string('interest_type')->default('fixed');
+            $table->string('compounding_frequency')->default('monthly');
             $table->string('status');
             $table->decimal('total_interest', 10, 2);
             $table->decimal('total_balance', 10, 2);
