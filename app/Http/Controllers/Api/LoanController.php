@@ -35,29 +35,22 @@ class LoanController extends Controller
             'interest_rate' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'compounding_frequency' => 'required|in:daily,monthly,quarterly,annually',
             'status' => 'required|in:active,paid,defaulted'
         ]);
 
         $data = $request->all();
         
-        // Calculate the number of periods based on compounding frequency
+        // Calculate number of months (including partial months)
         $start = strtotime($data['start_date']);
         $end = strtotime($data['end_date']);
-        $years = ($end - $start) / (365 * 24 * 60 * 60);
+        $days = ceil(($end - $start) / (24 * 60 * 60));
+        $months = $days / 30; // Convert days to months
         
-        $n = match($data['compounding_frequency']) {
-            'daily' => 365,
-            'monthly' => 12,
-            'quarterly' => 4,
-            'annually' => 1,
-        };
-
-        // Compound Interest Formula: A = P(1 + r/n)^(nt) - P
-        // Where: A = Total Interest, P = Principal, r = Interest Rate, n = Compounds per year, t = Time in years
+        // Simple Interest Formula: I = P * r * t
+        // Where: I = Interest, P = Principal, r = monthly interest rate, t = time in months
         $principal = $data['amount'];
-        $rate = $data['interest_rate'] / 100;
-        $data['total_interest'] = $principal * (pow(1 + ($rate / $n), ($n * $years))) - $principal;
+        $monthly_rate = $data['interest_rate'] / 100; // Convert percentage to decimal
+        $data['total_interest'] = $principal * $monthly_rate * $months;
         $data['total_balance'] = $principal + $data['total_interest'];
         $data['paid_amount'] = 0;
 
@@ -70,7 +63,7 @@ class LoanController extends Controller
             'success' => true,
             'message' => 'Loan created successfully',
             'data' => ['loan' => $loan]
-        ], 201);  // Using 201 Created status code
+        ], 201);
     }
 
     /**
@@ -89,24 +82,17 @@ class LoanController extends Controller
         ]);
 
         $data = $request->all();
-
-        // Calculate the number of periods based on compounding frequency
+        
+        // Calculate number of days
         $start = strtotime($data['start_date']);
         $end = strtotime($data['end_date']);
-        $years = ($end - $start) / (365 * 24 * 60 * 60);
+        $days = ceil(($end - $start) / (24 * 60 * 60));
         
-        $n = match($data['compounding_frequency']) {
-            'daily' => 365,
-            'monthly' => 12,
-            'quarterly' => 4,
-            'annually' => 1,
-        };
- 
-        // Compound Interest Formula: A = P(1 + r/n)^(nt) - P
-        // Where: A = Total Interest, P = Principal, r = Interest Rate, n = Compounds per year, t = Time in years
+        // Simple Interest Formula: I = P * r * t
+        // Where: I = Interest, P = Principal, r = daily interest rate, t = time in days
         $principal = $data['amount'];
-        $rate = $data['interest_rate'] / 100;
-        $data['total_interest'] = $principal * (pow(1 + ($rate / $n), ($n * $years))) - $principal;
+        $daily_rate = ($data['interest_rate'] / 100) / 30; // Monthly rate divided by 30 days
+        $data['total_interest'] = $principal * $daily_rate * $days;
         $data['total_balance'] = $principal + $data['total_interest'];
 
         $loan = Loan::find($id);
