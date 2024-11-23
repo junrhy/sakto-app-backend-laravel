@@ -58,7 +58,7 @@ class LoanBillController extends Controller
         ]);
     }
 
-    public function delete(string $id)
+    public function destroy(string $id)
     {
         try {
             $bill = LoanBill::find($id);
@@ -77,7 +77,10 @@ class LoanBillController extends Controller
     {
         try {
             $bill = LoanBill::find($id);
-            $bill->update(['status' => $request->status]);
+            $bill->update([
+                'status' => $request->status,
+                'note' => $request->note
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
