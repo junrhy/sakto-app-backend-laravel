@@ -93,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Loan Payment Routes
     Route::prefix('loan-payments')->group(function () {
         Route::post('/{loan_id}', [LoanPaymentController::class, 'store']);
+        Route::delete('/{loan_id}/{payment_id}', [LoanPaymentController::class, 'destroy']);
     });
 
     // Loan Bill Routes

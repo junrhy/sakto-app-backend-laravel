@@ -45,8 +45,13 @@ class LoanPaymentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(LoanPayment $loanPayment)
+    public function destroy(string $loan_id, string $payment_id)
     {
-        //
+        $loanPayment = LoanPayment::find($payment_id);
+        $loanPayment->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment deleted successfully'
+        ]);
     }
 }
