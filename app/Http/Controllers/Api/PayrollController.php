@@ -5,62 +5,86 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Payroll;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PayrollController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $payroll = Payroll::all();
+        return response()->json($payroll);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        return response()->json($request->all());
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'salary' => 'required|numeric|min:0',
+            'startDate' => 'required|date',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $payroll = Payroll::create($request->all());
+        return response()->json($payroll, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Payroll $payroll)
+    public function update(Request $request, $id)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'position' => 'required|string|max:255',
+            'salary' => 'required|numeric|min:0',
+            'startDate' => 'required|date',
+            'status' => 'required|in:active,inactive',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $payroll = Payroll::findOrFail($id);
+        $payroll->update($request->all());
+        return response()->json($payroll);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Payroll $payroll)
+    public function destroy($id)
     {
-        //
+        $payroll = Payroll::findOrFail($id);
+        $payroll->delete();
+        return response()->json(null, 204);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Payroll $payroll)
+    public function bulkDestroy(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:payroll,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        Payroll::whereIn('id', $request->ids)->delete();
+        return response()->json(null, 204);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Payroll $payroll)
+    public function getPayrollOverview()
     {
-        //
+        $totalEmployees = Payroll::count();
+        $activeEmployees = Payroll::where('status', 'active')->count();
+        $totalPayroll = Payroll::where('status', 'active')->sum('salary');
+
+        return response()->json([
+            'totalEmployees' => $totalEmployees,
+            'activeEmployees' => $activeEmployees,
+            'totalPayroll' => $totalPayroll,
+        ]);
     }
 }

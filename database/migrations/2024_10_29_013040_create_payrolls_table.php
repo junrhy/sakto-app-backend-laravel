@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('payrolls', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('email');
+            $table->string('position');
+            $table->decimal('salary', 10, 2);
+            $table->string('status');
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

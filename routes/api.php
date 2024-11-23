@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\LoanBillController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Http\Controllers\PayrollController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -104,6 +105,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [LoanBillController::class, 'destroy']);
         Route::put('/{id}/status', [LoanBillController::class, 'updateStatus']);
     });
+
+    // Payroll Routes
+    Route::prefix('payroll')->group(function () {
+        Route::get('/', [PayrollController::class, 'index']);
+        Route::post('/', [PayrollController::class, 'store']);
+        Route::put('/{id}', [PayrollController::class, 'update']);
+        Route::delete('/{id}', [PayrollController::class, 'destroy']);
+        Route::delete('/bulk', [PayrollController::class, 'bulkDestroy']);
+        Route::get('/overview', [PayrollController::class, 'getPayrollOverview']);
+    });
+
     // Future authenticated routes will go here...
 });
 
