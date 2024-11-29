@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
+use App\Http\Controllers\Api\RentalPropertyController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -114,6 +115,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [PayrollController::class, 'destroy']);
         Route::delete('/bulk', [PayrollController::class, 'bulkDestroy']);
         Route::get('/overview', [PayrollController::class, 'getPayrollOverview']);
+    });
+
+    // Rental Property Routes
+    Route::prefix('rental-property')->group(function () {
+        Route::get('/', [RentalPropertyController::class, 'index']);
+        Route::get('/list', [RentalPropertyController::class, 'getProperties']);
+        Route::post('/', [RentalPropertyController::class, 'store']);
+        Route::put('/{id}', [RentalPropertyController::class, 'update']);
+        Route::delete('/{id}', [RentalPropertyController::class, 'destroy']);
+        Route::post('/bulk', [RentalPropertyController::class, 'bulkDestroy']);
+        Route::post('/{id}/payment', [RentalPropertyController::class, 'recordPayment']);
+        Route::get('/{id}/payment-history', [RentalPropertyController::class, 'getPaymentHistory']);
     });
 
     // Future authenticated routes will go here...
