@@ -12,10 +12,11 @@ use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
 use App\Http\Controllers\Api\RentalPropertyController;
+use App\Http\Controllers\Api\RentalItemController;
+use App\Http\Controllers\Api\PayrollController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
-use App\Http\Controllers\PayrollController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -127,6 +128,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/bulk', [RentalPropertyController::class, 'bulkDestroy']);
         Route::post('/{id}/payment', [RentalPropertyController::class, 'recordPayment']);
         Route::get('/{id}/payment-history', [RentalPropertyController::class, 'getPaymentHistory']);
+    });
+
+    // Rental Item Routes
+    Route::prefix('rental-items')->group(function () {
+        Route::get('/', [RentalItemController::class, 'index']);
+        Route::post('/', [RentalItemController::class, 'store']);
+        Route::put('/{id}', [RentalItemController::class, 'update']);
+        Route::delete('/{id}', [RentalItemController::class, 'destroy']);
+        Route::post('/bulk-delete', [RentalItemController::class, 'bulkDestroy']);
+        Route::post('/{id}/payment', [RentalItemController::class, 'recordPayment']);
+        Route::get('/{id}/payment-history', [RentalItemController::class, 'getPaymentHistory']);
     });
 
     // Future authenticated routes will go here...

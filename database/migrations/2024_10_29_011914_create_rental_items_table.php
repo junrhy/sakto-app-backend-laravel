@@ -13,6 +13,16 @@ return new class extends Migration
     {
         Schema::create('rental_items', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('category');
+            $table->decimal('daily_rate', 10, 2);
+            $table->integer('quantity');
+            $table->string('status');
+            $table->string('renter_name')->nullable();
+            $table->string('renter_contact')->nullable();
+            $table->string('rental_start')->nullable();
+            $table->string('rental_end')->nullable();
+            $table->string('client_identifier');
             $table->timestamps();
         });
     }

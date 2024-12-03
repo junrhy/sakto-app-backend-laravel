@@ -3,65 +3,96 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRentalItemRequest;
-use App\Http\Requests\UpdateRentalItemRequest;
 use App\Models\RentalItem;
+use Illuminate\Http\Request;
 
 class RentalItemController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $clientIdentifier = $request->client_identifier;
+        $items = RentalItem::where('client_identifier', $clientIdentifier)->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental items fetched successfully',
+            'data' => $items
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+            'category' => 'required|string',
+            'daily_rate' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'status' => 'required|string'
+        ]);
+
+        $data = $request->all();
+        $data['client_identifier'] = $request->client_identifier;
+
+        try {
+            $item = RentalItem::create($data);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental item created successfully',
+            'data' => $item
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreRentalItemRequest $request)
+    public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+            'category' => 'required|string',
+            'daily_rate' => 'required|numeric',
+            'quantity' => 'required|integer',
+            'status' => 'required|string'
+        ]);
+
+        $item = RentalItem::findOrFail($id);
+        $item->update($request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental item updated successfully',
+            'data' => $item
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(RentalItem $rentalItem)
+    public function destroy($id)
     {
-        //
+        RentalItem::findOrFail($id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental item deleted successfully'
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(RentalItem $rentalItem)
+    public function bulkDestroy(Request $request)
     {
-        //
+        RentalItem::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rental items deleted successfully'
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateRentalItemRequest $request, RentalItem $rentalItem)
+    public function recordPayment(Request $request, $id)
     {
-        //
+        return $request->all();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(RentalItem $rentalItem)
+    public function getPaymentHistory($id)
     {
-        //
+        return $id;
     }
 }

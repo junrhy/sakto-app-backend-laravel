@@ -6,14 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class RentalItem extends Model
 {
-    protected $fillable = ['name', 'sku', 'images', 'quantity', 'price', 'category_id'];
-
-    protected $casts = [
-        'images' => 'array',
+    protected $fillable = [
+        'name',
+        'category',
+        'daily_rate',
+        'quantity',
+        'status',
+        'renter_name',
+        'renter_contact',
+        'rental_start',
+        'rental_end',
+        'client_identifier',
     ];
-
-    public function category()
-    {
-        return $this->belongsTo(RetailCategory::class);
-    }
 }
