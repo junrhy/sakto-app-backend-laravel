@@ -118,6 +118,8 @@ class RentalPropertyController extends Controller
         ]);
 
         $data = $request->all();
+        $data['rental_property_id'] = $id;
+        $data['reference'] = 'RP' . date('Ymd') . '-' . $id;
         $data['client_identifier'] = $request->client_identifier;
 
         $rentalPropertyPayment = RentalPropertyPayment::create($data);

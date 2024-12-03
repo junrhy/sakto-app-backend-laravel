@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('rental_property_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('rental_property_id')->constrained('rental_properties');
+            $table->foreignId('rental_property_id')->constrained('rental_properties')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->date('payment_date');
             $table->string('reference')->nullable();
