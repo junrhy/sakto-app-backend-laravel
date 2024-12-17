@@ -11,25 +11,25 @@ class PatientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $clientIdentifier = $request->input('client_identifier');
+        $patients = Patient::where('client_identifier', $clientIdentifier)->get();
+        return response()->json([
+            'success' => true,
+            'patients' => $patients,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $patient = Patient::create($request->all());
+        
+        return response()->json(['data' => $patient], 201);
     }
 
     /**
@@ -37,15 +37,7 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Patient $patient)
-    {
-        //
+        return response()->json(['data' => $patient]);
     }
 
     /**
@@ -53,7 +45,8 @@ class PatientController extends Controller
      */
     public function update(Request $request, Patient $patient)
     {
-        //
+        $patient->update($request->all());
+        return response()->json(['data' => $patient]);
     }
 
     /**
@@ -61,6 +54,7 @@ class PatientController extends Controller
      */
     public function destroy(Patient $patient)
     {
-        //
+        $patient->delete();
+        return response()->json(['data' => $patient]);
     }
 }

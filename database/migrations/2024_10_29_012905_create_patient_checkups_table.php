@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('patient_checkups', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
+            $table->string('checkup_date');
+            $table->string('checkup_type')->nullable();
+            $table->string('checkup_result')->nullable();
+            $table->string('checkup_notes')->nullable();
             $table->timestamps();
         });
     }
