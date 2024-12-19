@@ -149,6 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [PatientController::class, 'show']);
         Route::put('/{id}', [PatientController::class, 'update']);
         Route::delete('/{id}', [PatientController::class, 'destroy']);
+        Route::put('/{id}/next-visit', [PatientController::class, 'updateNextVisit']);
     });
 
     // Future authenticated routes will go here...

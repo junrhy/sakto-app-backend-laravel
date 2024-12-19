@@ -14,7 +14,7 @@ class PatientController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->input('client_identifier');
-        $patients = Patient::where('client_identifier', $clientIdentifier)->get();
+        $patients = Patient::where('client_identifier', $clientIdentifier)->with('bills', 'payments', 'checkups', 'dentalChart')->get();
         return response()->json([
             'success' => true,
             'patients' => $patients,
@@ -43,8 +43,9 @@ class PatientController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Patient $patient)
+    public function update(Request $request)
     {
+        $patient = Patient::find($request->id);
         $patient->update($request->all());
         return response()->json(['data' => $patient]);
     }
@@ -52,9 +53,18 @@ class PatientController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Patient $patient)
+    public function destroy(Request $request)
     {
+        $patient = Patient::find($request->id);
         $patient->delete();
+        return response()->json(['data' => $patient]);
+    }
+
+    public function updateNextVisit(Request $request)
+    {
+        $patient = Patient::find($request->id);
+        $patient->next_visit_date = $request->next_visit_date;
+        $patient->save();
         return response()->json(['data' => $patient]);
     }
 }
