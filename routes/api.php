@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\RentalPropertyController;
 use App\Http\Controllers\Api\RentalItemController;
 use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PatientController;
+use App\Http\Controllers\Api\PatientBillController;
+use App\Http\Controllers\Api\PatientPaymentController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -150,6 +152,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [PatientController::class, 'update']);
         Route::delete('/{id}', [PatientController::class, 'destroy']);
         Route::put('/{id}/next-visit', [PatientController::class, 'updateNextVisit']);
+    });
+
+    // Patient Bill Routes
+    Route::prefix('patient-bills')->group(function () {
+        Route::post('/{id}', [PatientBillController::class, 'store']);
+        Route::delete('/{patientId}/{id}', [PatientBillController::class, 'destroy']);
+        Route::get('/{id}', [PatientBillController::class, 'getBills']);
+    });
+
+    // Patient Payment Routes
+    Route::prefix('patient-payments')->group(function () {
+        Route::post('/{id}', [PatientPaymentController::class, 'store']);
+        Route::delete('/{id}', [PatientPaymentController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...

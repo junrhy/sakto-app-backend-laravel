@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('patient_bills', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
-            $table->string('bill_number');
+            $table->string('bill_number')->nullable();
             $table->string('bill_date');
-            $table->string('bill_amount');
-            $table->string('bill_status');
+            $table->decimal('bill_amount', 10, 2);
+            $table->string('bill_status')->nullable();
+            $table->string('bill_details')->nullable();
             $table->timestamps();
         });
     }

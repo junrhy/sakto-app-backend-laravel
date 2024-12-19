@@ -8,59 +8,33 @@ use Illuminate\Http\Request;
 
 class PatientBillController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function getBills($patientId)
     {
-        //
+        $patientBills = PatientBill::where('patient_id', $patientId)->get();
+        return response()->json([
+            'success' => true,
+            'bills' => $patientBills
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        try {
+            $patientBill = PatientBill::create($request->all());
+            return response()->json($patientBill, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(PatientBill $patientBill)
+    public function destroy($patientId, $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PatientBill $patientBill)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PatientBill $patientBill)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PatientBill $patientBill)
-    {
-        //
+        try {
+            $patientBill = PatientBill::where('patient_id', $patientId)->findOrFail($id);
+            $patientBill->delete();
+            return response()->json(['message' => 'Bill deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
