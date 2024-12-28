@@ -8,16 +8,45 @@ use Illuminate\Http\Request;
 
 class PatientPaymentController extends Controller
 {
-    public function store(Request $request)
+    public function getPayments($patientId)
     {
-        $patientPayment = PatientPayment::create($request->all());
-        return response()->json($patientPayment, 201);
+        $patientPayments = PatientPayment::where('patient_id', $patientId)->get();
+        return response()->json([
+            'success' => true,
+            'payments' => $patientPayments
+        ]);
     }
 
-    public function destroy($id)
+    public function store(Request $request)
     {
-        $patientPayment = PatientPayment::findOrFail($id);
-        $patientPayment->delete();
-        return response()->json(['message' => 'Payment deleted successfully']);
+        try {
+            $patientPayment = PatientPayment::create($request->all());
+            return response()->json([
+                'success' => true,
+                'payment' => $patientPayment
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($patientId, $id)
+    {
+        try {
+            $patientPayment = PatientPayment::findOrFail($id);
+            $patientPayment->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

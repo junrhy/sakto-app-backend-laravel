@@ -164,7 +164,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Patient Payment Routes
     Route::prefix('patient-payments')->group(function () {
         Route::post('/{id}', [PatientPaymentController::class, 'store']);
-        Route::delete('/{id}', [PatientPaymentController::class, 'destroy']);
+        Route::delete('/{patientId}/{id}', [PatientPaymentController::class, 'destroy']);
+        Route::get('/{id}', [PatientPaymentController::class, 'getPayments']);
     });
 
     // Future authenticated routes will go here...
