@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
             $table->string('checkup_date');
-            $table->string('checkup_type')->nullable();
-            $table->string('checkup_result')->nullable();
-            $table->string('checkup_notes')->nullable();
+            $table->string('diagnosis')->nullable();
+            $table->string('treatment')->nullable();
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }

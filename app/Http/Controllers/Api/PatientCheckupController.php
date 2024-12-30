@@ -11,56 +11,58 @@ class PatientCheckupController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function getCheckups($patientId)
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $patientCheckups = PatientCheckup::where('patient_id', $patientId)->get();
+        return response()->json([
+            'success' => true,
+            'checkups' => $patientCheckups
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $patientId)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(PatientCheckup $patientCheckup)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PatientCheckup $patientCheckup)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PatientCheckup $patientCheckup)
-    {
-        //
+        try {
+            $request->merge(['patient_id' => $patientId]);
+            $patientCheckup = PatientCheckup::create($request->all());
+            return response()->json([
+            'success' => true,
+                'checkup' => $patientCheckup
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PatientCheckup $patientCheckup)
+    public function destroy($patientId, $checkupId)
     {
-        //
+        try {
+            $patientCheckup = PatientCheckup::where('patient_id', $patientId)->where('id', $checkupId)->first();
+            if (!$patientCheckup) {
+                    return response()->json([
+                    'success' => false,
+                    'error' => 'Patient checkup not found'
+                ], 404);
+            }
+            $patientCheckup->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Patient checkup deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

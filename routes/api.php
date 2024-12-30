@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PayrollController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PatientBillController;
 use App\Http\Controllers\Api\PatientPaymentController;
+use App\Http\Controllers\Api\PatientCheckupController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -166,6 +167,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}', [PatientPaymentController::class, 'store']);
         Route::delete('/{patientId}/{id}', [PatientPaymentController::class, 'destroy']);
         Route::get('/{id}', [PatientPaymentController::class, 'getPayments']);
+    });
+
+    // Patient Checkup Routes
+    Route::prefix('patient-checkups')->group(function () {
+        Route::post('/{patientId}', [PatientCheckupController::class, 'store']);
+        Route::delete('/{patientId}/{checkupId}', [PatientCheckupController::class, 'destroy']);
+        Route::get('/{patientId}', [PatientCheckupController::class, 'getCheckups']);
     });
 
     // Future authenticated routes will go here...

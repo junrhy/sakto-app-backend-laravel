@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PatientCheckup extends Model
 {
-    protected $fillable = ['patient_id', 'checkup_date', 'checkup_time', 'checkup_status'];
+    protected $fillable = ['patient_id', 'checkup_date', 'diagnosis', 'treatment', 'notes'];
 
     public function patient()
     {
