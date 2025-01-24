@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     nginx \
     libpq-dev \
-    postgresql-client
+    postgresql-client \
+    nodejs \
+    npm
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -30,6 +32,9 @@ COPY . .
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Install NPM dependencies and build assets
+RUN npm install && npm run build
 
 # Configure nginx
 RUN rm /etc/nginx/sites-enabled/default
