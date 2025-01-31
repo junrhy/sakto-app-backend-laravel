@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PatientBillController;
 use App\Http\Controllers\Api\PatientPaymentController;
 use App\Http\Controllers\Api\PatientCheckupController;
+use App\Http\Controllers\Api\ContactController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -176,6 +177,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{patientId}', [PatientCheckupController::class, 'getCheckups']);
     });
 
+    // Contact Routes
+    Route::prefix('contacts')->group(function () {
+        Route::get('/', [ContactController::class, 'index']);
+        Route::post('/', [ContactController::class, 'store']);
+        Route::get('/{id}', [ContactController::class, 'show']);
+        Route::put('/{id}', [ContactController::class, 'update']);
+        Route::delete('/{id}', [ContactController::class, 'destroy']);
+    });
     // Future authenticated routes will go here...
 });
 
