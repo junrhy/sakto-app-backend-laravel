@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\PatientBillController;
 use App\Http\Controllers\Api\PatientPaymentController;
 use App\Http\Controllers\Api\PatientCheckupController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\CreditController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -184,6 +185,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [ContactController::class, 'show']);
         Route::put('/{id}', [ContactController::class, 'update']);
         Route::delete('/{id}', [ContactController::class, 'destroy']);
+    });
+
+    // Credit Routes
+    Route::prefix('credits')->group(function () {
+        Route::get('/{clientIdentifier}/balance', [CreditController::class, 'getBalance']);
+        Route::post('/request', [CreditController::class, 'requestCredit']);
+        Route::post('/{id}/approve', [CreditController::class, 'approveCredit']);
+        Route::post('/{id}/reject', [CreditController::class, 'rejectCredit']);
+        Route::get('/{clientIdentifier}/history', [CreditController::class, 'getCreditHistory']);
     });
     // Future authenticated routes will go here...
 });
