@@ -18,4 +18,9 @@ class CreditHistory extends Model
         'proof_of_payment', 
         'status'
     ];
+
+    public function credit()
+    {
+        return $this->belongsTo(Credit::class);
+    }
 }
