@@ -38,8 +38,7 @@ class CreditController extends Controller
             'package_credit' => 'required|integer',
             'package_amount' => 'required|integer',
             'payment_method' => 'required|string',
-            'payment_method_details' => 'nullable|string',
-            'proof_of_payment' => 'nullable|string'
+            'payment_method_details' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -55,7 +54,7 @@ class CreditController extends Controller
                 'available_credit' => 0,
                 'pending_credit' => 0
             ]
-        );
+        );        
 
         $creditHistory = new CreditHistory([
             'credit_id' => $credit->id,
@@ -65,7 +64,7 @@ class CreditController extends Controller
             'package_amount' => $request->package_amount,
             'payment_method' => $request->payment_method,
             'payment_method_details' => $request->payment_method_details,
-            'proof_of_payment' => $request->proof_of_payment,
+            'transaction_id' => $request->transaction_id,
             'status' => 'pending'
         ]);
 
