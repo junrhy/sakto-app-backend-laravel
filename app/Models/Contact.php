@@ -24,6 +24,7 @@ class Contact extends Model
         'address',
         'notes',
         'id_picture',
+        'id_numbers',
         'client_identifier',
     ];
 }

@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->text('notes')->nullable();
             $table->string('id_picture')->nullable();
+            $table->json('id_numbers')->nullable();
             $table->string('client_identifier');
             $table->timestamps();
         });
