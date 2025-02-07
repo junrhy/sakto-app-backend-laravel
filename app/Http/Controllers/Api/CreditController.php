@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Credit;
 use App\Models\CreditHistory;
+use App\Models\CreditSpentHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -165,5 +166,58 @@ class CreditController extends Controller
             ->get();
 
         return response()->json($creditHistories);
+    }
+
+    /**
+     * Spend credits
+     */
+    public function spendCredit(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string',
+            'amount' => 'required|numeric|min:1',
+            'purpose' => 'required|string',
+            'reference_id' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $credit = Credit::where('client_identifier', $request->client_identifier)->first();
+        
+        if (!$credit) {
+            return response()->json([
+                'message' => 'Credit record not found'
+            ], 404);
+        }
+
+        if ($credit->available_credit < $request->amount) { 
+            return response()->json([
+                'message' => 'Insufficient credits'
+            ], 400);
+        }
+
+        $credit->available_credit -= $request->amount;
+        $credit->save();
+
+        $creditSpentHistory = new CreditSpentHistory([
+            'credit_id' => $credit->id,
+            'client_identifier' => $request->client_identifier,
+            'amount' => $request->amount,
+            'purpose' => $request->purpose,
+            'reference_id' => $request->reference_id,
+            'status' => 'spent'
+        ]);
+        $creditSpentHistory->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Credits spent successfully',
+            'credit' => $credit
+        ]);
     }
 }

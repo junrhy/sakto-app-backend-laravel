@@ -194,6 +194,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/approve', [CreditController::class, 'approveCredit']);
         Route::post('/{id}/reject', [CreditController::class, 'rejectCredit']);
         Route::get('/{clientIdentifier}/history', [CreditController::class, 'getCreditHistory']);
+        Route::post('/spend', [CreditController::class, 'spendCredit']);
     });
     // Future authenticated routes will go here...
 });
