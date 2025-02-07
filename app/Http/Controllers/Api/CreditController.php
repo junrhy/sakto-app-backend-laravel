@@ -220,4 +220,16 @@ class CreditController extends Controller
             'credit' => $credit
         ]);
     }
+
+    /**
+     * Get spent credit history for a client
+     */
+    public function getSpentCreditHistory($clientIdentifier)
+    {
+        $creditSpentHistories = CreditSpentHistory::where('client_identifier', $clientIdentifier)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($creditSpentHistories);
+    }
 }
