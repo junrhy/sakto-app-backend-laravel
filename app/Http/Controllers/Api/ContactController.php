@@ -22,32 +22,33 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'gender' => 'required|string|in:male,female,other',
-            'fathers_name' => 'nullable|string|max:255',
-            'mothers_maiden_name' => 'nullable|string|max:255',
-            'email' => 'required|email|max:255',
-            'call_number' => 'nullable|string|max:20',
-            'sms_number' => 'nullable|string|max:20',
-            'whatsapp' => 'nullable|string|max:20',
-            'facebook' => 'nullable|string|max:255|url',
-            'instagram' => 'nullable|string|max:255|url',
-            'twitter' => 'nullable|string|max:255|url',
-            'linkedin' => 'nullable|string|max:255|url',
-            'address' => 'nullable|string|max:500',
-            'notes' => 'nullable|string',
-            'id_picture' => 'nullable|image|max:2048', // max 2MB
-            'id_numbers' => 'nullable|array',
-            'id_numbers.*.type' => 'required|string|max:255',
-            'id_numbers.*.number' => 'required|string|max:255',
-            'id_numbers.*.notes' => 'nullable|string|max:500',
-            'client_identifier' => 'required|string|max:255',
-        ]);
-        $contact = Contact::create($validated);
-        return response()->json($contact, 201);
+        try {
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'middle_name' => 'nullable|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'gender' => 'required|string|in:male,female,other',
+                'fathers_name' => 'nullable|string|max:255',
+                'mothers_maiden_name' => 'nullable|string|max:255',
+                'email' => 'required|email|max:255',
+                'call_number' => 'nullable|string|max:20',
+                'sms_number' => 'nullable|string|max:20',
+                'whatsapp' => 'nullable|string|max:20',
+                'facebook' => 'nullable|string|max:255|url',
+                'instagram' => 'nullable|string|max:255|url',
+                'twitter' => 'nullable|string|max:255|url',
+                'linkedin' => 'nullable|string|max:255|url',
+                'address' => 'nullable|string|max:500',
+                'notes' => 'nullable|string',
+                'id_picture' => 'nullable|image|max:2048', // max 2MB
+                'client_identifier' => 'required|string|max:255',
+            ]);
+
+            $contact = Contact::create($validated);
+            return response()->json($contact, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -83,8 +84,8 @@ class ContactController extends Controller
             'notes' => 'nullable|string',
             'id_picture' => 'nullable|image|max:2048', // max 2MB
             'id_numbers' => 'nullable|array',
-            'id_numbers.*.type' => 'required|string|max:255',
-            'id_numbers.*.number' => 'required|string|max:255',
+            'id_numbers.*.type' => 'nullable|string|max:255',
+            'id_numbers.*.number' => 'nullable|string|max:255',
             'id_numbers.*.notes' => 'nullable|string|max:500',
         ]);
 
