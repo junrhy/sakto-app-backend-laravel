@@ -40,7 +40,7 @@ class ContactController extends Controller
                 'linkedin' => 'nullable|string|max:255|url',
                 'address' => 'nullable|string|max:500',
                 'notes' => 'nullable|string',
-                'id_picture' => 'nullable|image|max:2048', // max 2MB
+                'id_picture' => 'nullable|string',
                 'client_identifier' => 'required|string|max:255',
             ]);
 
