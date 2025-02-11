@@ -82,11 +82,7 @@ class ContactController extends Controller
             'linkedin' => 'nullable|string|max:255|url',
             'address' => 'nullable|string|max:500',
             'notes' => 'nullable|string',
-            'id_picture' => 'nullable|image|max:2048', // max 2MB
-            'id_numbers' => 'nullable|array',
-            'id_numbers.*.type' => 'nullable|string|max:255',
-            'id_numbers.*.number' => 'nullable|string|max:255',
-            'id_numbers.*.notes' => 'nullable|string|max:500',
+            'id_picture' => 'nullable|string'
         ]);
 
         $contact = Contact::find($id);
