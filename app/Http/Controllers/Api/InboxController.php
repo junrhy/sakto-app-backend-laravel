@@ -17,7 +17,7 @@ class InboxController extends Controller
     {
         $messages = Inbox::where('client_identifier', $request->client_identifier)
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->get();
 
         return response()->json([
             'messages' => $messages,

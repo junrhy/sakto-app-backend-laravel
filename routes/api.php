@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\PatientCheckupController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\CreditController;
 use App\Http\Controllers\Api\FamilyTreeController;
+use App\Http\Controllers\Api\InboxController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
