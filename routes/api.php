@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\PatientPaymentController;
 use App\Http\Controllers\Api\PatientCheckupController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\CreditController;
+use App\Http\Controllers\Api\FamilyTreeController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -197,6 +198,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{clientIdentifier}/spent-history', [CreditController::class, 'getSpentCreditHistory']);
         Route::post('/spend', [CreditController::class, 'spendCredit']);
     });
+
+    // Family Tree Routes
+    Route::prefix('family-tree')->group(function () {
+        Route::get('/members', [FamilyTreeController::class, 'index']);
+        Route::post('/members', [FamilyTreeController::class, 'store']);
+        Route::get('/members/{id}', [FamilyTreeController::class, 'show']);
+        Route::put('/members/{id}', [FamilyTreeController::class, 'update']);
+        Route::delete('/members/{id}', [FamilyTreeController::class, 'destroy']);
+        
+        // Relationship routes
+        Route::post('/relationships', [FamilyTreeController::class, 'addRelationship']);
+        Route::delete('/relationships', [FamilyTreeController::class, 'removeRelationship']);
+        
+        // Import/Export routes
+        Route::get('/export', [FamilyTreeController::class, 'export']);
+        Route::post('/import', [FamilyTreeController::class, 'import']);
+        
+        // Visualization route
+        Route::get('/visualization', [FamilyTreeController::class, 'getVisualizationData']);
+    });
+
     // Future authenticated routes will go here...
 });
 
