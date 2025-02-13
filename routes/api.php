@@ -209,7 +209,7 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Relationship routes
         Route::post('/relationships', [FamilyTreeController::class, 'addRelationship']);
-        Route::delete('/relationships', [FamilyTreeController::class, 'removeRelationship']);
+        Route::delete('/relationships/{id}', [FamilyTreeController::class, 'removeRelationship']);
         
         // Import/Export routes
         Route::get('/export', [FamilyTreeController::class, 'export']);

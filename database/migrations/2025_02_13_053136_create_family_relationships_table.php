@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('to_member_id')->constrained('family_members')->onDelete('cascade');
             $table->enum('relationship_type', ['parent', 'child', 'spouse', 'sibling']);
             $table->timestamps();
-            $table->softDeletes();
 
             $table->unique(
                 ['from_member_id', 'to_member_id', 'relationship_type'],
