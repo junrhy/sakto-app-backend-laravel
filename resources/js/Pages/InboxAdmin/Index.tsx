@@ -113,7 +113,9 @@ export default function Index({ messages }: Props) {
     };
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manage Inbox Messages</h2>}
+        >
             <Head title="Inbox Admin" />
 
             <div className="py-12">

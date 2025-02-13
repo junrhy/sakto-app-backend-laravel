@@ -56,7 +56,9 @@ export default function Edit({ message }: Props) {
     };
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Edit Message</h2>}
+        >
             <Head title="Edit Message" />
 
             <div className="py-12">

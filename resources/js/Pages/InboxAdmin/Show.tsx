@@ -21,7 +21,9 @@ interface Props {
 
 export default function Show({ message }: Props) {
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">View Message</h2>}
+        >
             <Head title="View Message" />
 
             <div className="py-12">
