@@ -219,6 +219,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/visualization', [FamilyTreeController::class, 'getVisualizationData']);
     });
 
+    // Inbox Routes
+    Route::prefix('inbox')->group(function () {
+        Route::get('/', [InboxController::class, 'index']);
+        Route::patch('/{id}/read', [InboxController::class, 'markAsRead']);
+        Route::delete('/{id}', [InboxController::class, 'delete']);
+    });
+
     // Future authenticated routes will go here...
 });
 
