@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\CreditController;
 use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\InboxController;
+use App\Http\Controllers\Api\ClientController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -225,6 +226,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [InboxController::class, 'index']);
         Route::patch('/{id}/read', [InboxController::class, 'markAsRead']);
         Route::delete('/{id}', [InboxController::class, 'delete']);
+    });
+
+    // Client Routes
+    Route::prefix('clients')->group(function () {
+        Route::get('/', [ClientController::class, 'index']);
+        Route::post('/', [ClientController::class, 'store']);
+        Route::get('/{id}', [ClientController::class, 'show']);
+        Route::put('/{id}', [ClientController::class, 'update']);
     });
 
     // Future authenticated routes will go here...
