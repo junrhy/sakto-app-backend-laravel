@@ -32,10 +32,10 @@ class ClientController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:clients,email',
             'contact_number' => 'nullable|string|max:20',
+            'client_identifier' => 'required|string|max:255',
             'referrer' => 'required|string|max:255',
         ]);
 
-        $validated['client_identifier'] = Str::random(10);
         $validated['active'] = true;
 
         $client = Client::create($validated);
