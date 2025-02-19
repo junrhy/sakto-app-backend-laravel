@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inbox;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -27,7 +28,11 @@ class InboxAdminController extends Controller
      */
     public function create()
     {
-        return Inertia::render('InboxAdmin/Create');
+        $clients = Client::orderBy('name')->get(['id', 'name', 'client_identifier']);
+
+        return Inertia::render('InboxAdmin/Create', [
+            'clients' => $clients
+        ]);
     }
 
     /**

@@ -14,6 +14,16 @@ import {
 } from '@/Components/ui/select';
 import { toast } from 'sonner';
 
+interface Client {
+    id: number;
+    name: string;
+    client_identifier: string;
+}
+
+interface Props {
+    clients: Client[];
+}
+
 interface FormData {
     [key: string]: string;
     client_identifier: string;
@@ -22,7 +32,7 @@ interface FormData {
     type: string;
 }
 
-export default function Create() {
+export default function Create({ clients }: Props) {
     const [form, setForm] = useState<FormData>({
         client_identifier: '',
         subject: '',
@@ -69,16 +79,26 @@ export default function Create() {
                             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                                 <div className="space-y-2">
                                     <label htmlFor="client_identifier" className="block text-sm font-medium">
-                                        Client Identifier
+                                        Client
                                     </label>
-                                    <Input
-                                        id="client_identifier"
+                                    <Select 
                                         value={form.client_identifier}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                                            handleChange('client_identifier', e.target.value)
-                                        }
-                                        required
-                                    />
+                                        onValueChange={(value: string) => handleChange('client_identifier', value)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a client" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {clients.map((client) => (
+                                                <SelectItem 
+                                                    key={client.id} 
+                                                    value={client.client_identifier}
+                                                >
+                                                    {client.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
 
                                 <div className="space-y-2">
