@@ -50,7 +50,12 @@ class FamilyTreeController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $member = FamilyMember::with(['relationships', 'relatedTo'])
+        $member = FamilyMember::with([
+            'relationships',
+            'relationships.toMember:id,first_name,last_name,birth_date,death_date',
+            'relatedTo',
+            'relatedTo.fromMember:id,first_name,last_name,birth_date,death_date'
+        ])
             ->where('client_identifier', $request->client_identifier)
             ->findOrFail($id);
 
