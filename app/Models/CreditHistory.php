@@ -23,4 +23,9 @@ class CreditHistory extends Model
     {
         return $this->belongsTo(Credit::class);
     }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_identifier', 'client_identifier');
+    }
 }

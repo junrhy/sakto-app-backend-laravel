@@ -17,7 +17,7 @@ class CreditAdminController extends Controller
     public function index()
     {
         $creditRequests = CreditHistory::where('status', 'pending')
-            ->with('credit')
+            ->with('credit', 'client')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

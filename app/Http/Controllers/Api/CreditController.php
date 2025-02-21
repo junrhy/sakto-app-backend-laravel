@@ -39,7 +39,8 @@ class CreditController extends Controller
             'package_credit' => 'required|integer',
             'package_amount' => 'required|integer',
             'payment_method' => 'required|string',
-            'payment_method_details' => 'nullable|string'
+            'payment_method_details' => 'nullable|string',
+            'proof_of_payment' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -66,6 +67,7 @@ class CreditController extends Controller
             'payment_method' => $request->payment_method,
             'payment_method_details' => $request->payment_method_details,
             'transaction_id' => $request->transaction_id,
+            'proof_of_payment' => $request->proof_of_payment,
             'status' => 'pending'
         ]);
 
@@ -162,8 +164,14 @@ class CreditController extends Controller
     public function getCreditHistory($clientIdentifier)
     {
         $creditHistories = CreditHistory::where('client_identifier', $clientIdentifier)
+            ->with('client:client_identifier,name')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($history) {
+                $history->client_name = $history->client->name ?? $history->client_identifier;
+                unset($history->client);
+                return $history;
+            });
 
         return response()->json($creditHistories);
     }

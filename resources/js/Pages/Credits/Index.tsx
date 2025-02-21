@@ -7,6 +7,9 @@ import { router } from '@inertiajs/react';
 interface CreditHistory {
     id: number;
     client_identifier: string;
+    client: {
+        name: string;
+    };
     package_name: string;
     package_credit: number;
     package_amount: number;
@@ -83,7 +86,7 @@ export default function Index({ auth, creditRequests }: Props) {
                                     <thead className="bg-gray-50">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Client Identifier
+                                                Client Name
                                             </th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Package Details
@@ -106,7 +109,7 @@ export default function Index({ auth, creditRequests }: Props) {
                                         {creditRequests.data.map((request) => (
                                             <tr key={request.id}>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {request.client_identifier}
+                                                    {request.client.name}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap">
                                                     <div className="text-sm text-gray-900 font-medium">
