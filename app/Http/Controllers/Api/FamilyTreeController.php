@@ -18,7 +18,12 @@ class FamilyTreeController extends Controller
      */
     public function index(Request $request)
     {
-        $members = FamilyMember::with(['relationships', 'relatedTo'])
+        $members = FamilyMember::with([
+            'relationships',
+            'relationships.toMember:id,first_name,last_name,birth_date,death_date,photo',
+            'relatedTo',
+            'relatedTo.fromMember:id,first_name,last_name,birth_date,death_date,photo'
+        ])
             ->where('client_identifier', $request->client_identifier)
             ->get();
 
@@ -52,9 +57,9 @@ class FamilyTreeController extends Controller
     {
         $member = FamilyMember::with([
             'relationships',
-            'relationships.toMember:id,first_name,last_name,birth_date,death_date',
+            'relationships.toMember:id,first_name,last_name,birth_date,death_date,photo',
             'relatedTo',
-            'relatedTo.fromMember:id,first_name,last_name,birth_date,death_date'
+            'relatedTo.fromMember:id,first_name,last_name,birth_date,death_date,photo'
         ])
             ->where('client_identifier', $request->client_identifier)
             ->findOrFail($id);
