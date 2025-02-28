@@ -17,21 +17,21 @@ class PayrollController extends Controller
 
     public function store(Request $request)
     {
-        return response()->json($request->all());
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'position' => 'required|string|max:255',
             'salary' => 'required|numeric|min:0',
             'startDate' => 'required|date',
             'status' => 'required|in:active,inactive',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        try {
+            $payroll = Payroll::create($request->all());
+            return response()->json($payroll, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $payroll = Payroll::create($request->all());
-        return response()->json($payroll, 201);
     }
 
     public function update(Request $request, $id)
