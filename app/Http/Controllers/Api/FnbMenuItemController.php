@@ -22,6 +22,7 @@ class FnbMenuItemController extends Controller
                 'name' => $item->name,
                 'price' => $item->price,
                 'category' => $item->category,
+                'image' => $item->image,
                 'public_image_url' => $item->public_image_url,
                 'client_identifier' => $item->client_identifier
             ];
@@ -36,6 +37,18 @@ class FnbMenuItemController extends Controller
         ]);
     }
 
+    public function show(Request $request)
+    {
+        $fnbMenuItem = fnbMenuItem::find($request->id);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'FNB Menu Item retrieved successfully',
+            'data' => [
+                'fnb_menu_item' => $fnbMenuItem
+            ]
+        ]);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -45,14 +58,9 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
+            'image' => 'nullable|string',
             'client_identifier' => 'nullable|string'
         ]);
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('fnb-menu-items', 'public');
-            $validated['image'] = Storage::url($path);
-            $validated['public_image_url'] = 'http://127.0.0.1:8001/image/fnb-menu-item/' . str_replace('fnb-menu-items/', '', $path);
-        }
     
         return fnbMenuItem::create($validated);
     }
@@ -66,22 +74,11 @@ class FnbMenuItemController extends Controller
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
+            'image' => 'nullable|string',
             'client_identifier' => 'nullable|string'
         ]);
 
         $fnbMenuItem = fnbMenuItem::find($request->id);
-
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($fnbMenuItem->image) {
-                // Extract filename from the full URL/path
-                $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
-                Storage::disk('public')->delete('fnb-menu-items/' . $filename);
-            }
-            $path = $request->file('image')->store('fnb-menu-items', 'public');
-            $validated['image'] = Storage::url($path);
-            $validated['public_image_url'] = 'http://127.0.0.1:8001/image/fnb-menu-item/' . str_replace('fnb-menu-items/', '', $path);
-        }
 
         $fnbMenuItem->update($validated);
         return response()->json(['status' => 'success', 'message' => 'Menu item updated successfully']);
@@ -93,13 +90,6 @@ class FnbMenuItemController extends Controller
     public function destroy(Request $request)
     {
         $fnbMenuItem = fnbMenuItem::find($request->id);
-
-        if ($fnbMenuItem->image) {
-            // Extract filename from the full URL/path
-            $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
-            Storage::disk('public')->delete('fnb-menu-items/' . $filename);
-        }
-        
         $fnbMenuItem->delete();
         return response()->noContent();
     }
@@ -111,22 +101,7 @@ class FnbMenuItemController extends Controller
             'ids.*' => 'exists:fnb_menu_items,id'
         ]);
 
-        $fnbMenuItems = fnbMenuItem::whereIn('id', $validated['ids'])->get();
-        
-        foreach ($fnbMenuItems as $fnbMenuItem) {
-            if ($fnbMenuItem->image) {
-                $filename = str_replace('/storage/fnb-menu-items/', '', $fnbMenuItem->image);
-                Storage::disk('public')->delete('fnb-menu-items/' . $filename);
-            }
-        }
-
         fnbMenuItem::whereIn('id', $validated['ids'])->delete();
         return response()->noContent();
-    }
-
-    public function getImage($filename)
-    {
-        $image = Storage::disk('public')->get('fnb-menu-items/' . $filename);
-        return response($image, 200)->header('Content-Type', 'image/jpeg');
     }
 }
