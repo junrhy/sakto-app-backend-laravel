@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,15 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('patient_payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
-            $table->string('payment_date');
-            $table->string('payment_amount');
-            $table->string('payment_method')->nullable();
-            $table->string('payment_notes')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('patient_payments')) {
+            Schema::create('patient_payments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('patient_id')->constrained('patients')->onDelete('cascade');
+                $table->string('payment_date');
+                $table->string('payment_amount');
+                $table->string('payment_method')->nullable();
+                $table->string('payment_notes')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -27,6 +30,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('patient_payments');
+        if (Schema::hasTable('patient_payments')) {
+            $count = DB::table('patient_payments')->count();
+            if ($count === 0) {
+                Schema::dropIfExists('patient_payments');
+            }
+        }
     }
 };

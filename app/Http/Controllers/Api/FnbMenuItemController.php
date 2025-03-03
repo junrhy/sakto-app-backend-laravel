@@ -23,7 +23,8 @@ class FnbMenuItemController extends Controller
                 'price' => $item->price,
                 'category' => $item->category,
                 'image' => $item->image,
-                'public_image_url' => $item->public_image_url,
+                'is_available_personal' => $item->is_available_personal,
+                'is_available_online' => $item->is_available_online,
                 'client_identifier' => $item->client_identifier
             ];
         });

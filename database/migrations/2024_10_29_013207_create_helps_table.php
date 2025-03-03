@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,10 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('helps', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('helps')) {
+            Schema::create('helps', function (Blueprint $table) {
+                $table->id();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -22,6 +25,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('helps');
+        if (Schema::hasTable('helps')) {
+            $count = DB::table('helps')->count();
+            if ($count === 0) {
+                Schema::dropIfExists('helps');
+            }
+        }
     }
 };

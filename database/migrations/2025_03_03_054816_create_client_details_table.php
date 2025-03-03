@@ -12,9 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('warehouse_receivings')) {
-            Schema::create('warehouse_receivings', function (Blueprint $table) {
+        if (!Schema::hasTable('client_details')) {
+            Schema::create('client_details', function (Blueprint $table) {
                 $table->id();
+                $table->foreignId('client_id')->constrained('clients');
+                $table->string('app_name');
+                $table->string('name');
+                $table->string('value');
+                $table->string('client_identifier');
                 $table->timestamps();
             });
         }
@@ -25,11 +30,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('warehouse_receivings')) {
-            $count = DB::table('warehouse_receivings')->count();
-            if ($count === 0) {
-                Schema::dropIfExists('warehouse_receivings');
-            }
+        if (Schema::hasTable('client_details')) {
+            Schema::dropIfExists('client_details');
         }
     }
 };
