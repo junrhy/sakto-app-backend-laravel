@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\CreditController;
 use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\InboxController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\FnbSettingsController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -91,6 +92,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [FnbReservationController::class, 'index']);
         Route::post('/', [FnbReservationController::class, 'store']);
         Route::delete('/{id}', [FnbReservationController::class, 'destroy']);
+    });
+
+    // F & B Settings Routes
+    Route::prefix('fnb-settings')->group(function () {
+        Route::get('/', [FnbSettingsController::class, 'index']);
+        Route::post('/', [FnbSettingsController::class, 'store']);
     });
 
     // Loan Routes
