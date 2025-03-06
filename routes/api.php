@@ -226,6 +226,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Visualization route
         Route::get('/visualization', [FamilyTreeController::class, 'getVisualizationData']);
+
+        // Settings routes
+        Route::get('/settings', [FamilyTreeController::class, 'settings']);
+        Route::post('/settings', [FamilyTreeController::class, 'saveSettings']);
     });
 
     // Inbox Routes

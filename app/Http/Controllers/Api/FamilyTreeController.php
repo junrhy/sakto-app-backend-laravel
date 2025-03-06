@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
+use App\Models\ClientDetails;
+use App\Models\Client;
 
 class FamilyTreeController extends Controller
 {
@@ -399,6 +402,163 @@ class FamilyTreeController extends Controller
                 return 'sibling';
             default:
                 return null;
+        }
+    }
+
+    /**
+     * Get family tree settings
+     */
+    public function settings(Request $request)
+    {
+        try {
+            $settings = ClientDetails::where('client_identifier', $request->client_identifier)
+                ->where('app_name', 'family-tree')
+                ->get();
+            
+            $formattedSettings = [
+                'organization_info' => [
+                    'family_name' => 'My Family Association',
+                    'email' => '',
+                    'contact_number' => '',
+                    'website' => '',
+                    'address' => '',
+                    'banner' => 'https://placehold.co/1200x400/png',
+                    'logo' => 'https://placehold.co/150x150/png'
+                ],
+                'auth' => [
+                    'username' => '',
+                    'password' => ''
+                ],
+                'elected_officials' => [
+                    [
+                        'name' => 'Executive Board',
+                        'officials' => []
+                    ]
+                ]
+            ];
+
+            foreach ($settings as $setting) {
+                list($section, $key) = explode('.', $setting->name);
+                if ($section === 'elected_officials') {
+                    $formattedSettings[$section] = json_decode($setting->value, true);
+                } else {
+                    $formattedSettings[$section][$key] = $setting->value;
+                }
+            }
+
+            return response()->json([
+                'data' => $formattedSettings
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching family tree settings: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to fetch settings'
+            ], 500);
+        }
+    }
+
+    /**
+     * Save family tree settings
+     */
+    public function saveSettings(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'organization_info' => 'required|array',
+                'organization_info.family_name' => 'required|string|max:255',
+                'organization_info.email' => 'required|email|max:255',
+                'organization_info.contact_number' => 'required|string|max:20',
+                'organization_info.website' => 'required|string|max:255',
+                'organization_info.address' => 'required|string|max:500',
+                'organization_info.banner' => 'required|string|max:1000',
+                'organization_info.logo' => 'required|string|max:1000',
+                'auth' => 'required|array',
+                'auth.username' => 'required|string|max:255',
+                'auth.password' => 'nullable|string|min:8',
+                'elected_officials' => 'required|array',
+                'elected_officials.*.name' => 'required|string|max:255',
+                'elected_officials.*.officials' => 'required|array',
+                'elected_officials.*.officials.*.name' => 'required|string|max:255',
+                'elected_officials.*.officials.*.position' => 'required|string|max:255',
+                'elected_officials.*.officials.*.profile_url' => 'required|string|max:1000',
+            ]);
+
+            // Check if client exists
+            $client = Client::where('client_identifier', $request->client_identifier)->first();
+            
+            if (!$client) {
+                return response()->json([
+                    'error' => 'Client not found',
+                    'message' => 'No client found with the provided identifier'
+                ], 404);
+            }
+
+            DB::beginTransaction();
+
+            try {
+                // Process organization info
+                foreach ($validated['organization_info'] as $key => $value) {
+                    ClientDetails::updateOrCreate(
+                        [
+                            'app_name' => 'family-tree',
+                            'client_id' => $client->id,
+                            'client_identifier' => $client->client_identifier,
+                            'name' => "organization_info.{$key}"
+                        ],
+                        [
+                            'value' => $value
+                        ]
+                    );
+                }
+
+                // Process auth settings
+                foreach ($validated['auth'] as $key => $value) {
+                    if ($key === 'password' && !empty($value)) {
+                        $value = Hash::make($value);
+                    } elseif ($key === 'password') {
+                        // If no new password provided, skip updating it
+                        continue;
+                    }
+                    
+                    ClientDetails::updateOrCreate(
+                        [
+                            'app_name' => 'family-tree',
+                            'client_id' => $client->id,
+                            'client_identifier' => $client->client_identifier,
+                            'name' => "auth.{$key}"
+                        ],
+                        [
+                            'value' => $value
+                        ]
+                    );
+                }
+
+                // Process elected officials
+                ClientDetails::updateOrCreate(
+                    [
+                        'app_name' => 'family-tree',
+                        'client_id' => $client->id,
+                        'client_identifier' => $client->client_identifier,
+                        'name' => 'elected_officials'
+                    ],
+                    [
+                        'value' => json_encode($validated['elected_officials'])
+                    ]
+                );
+
+                DB::commit();
+
+                // Return updated settings
+                return $this->settings($request);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            Log::error('Error saving family tree settings: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to save settings: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
