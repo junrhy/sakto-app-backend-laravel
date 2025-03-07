@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\InboxController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\FnbSettingsController;
+use App\Http\Controllers\Api\FnbRestaurantController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -32,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    Route::get('/restaurants', [FnbRestaurantController::class, 'index']);
 
     Route::get('/products-overview', [InventoryController::class, 'getProductsOverview']);
     Route::get('/tables-overview', [FnbTableController::class, 'getTablesOverview']);
