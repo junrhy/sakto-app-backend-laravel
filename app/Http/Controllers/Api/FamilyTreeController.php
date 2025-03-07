@@ -411,37 +411,38 @@ class FamilyTreeController extends Controller
     public function settings(Request $request)
     {
         try {
-            $settings = ClientDetails::where('client_identifier', $request->client_identifier)
-                ->where('app_name', 'family-tree')
-                ->get();
-            
+            // Initialize default settings structure
             $formattedSettings = [
                 'organization_info' => [
-                    'family_name' => 'My Family Association',
+                    'family_name' => '',
                     'email' => '',
                     'contact_number' => '',
                     'website' => '',
                     'address' => '',
-                    'banner' => 'https://placehold.co/1200x400/png',
-                    'logo' => 'https://placehold.co/150x150/png'
+                    'banner' => '',
+                    'logo' => ''
                 ],
                 'auth' => [
                     'username' => '',
                     'password' => ''
                 ],
-                'elected_officials' => [
-                    [
-                        'name' => 'Executive Board',
-                        'officials' => []
-                    ]
-                ]
+                'elected_officials' => []
             ];
 
+            // Get settings from database
+            $settings = ClientDetails::where('client_identifier', $request->client_identifier)
+                ->where('app_name', 'family-tree')
+                ->get();
+            
+            // Process settings if any exist
             foreach ($settings as $setting) {
-                list($section, $key) = explode('.', $setting->name);
+                $parts = explode('.', $setting->name);
+                $section = $parts[0];
+                
                 if ($section === 'elected_officials') {
-                    $formattedSettings[$section] = json_decode($setting->value, true);
-                } else {
+                    $formattedSettings[$section] = json_decode($setting->value, true) ?? [];
+                } elseif (count($parts) > 1) {
+                    $key = $parts[1];
                     $formattedSettings[$section][$key] = $setting->value;
                 }
             }
@@ -449,10 +450,12 @@ class FamilyTreeController extends Controller
             return response()->json([
                 'data' => $formattedSettings
             ]);
+            
         } catch (\Exception $e) {
             Log::error('Error fetching family tree settings: ' . $e->getMessage());
             return response()->json([
-                'error' => 'Failed to fetch settings'
+                'error' => 'Failed to fetch settings',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -466,21 +469,21 @@ class FamilyTreeController extends Controller
             $validated = $request->validate([
                 'organization_info' => 'required|array',
                 'organization_info.family_name' => 'required|string|max:255',
-                'organization_info.email' => 'required|email|max:255',
-                'organization_info.contact_number' => 'required|string|max:20',
-                'organization_info.website' => 'required|string|max:255',
-                'organization_info.address' => 'required|string|max:500',
-                'organization_info.banner' => 'required|string|max:1000',
-                'organization_info.logo' => 'required|string|max:1000',
+                'organization_info.email' => 'nullable|email|max:255',
+                'organization_info.contact_number' => 'nullable|string|max:50',
+                'organization_info.website' => 'nullable|url|max:255',
+                'organization_info.address' => 'nullable|string|max:500',
+                'organization_info.banner' => 'nullable|string|max:1000',
+                'organization_info.logo' => 'nullable|string|max:1000',
                 'auth' => 'required|array',
-                'auth.username' => 'required|string|max:255',
-                'auth.password' => 'nullable|string|min:8',
-                'elected_officials' => 'required|array',
-                'elected_officials.*.name' => 'required|string|max:255',
-                'elected_officials.*.officials' => 'required|array',
-                'elected_officials.*.officials.*.name' => 'required|string|max:255',
-                'elected_officials.*.officials.*.position' => 'required|string|max:255',
-                'elected_officials.*.officials.*.profile_url' => 'required|string|max:1000',
+                'auth.username' => 'nullable|string|max:255',
+                'auth.password' => 'nullable|string|min:6',
+                'elected_officials' => 'nullable|array',
+                'elected_officials.*.name' => 'required_with:elected_officials|string|max:255',
+                'elected_officials.*.officials' => 'required_with:elected_officials|array',
+                'elected_officials.*.officials.*.name' => 'required_with:elected_officials.*.officials|string|max:255',
+                'elected_officials.*.officials.*.position' => 'required_with:elected_officials.*.officials|string|max:255',
+                'elected_officials.*.officials.*.profile_url' => 'nullable|string'
             ]);
 
             // Check if client exists
@@ -506,7 +509,7 @@ class FamilyTreeController extends Controller
                             'name' => "organization_info.{$key}"
                         ],
                         [
-                            'value' => $value
+                            'value' => $value ?? ''
                         ]
                     );
                 }
@@ -528,23 +531,29 @@ class FamilyTreeController extends Controller
                             'name' => "auth.{$key}"
                         ],
                         [
-                            'value' => $value
+                            'value' => $value ?? ''
                         ]
                     );
                 }
 
-                // Process elected officials
-                ClientDetails::updateOrCreate(
-                    [
+                // Delete existing elected officials record
+                ClientDetails::where([
+                    'app_name' => 'family-tree',
+                    'client_id' => $client->id,
+                    'client_identifier' => $client->client_identifier,
+                    'name' => 'elected_officials'
+                ])->delete();
+
+                // Create new elected officials record if data is provided
+                if (!empty($validated['elected_officials'])) {
+                    ClientDetails::create([
                         'app_name' => 'family-tree',
                         'client_id' => $client->id,
                         'client_identifier' => $client->client_identifier,
-                        'name' => 'elected_officials'
-                    ],
-                    [
+                        'name' => 'elected_officials',
                         'value' => json_encode($validated['elected_officials'])
-                    ]
-                );
+                    ]);
+                }
 
                 DB::commit();
 
