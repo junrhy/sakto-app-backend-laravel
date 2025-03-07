@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\fnbReservation;
+use App\Models\FnbReservation;
 use Illuminate\Http\Request;
 
 class FnbReservationController extends Controller
@@ -14,7 +14,7 @@ class FnbReservationController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
-        $reservations = fnbReservation::where('client_identifier', $clientIdentifier)->get();
+        $reservations = FnbReservation::where('client_identifier', $clientIdentifier)->get();
         return response()->json($reservations);
     }
 
@@ -36,7 +36,7 @@ class FnbReservationController extends Controller
             'notes' => 'nullable',
         ]);
 
-        $reservation = fnbReservation::create($validated);
+        $reservation = FnbReservation::create($validated);
         return response()->json($reservation, 201);
     }
 
@@ -45,14 +45,14 @@ class FnbReservationController extends Controller
      */
     public function destroy($id)
     {
-        $fnbReservation = fnbReservation::where('id', $id)->first();
+        $fnbReservation = FnbReservation::where('id', $id)->first();
         $fnbReservation->delete();
         return response()->json(['message' => 'Reservation deleted successfully'], 204);
     }
 
     public function getReservationsOverview()
     {
-        $reservations = fnbReservation::all();
+        $reservations = FnbReservation::all();
         return response()->json($reservations);
     }
 }

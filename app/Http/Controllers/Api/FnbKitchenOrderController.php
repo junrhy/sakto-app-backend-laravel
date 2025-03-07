@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api; 
 
 use App\Http\Controllers\Controller;
-use App\Models\fnbKitchenOrder;
+use App\Models\FnbKitchenOrder;
 use Illuminate\Http\Request;
 
 class FnbKitchenOrderController extends Controller
@@ -35,7 +35,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(fnbKitchenOrder $fnbKitchenOrder)
+    public function show(FnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -43,7 +43,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(fnbKitchenOrder $fnbKitchenOrder)
+    public function edit(FnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -51,7 +51,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, fnbKitchenOrder $fnbKitchenOrder)
+    public function update(Request $request, FnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }
@@ -59,7 +59,7 @@ class FnbKitchenOrderController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(fnbKitchenOrder $fnbKitchenOrder)
+    public function destroy(FnbKitchenOrder $fnbKitchenOrder)
     {
         //
     }

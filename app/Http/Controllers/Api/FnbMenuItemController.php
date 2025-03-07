@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\fnbMenuItem;
+use App\Models\FnbMenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,7 +16,7 @@ class FnbMenuItemController extends Controller
     {
         $clientIdentifier = $request->client_identifier;
 
-        $fnbMenuItems = fnbMenuItem::where('client_identifier', $clientIdentifier)->get()->map(function ($item) {
+        $fnbMenuItems = FnbMenuItem::where('client_identifier', $clientIdentifier)->get()->map(function ($item) {
             return [
                 'id' => $item->id,
                 'name' => $item->name,
@@ -40,7 +40,7 @@ class FnbMenuItemController extends Controller
 
     public function show(Request $request)
     {
-        $fnbMenuItem = fnbMenuItem::find($request->id);
+        $fnbMenuItem = FnbMenuItem::find($request->id);
         return response()->json([
             'status' => 'success',
             'message' => 'FNB Menu Item retrieved successfully',
@@ -63,7 +63,7 @@ class FnbMenuItemController extends Controller
             'client_identifier' => 'nullable|string'
         ]);
     
-        return fnbMenuItem::create($validated);
+        return FnbMenuItem::create($validated);
     }
 
     /**
@@ -79,7 +79,7 @@ class FnbMenuItemController extends Controller
             'client_identifier' => 'nullable|string'
         ]);
 
-        $fnbMenuItem = fnbMenuItem::find($request->id);
+        $fnbMenuItem = FnbMenuItem::find($request->id);
 
         $fnbMenuItem->update($validated);
         return response()->json(['status' => 'success', 'message' => 'Menu item updated successfully']);
@@ -90,7 +90,7 @@ class FnbMenuItemController extends Controller
      */
     public function destroy(Request $request)
     {
-        $fnbMenuItem = fnbMenuItem::find($request->id);
+        $fnbMenuItem = FnbMenuItem::find($request->id);
         $fnbMenuItem->delete();
         return response()->noContent();
     }
@@ -102,7 +102,7 @@ class FnbMenuItemController extends Controller
             'ids.*' => 'exists:fnb_menu_items,id'
         ]);
 
-        fnbMenuItem::whereIn('id', $validated['ids'])->delete();
+        FnbMenuItem::whereIn('id', $validated['ids'])->delete();
         return response()->noContent();
     }
 }
