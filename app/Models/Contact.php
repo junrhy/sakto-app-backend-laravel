@@ -22,9 +22,15 @@ class Contact extends Model
         'twitter',
         'linkedin',
         'address',
+        'group',
         'notes',
         'id_picture',
         'id_numbers',
         'client_identifier',
+    ];
+
+    protected $casts = [
+        'group' => 'array',
+        'id_numbers' => 'array',
     ];
 }

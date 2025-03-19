@@ -39,6 +39,7 @@ class ContactController extends Controller
                 'twitter' => 'nullable|string|max:255|url',
                 'linkedin' => 'nullable|string|max:255|url',
                 'address' => 'nullable|string|max:500',
+                'group' => 'nullable|array',
                 'notes' => 'nullable|string',
                 'id_picture' => 'nullable|string',
                 'client_identifier' => 'required|string|max:255',
@@ -81,6 +82,7 @@ class ContactController extends Controller
             'twitter' => 'nullable|string|max:255|url',
             'linkedin' => 'nullable|string|max:255|url',
             'address' => 'nullable|string|max:500',
+            'group' => 'nullable|array',
             'notes' => 'nullable|string',
             'id_picture' => 'nullable|string'
         ]);

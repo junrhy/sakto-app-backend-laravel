@@ -30,6 +30,7 @@ return new class extends Migration
                 $table->string('twitter')->nullable();
                 $table->string('linkedin')->nullable();
                 $table->string('address')->nullable();
+                $table->json('group')->nullable();
                 $table->text('notes')->nullable();
                 $table->string('id_picture')->nullable();
                 $table->json('id_numbers')->nullable();
