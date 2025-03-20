@@ -609,6 +609,7 @@ class FamilyTreeController extends Controller
                 'death_date' => $editRequest->death_date,
                 'gender' => $editRequest->gender,
                 'notes' => $editRequest->notes,
+                'photo' => $editRequest->photo
             ]);
 
             // Update the edit request status
