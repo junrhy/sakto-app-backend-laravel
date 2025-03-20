@@ -233,6 +233,12 @@ Route::middleware('auth:sanctum')->group(function () {
         // Settings routes
         Route::get('/settings', [FamilyTreeController::class, 'settings']);
         Route::post('/settings', [FamilyTreeController::class, 'saveSettings']);
+
+        // Edit Requests
+        Route::post('/edit-requests', [FamilyTreeController::class, 'editRequests']);
+        Route::get('/edit-requests', [FamilyTreeController::class, 'getEditRequests']);
+        Route::post('/edit-requests/{id}/accept', [FamilyTreeController::class, 'acceptEditRequest']);
+        Route::post('/edit-requests/{id}/reject', [FamilyTreeController::class, 'rejectEditRequest']);
     });
 
     // Inbox Routes

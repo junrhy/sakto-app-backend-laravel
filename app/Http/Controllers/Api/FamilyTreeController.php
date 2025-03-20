@@ -13,6 +13,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
 use App\Models\ClientDetails;
 use App\Models\Client;
+use App\Models\FamilyMemberEditRequest;
 
 class FamilyTreeController extends Controller
 {
@@ -567,6 +568,155 @@ class FamilyTreeController extends Controller
             Log::error('Error saving family tree settings: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to save settings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all pending edit requests for a client
+     */
+    public function getEditRequests(Request $request)
+    {
+        $editRequests = FamilyMemberEditRequest::where('client_identifier', $request->client_identifier)
+            ->where('status', 'pending')
+            ->with(['member'])
+            ->get();
+
+        return response()->json([
+            'data' => $editRequests
+        ]);
+    }
+
+    /**
+     * Accept an edit request
+     */
+    public function acceptEditRequest(Request $request, $id)
+    {
+        $editRequest = FamilyMemberEditRequest::where('client_identifier', $request->client_identifier)
+            ->where('id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        try {
+            DB::beginTransaction();
+
+            // Update the family member with the proposed changes
+            $member = $editRequest->member;
+            $member->update([
+                'first_name' => $editRequest->first_name,
+                'last_name' => $editRequest->last_name,
+                'birth_date' => $editRequest->birth_date,
+                'death_date' => $editRequest->death_date,
+                'gender' => $editRequest->gender,
+                'notes' => $editRequest->notes,
+            ]);
+
+            // Update the edit request status
+            $editRequest->update(['status' => 'accepted']);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Edit request accepted successfully',
+                'data' => $member
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to accept edit request', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Failed to accept edit request'
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject an edit request
+     */
+    public function rejectEditRequest(Request $request, $id)
+    {
+        $editRequest = FamilyMemberEditRequest::where('client_identifier', $request->client_identifier)
+            ->where('id', $id)
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        try {
+            DB::beginTransaction();
+
+            // Delete the edit request record
+            $editRequest->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Edit request rejected and deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to reject edit request', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Failed to reject edit request'
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new edit request for a family member
+     */
+    public function editRequests(Request $request)
+    {
+        $validated = $request->validate([
+            'member_id' => 'required|exists:family_members,id',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'birth_date' => 'required|date',
+            'death_date' => 'nullable|date|after:birth_date',
+            'gender' => ['required', Rule::in(['male', 'female', 'other'])],
+            'photo' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'client_identifier' => 'required|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Verify the member belongs to the client
+            $member = FamilyMember::where('client_identifier', $validated['client_identifier'])
+                ->findOrFail($validated['member_id']);
+
+            // Create the edit request
+            $editRequest = FamilyMemberEditRequest::create([
+                'member_id' => $validated['member_id'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'birth_date' => $validated['birth_date'],
+                'death_date' => $validated['death_date'],
+                'gender' => $validated['gender'],
+                'photo' => $validated['photo'],
+                'notes' => $validated['notes'],
+                'client_identifier' => $validated['client_identifier'],
+                'status' => 'pending'
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Edit request created successfully',
+                'data' => $editRequest
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to create edit request', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Failed to create edit request'
             ], 500);
         }
     }
