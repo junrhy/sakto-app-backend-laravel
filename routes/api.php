@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\InboxController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\FnbSettingsController;
 use App\Http\Controllers\Api\FnbRestaurantController;
+use App\Http\Controllers\Api\EventController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -254,6 +255,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [ClientController::class, 'store']);
         Route::get('/{id}', [ClientController::class, 'show']);
         Route::put('/{id}', [ClientController::class, 'update']);
+    });
+
+    // Event Routes
+    Route::prefix('events')->group(function () {
+        Route::get('/', [EventController::class, 'index']);
+        Route::post('/', [EventController::class, 'store']);
+        Route::get('/{id}', [EventController::class, 'show']);
+        Route::put('/{id}', [EventController::class, 'update']);
+        Route::delete('/{id}', [EventController::class, 'destroy']);
+        Route::get('/upcoming', [EventController::class, 'getUpcomingEvents']);
+        Route::get('/past', [EventController::class, 'getPastEvents']);
+        Route::get('/export', [EventController::class, 'exportEvents']);
+        Route::get('/{id}/participants', [EventController::class, 'getParticipants']);
+        Route::post('/{id}/participants/check-in', [EventController::class, 'checkInParticipant']);
+        Route::post('/{id}/participants', [EventController::class, 'registerParticipant']);
+        Route::delete('/{id}/participants/{participantId}', [EventController::class, 'unregisterParticipant']);
+        Route::post('/bulk-delete', [EventController::class, 'bulkDestroy']);
     });
 
     // Future authenticated routes will go here...
