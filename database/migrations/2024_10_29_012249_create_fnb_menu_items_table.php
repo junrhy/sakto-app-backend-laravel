@@ -21,6 +21,7 @@ return new class extends Migration
                 $table->string('image')->nullable();
                 $table->boolean('is_available_personal')->default(true);
                 $table->boolean('is_available_online')->default(true);
+                $table->decimal('delivery_fee', 8, 2)->default(0);
                 $table->string('client_identifier')->nullable();
                 $table->timestamps();
             });

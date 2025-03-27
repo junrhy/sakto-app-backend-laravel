@@ -25,6 +25,7 @@ class FnbMenuItemController extends Controller
                 'image' => $item->image,
                 'is_available_personal' => $item->is_available_personal,
                 'is_available_online' => $item->is_available_online,
+                'delivery_fee' => $item->delivery_fee,
                 'client_identifier' => $item->client_identifier
             ];
         });
@@ -60,7 +61,8 @@ class FnbMenuItemController extends Controller
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
             'image' => 'nullable|string',
-            'client_identifier' => 'nullable|string'
+            'client_identifier' => 'nullable|string',
+            'delivery_fee' => 'nullable|numeric|min:0'
         ]);
     
         return FnbMenuItem::create($validated);
@@ -76,7 +78,8 @@ class FnbMenuItemController extends Controller
             'price' => 'required|numeric|min:0',
             'category' => 'required|string',
             'image' => 'nullable|string',
-            'client_identifier' => 'nullable|string'
+            'client_identifier' => 'nullable|string',
+            'delivery_fee' => 'nullable|numeric|min:0'
         ]);
 
         $fnbMenuItem = FnbMenuItem::find($request->id);

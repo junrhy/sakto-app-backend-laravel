@@ -20,7 +20,7 @@ class FnbRestaurantController extends Controller
             ->get()
             ->map(function($item) {
                 $menuItems = FnbMenuItem::where('client_identifier', $item->client_identifier)
-                    ->select('id', 'name', 'price', 'category', 'image', 'is_available_personal', 'is_available_online')
+                    ->select('id', 'name', 'price', 'category', 'image', 'is_available_personal', 'is_available_online', 'delivery_fee')
                     ->get();
 
                 return [
