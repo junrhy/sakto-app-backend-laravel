@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\FnbSettingsController;
 use App\Http\Controllers\Api\FnbRestaurantController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -272,6 +273,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/participants', [EventController::class, 'registerParticipant']);
         Route::delete('/{id}/participants/{participantId}', [EventController::class, 'unregisterParticipant']);
         Route::post('/bulk-delete', [EventController::class, 'bulkDestroy']);
+    });
+
+    // Food Delivery Order Routes
+    Route::prefix('food-delivery-orders')->group(function () {
+        Route::get('/', [FoodDeliveryOrderController::class, 'index']);
+        Route::post('/', [FoodDeliveryOrderController::class, 'store']);
+        Route::get('/{id}', [FoodDeliveryOrderController::class, 'show']);
+        Route::put('/{id}', [FoodDeliveryOrderController::class, 'update']);
+        Route::delete('/{id}', [FoodDeliveryOrderController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...
