@@ -269,7 +269,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/past', [EventController::class, 'getPastEvents']);
         Route::get('/export', [EventController::class, 'exportEvents']);
         Route::get('/{id}/participants', [EventController::class, 'getParticipants']);
-        Route::post('/{id}/participants/check-in', [EventController::class, 'checkInParticipant']);
+        Route::post('/{id}/participants/{participantId}/check-in', [EventController::class, 'checkInParticipant']);
         Route::post('/{id}/participants', [EventController::class, 'registerParticipant']);
         Route::delete('/{id}/participants/{participantId}', [EventController::class, 'unregisterParticipant']);
         Route::post('/bulk-delete', [EventController::class, 'bulkDestroy']);

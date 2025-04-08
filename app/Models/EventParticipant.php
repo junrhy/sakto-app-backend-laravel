@@ -11,7 +11,9 @@ class EventParticipant extends Model
         'name',
         'email',
         'phone',
-        'notes'
+        'notes',
+        'checked_in',
+        'checked_in_at'
     ];
 
     public function event()

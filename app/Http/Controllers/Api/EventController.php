@@ -145,16 +145,12 @@ class EventController extends Controller
         ]);
     }
 
-    public function checkInParticipant(Request $request, $id)
+    public function checkInParticipant(Request $request, $id, $participantId)
     {
         $event = Event::findOrFail($id);
-        
-        $validated = $request->validate([
-            'participant_id' => 'required|exists:event_participants,id'
-        ]);
 
         $participant = EventParticipant::where('event_id', $id)
-            ->where('id', $validated['participant_id'])
+            ->where('id', $participantId)
             ->firstOrFail();
 
         $participant->update([
