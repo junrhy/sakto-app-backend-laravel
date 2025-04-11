@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\FnbSettingsController;
 use App\Http\Controllers\Api\FnbRestaurantController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FoodDeliveryOrderController;
+use App\Http\Controllers\Api\ChallengeController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -282,6 +283,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [FoodDeliveryOrderController::class, 'show']);
         Route::put('/{id}', [FoodDeliveryOrderController::class, 'update']);
         Route::delete('/{id}', [FoodDeliveryOrderController::class, 'destroy']);
+    });
+
+    // Challenge Routes
+    Route::prefix('challenges')->group(function () {
+        Route::get('/', [ChallengeController::class, 'index']);
+        Route::post('/', [ChallengeController::class, 'store']);
+        Route::get('/participants-list', [ChallengeController::class, 'getParticipantsList']);
+        Route::get('/{id}', [ChallengeController::class, 'show']);
+        Route::put('/{id}', [ChallengeController::class, 'update']);
+        Route::delete('/{id}', [ChallengeController::class, 'destroy']);
+        Route::post('/bulk-delete', [ChallengeController::class, 'bulkDestroy']);
+        Route::get('/{id}/participants', [ChallengeController::class, 'getParticipants']);
+        Route::post('/{id}/progress', [ChallengeController::class, 'updateProgress']);
+        Route::post('/{id}/participation', [ChallengeController::class, 'updateParticipationStatus']);
+        Route::get('/{id}/leaderboard', [ChallengeController::class, 'getLeaderboard']);
+        Route::get('/{id}/statistics', [ChallengeController::class, 'getStatistics']);
+        Route::post('/{id}/participants', [ChallengeController::class, 'addParticipant']);
+        Route::delete('/{id}/participants/{participantId}', [ChallengeController::class, 'removeParticipant']);
     });
 
     // Future authenticated routes will go here...
