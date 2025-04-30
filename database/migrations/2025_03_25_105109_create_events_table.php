@@ -37,10 +37,13 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('events')) {
-            $count = DB::table('events')->count();
-            if ($count > 0) {
-                Schema::dropIfExists('events');
-            }
+            // First drop any foreign key constraints
+            Schema::table('event_participants', function (Blueprint $table) {
+                $table->dropForeign(['event_id']);
+            });
+            
+            // Then drop the table
+            Schema::dropIfExists('events');
         }
     }
 };
