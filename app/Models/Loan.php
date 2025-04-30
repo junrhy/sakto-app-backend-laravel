@@ -12,14 +12,14 @@ class Loan extends Model
         'interest_rate',
         'start_date',
         'end_date',
-        'interest_type',
-        'compounding_frequency',
-        'installment_frequency',
-        'installment_amount',
         'status',
+        'interest_type',
+        'frequency',
         'total_interest',
         'total_balance',
         'paid_amount',
-        'client_identifier'
+        'client_identifier',
+        'installment_frequency',
+        'installment_amount'
     ];
 }

@@ -37,18 +37,18 @@ class LoanController extends Controller
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:active,paid,defaulted',
             'interest_type' => 'required|in:fixed,compounding',
-            'compounding_frequency' => 'required_if:interest_type,compounding|in:daily,monthly,quarterly,annually',
+            'frequency' => 'required|in:daily,monthly,quarterly,annually',
             'installment_frequency' => 'in:weekly,bi-weekly,monthly,quarterly,annually|nullable',
             'installment_amount' => 'nullable|numeric|min:0'
         ]);
 
         $data = $request->all();
         
-        // Calculate number of months
-        $start = strtotime($data['start_date']);
-        $end = strtotime($data['end_date']);
-        $days = ceil(($end - $start) / (24 * 60 * 60));
-        $months = $days / 30;
+        // Calculate time difference
+        $start = new \DateTime($data['start_date']);
+        $end = new \DateTime($data['end_date']);
+        $interval = $start->diff($end);
+        $days = $interval->days;
         
         $principal = $data['amount'];
         
@@ -57,7 +57,8 @@ class LoanController extends Controller
             $data['total_interest'] = $this->calculateSimpleInterest(
                 $principal,
                 $data['interest_rate'],
-                $months
+                $days,
+                $data['frequency']
             );
         } else {
             $data['total_interest'] = $this->calculateCompoundInterest(
@@ -65,7 +66,7 @@ class LoanController extends Controller
                 $data['interest_rate'],
                 $data['start_date'],
                 $data['end_date'],
-                $data['compounding_frequency']
+                $data['frequency']
             );
         }
         
@@ -95,18 +96,18 @@ class LoanController extends Controller
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:active,paid,defaulted',
             'interest_type' => 'required|in:fixed,compounding',
-            'compounding_frequency' => 'required_if:interest_type,compounding|in:daily,monthly,quarterly,annually',
+            'frequency' => 'required|in:daily,monthly,quarterly,annually',
             'installment_frequency' => 'in:weekly,bi-weekly,monthly,quarterly,annually|nullable',
             'installment_amount' => 'nullable|numeric|min:0'
         ]);
 
         $data = $request->all();
         
-        // Calculate number of months
-        $start = strtotime($data['start_date']);
-        $end = strtotime($data['end_date']);
-        $days = ceil(($end - $start) / (24 * 60 * 60));
-        $months = $days / 30;
+        // Calculate time difference
+        $start = new \DateTime($data['start_date']);
+        $end = new \DateTime($data['end_date']);
+        $interval = $start->diff($end);
+        $days = $interval->days;
         
         $principal = $data['amount'];
         
@@ -115,7 +116,8 @@ class LoanController extends Controller
             $data['total_interest'] = $this->calculateSimpleInterest(
                 $principal,
                 $data['interest_rate'],
-                $months
+                $days,
+                $data['frequency']
             );
         } else {
             $data['total_interest'] = $this->calculateCompoundInterest(
@@ -123,7 +125,7 @@ class LoanController extends Controller
                 $data['interest_rate'],
                 $data['start_date'],
                 $data['end_date'],
-                $data['compounding_frequency']
+                $data['frequency']
             );
         }
         
@@ -164,14 +166,47 @@ class LoanController extends Controller
     }
 
     /**
-     * Calculate simple interest
+     * Calculate simple interest with frequency
+     * @param float $principal The loan amount
+     * @param float $rate Annual interest rate as a percentage
+     * @param int $days Number of days
+     * @param string $frequency Interest calculation frequency (daily, monthly, quarterly, annually)
+     * @return float The calculated interest amount
      */
-    private function calculateSimpleInterest($principal, $rate, $months)
+    private function calculateSimpleInterest($principal, $rate, $days, $frequency)
     {
-        // Simple Interest Formula: I = P * r * t
-        // Where: I = Interest, P = Principal, r = monthly interest rate, t = time in months
-        $monthly_rate = $rate / 100; // Convert percentage to decimal
-        return $principal * $monthly_rate * $months;
+        // Convert annual rate to decimal
+        $annual_rate = $rate / 100;
+        
+        // Calculate time in years
+        $years = $days / 365;
+        
+        // Calculate total interest based on frequency
+        switch ($frequency) {
+            case 'daily':
+                // Daily interest: (P * r * t) / 365
+                $daily_rate = $annual_rate / 365;
+                return $principal * $daily_rate * $days;
+                
+            case 'monthly':
+                // Monthly interest: (P * r * t) / 12
+                $monthly_rate = $annual_rate / 12;
+                $months = $days / 30.44; // Average days per month
+                return $principal * $monthly_rate * $months;
+                
+            case 'quarterly':
+                // Quarterly interest: (P * r * t) / 4
+                $quarterly_rate = $annual_rate / 4;
+                $quarters = $days / 91.32; // Average days per quarter
+                return $principal * $quarterly_rate * $quarters;
+                
+            case 'annually':
+                // Annual interest: P * r * t
+                return $principal * $annual_rate * $years;
+                
+            default:
+                throw new \InvalidArgumentException('Invalid frequency specified');
+        }
     }
 
     /**
