@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
+use App\Http\Controllers\Api\LoanCbuController;
 use App\Http\Controllers\Api\RentalPropertyController;
 use App\Http\Controllers\Api\RentalItemController;
 use App\Http\Controllers\Api\PayrollController;
@@ -113,6 +114,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [LoanController::class, 'update']);
         Route::delete('/{id}', [LoanController::class, 'destroy']);
         Route::post('/bulk-destroy', [LoanController::class, 'bulkDestroy']);
+
+        Route::get('/cbu', [LoanCbuController::class, 'getCbuFunds']);
+        Route::post('/cbu', [LoanCbuController::class, 'storeCbuFund']);
+        Route::put('/cbu/{id}', [LoanCbuController::class, 'updateCbuFund']);
+        Route::delete('/cbu/{id}', [LoanCbuController::class, 'destroyCbuFund']);
+        Route::post('/cbu/{id}/contributions', [LoanCbuController::class, 'addCbuContribution']);
+        Route::get('/cbu/{id}/contributions', [LoanCbuController::class, 'getCbuContributions']);
+        Route::get('/cbu/{id}/withdrawals', [LoanCbuController::class, 'getCbuWithdrawals']);
+        Route::post('/cbu/{id}/withdraw', [LoanCbuController::class, 'withdrawCbuFund']);
+        Route::post('/cbu/{id}/process-withdrawal', [LoanCbuController::class, 'processCbuWithdrawal']);
+        Route::get('/cbu/history', [LoanCbuController::class, 'getCbuHistory']);
+        Route::get('/cbu/report', [LoanCbuController::class, 'generateCbuReport']);
     });
 
     // Loan Payment Routes
