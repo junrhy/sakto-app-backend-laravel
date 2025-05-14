@@ -250,25 +250,48 @@ class LoanCbuController extends Controller
     /**
      * Get CBU history
      */
-    public function getCbuHistory()
+    public function getCbuHistory(Request $request, $id)
     {
         $history = CbuHistory::with('fund')
-            ->orderBy('date', 'desc')
-            ->get();
+        ->where('cbu_fund_id', $id)
+        ->where('client_identifier', $request->client_identifier)
+        ->orderBy('date', 'desc')
+        ->get();
         return response()->json($history);
     }
 
     /**
      * Generate CBU report
      */
-    public function generateCbuReport()
+    public function generateCbuReport(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
         $report = [
-            'total_funds' => CbuFund::count(),
-            'total_contributions' => CbuContribution::sum('amount'),
-            'total_withdrawals' => CbuHistory::where('action', 'withdrawal')->sum('amount'),
-            'active_funds' => CbuFund::where('end_date', '>', now())->count(),
+            'total_funds' => CbuFund::where('client_identifier', $request->client_identifier)
+                ->whereBetween('created_at', [$request->start_date, $request->end_date])
+                ->count(),
+            'total_contributions' => CbuContribution::where('client_identifier', $request->client_identifier)
+                ->whereBetween('contribution_date', [$request->start_date, $request->end_date])
+                ->sum('amount'),
+            'total_withdrawals' => CbuHistory::where('action', 'withdrawal')
+                ->where('client_identifier', $request->client_identifier)
+                ->whereBetween('date', [$request->start_date, $request->end_date])
+                ->sum('amount'),
+            'active_funds' => CbuFund::where('end_date', '>', now())
+                ->where('client_identifier', $request->client_identifier)
+                ->whereBetween('created_at', [$request->start_date, $request->end_date])
+                ->count(),
             'recent_activities' => CbuHistory::with('fund')
+                ->where('client_identifier', $request->client_identifier)
+                ->whereBetween('date', [$request->start_date, $request->end_date])
                 ->orderBy('date', 'desc')
                 ->take(10)
                 ->get(),

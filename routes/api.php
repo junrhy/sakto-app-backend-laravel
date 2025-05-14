@@ -124,7 +124,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/cbu/{id}/withdrawals', [LoanCbuController::class, 'getCbuWithdrawals']);
         Route::post('/cbu/{id}/withdraw', [LoanCbuController::class, 'withdrawCbuFund']);
         Route::post('/cbu/{id}/process-withdrawal', [LoanCbuController::class, 'processCbuWithdrawal']);
-        Route::get('/cbu/history', [LoanCbuController::class, 'getCbuHistory']);
+        Route::get('/cbu/{id}/history', [LoanCbuController::class, 'getCbuHistory']);
         Route::get('/cbu/report', [LoanCbuController::class, 'generateCbuReport']);
     });
 
