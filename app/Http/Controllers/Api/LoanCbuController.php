@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\CbuFund;
 use App\Models\CbuContribution;
 use App\Models\CbuHistory;
+use App\Models\CbuDividend;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -285,6 +286,9 @@ class LoanCbuController extends Controller
                 ->where('client_identifier', $request->client_identifier)
                 ->whereBetween('date', [$request->start_date, $request->end_date])
                 ->sum('amount'),
+            'total_dividends' => CbuDividend::where('client_identifier', $request->client_identifier)
+                ->whereBetween('dividend_date', [$request->start_date, $request->end_date])
+                ->sum('amount'),
             'active_funds' => CbuFund::where('end_date', '>', now())
                 ->where('client_identifier', $request->client_identifier)
                 ->whereBetween('created_at', [$request->start_date, $request->end_date])
@@ -295,8 +299,100 @@ class LoanCbuController extends Controller
                 ->orderBy('date', 'desc')
                 ->take(10)
                 ->get(),
+            'recent_dividends' => CbuDividend::with('fund')
+                ->where('client_identifier', $request->client_identifier)
+                ->whereBetween('dividend_date', [$request->start_date, $request->end_date])
+                ->orderBy('dividend_date', 'desc')
+                ->take(5)
+                ->get(),
         ];
 
         return response()->json($report);
+    }
+
+    /**
+     * Get all dividends for a specific CBU fund
+     *
+     * @param string $id The CBU fund ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getCbuDividends(string $id)
+    {
+        try {
+            $cbuFund = CbuFund::findOrFail($id);
+            $dividends = CbuDividend::where('cbu_fund_id', $id)
+                ->orderBy('dividend_date', 'desc')
+                ->get();
+
+            return response()->json([
+                'data' => [
+                    'cbu_dividends' => $dividends
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch CBU dividends.'], 500);
+        }
+    }
+
+    /**
+     * Add a new dividend to a CBU fund
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $id The CBU fund ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function addCbuDividend(Request $request, string $id)
+    {
+        try {
+            $validated = $request->validate([
+                'cbu_fund_id' => 'required|exists:cbu_funds,id',
+                'amount' => 'required|numeric|min:0',
+                'dividend_date' => 'required|date',
+                'notes' => 'nullable|string',
+                'client_identifier' => 'required|string',
+            ]);
+
+            $cbuFund = CbuFund::findOrFail($id);
+
+            DB::beginTransaction();
+            try {
+                // Create the dividend record
+                $dividend = CbuDividend::create([
+                    'cbu_fund_id' => $id,
+                    'amount' => $validated['amount'],
+                    'dividend_date' => $validated['dividend_date'],
+                    'notes' => $validated['notes'] ?? null,
+                    'client_identifier' => $validated['client_identifier'],
+                ]);
+
+                // Update the CBU fund's total amount
+                $cbuFund->total_amount = bcadd($cbuFund->total_amount, $validated['amount'], 2);
+                $cbuFund->save();
+
+                // Record in history
+                CbuHistory::create([
+                    'cbu_fund_id' => $id,
+                    'action' => 'dividend',
+                    'amount' => $validated['amount'],
+                    'notes' => $validated['notes'] ?? null,
+                    'date' => $validated['dividend_date'],
+                    'client_identifier' => $validated['client_identifier'],
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'data' => [
+                        'cbu_dividend' => $dividend,
+                        'message' => 'Dividend added successfully'
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to add CBU dividend.'], 500);
+        }
     }
 }

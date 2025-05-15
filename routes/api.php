@@ -121,6 +121,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/cbu/{id}', [LoanCbuController::class, 'destroyCbuFund']);
         Route::post('/cbu/{id}/contributions', [LoanCbuController::class, 'addCbuContribution']);
         Route::get('/cbu/{id}/contributions', [LoanCbuController::class, 'getCbuContributions']);
+        Route::get('/cbu/{id}/dividends', [LoanCbuController::class, 'getCbuDividends']);
+        Route::post('/cbu/{id}/dividend', [LoanCbuController::class, 'addCbuDividend']);
         Route::get('/cbu/{id}/withdrawals', [LoanCbuController::class, 'getCbuWithdrawals']);
         Route::post('/cbu/{id}/withdraw', [LoanCbuController::class, 'withdrawCbuFund']);
         Route::post('/cbu/{id}/process-withdrawal', [LoanCbuController::class, 'processCbuWithdrawal']);

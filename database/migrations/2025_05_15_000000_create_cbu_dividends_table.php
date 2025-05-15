@@ -11,20 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cbu_histories', function (Blueprint $table) {
+        Schema::create('cbu_dividends', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cbu_fund_id')->constrained()->onDelete('cascade');
-            $table->enum('action', [
-                'contribution', 
-                'withdrawal_request', 
-                'withdrawal', 
-                'fund_creation', 
-                'fund_update',
-                'dividend'
-            ]);
+            $table->foreignId('cbu_fund_id')->constrained('cbu_funds')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
+            $table->date('dividend_date');
             $table->text('notes')->nullable();
-            $table->dateTime('date');
             $table->string('client_identifier');
             $table->timestamps();
         });
@@ -35,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cbu_histories');
+        Schema::dropIfExists('cbu_dividends');
     }
 }; 
