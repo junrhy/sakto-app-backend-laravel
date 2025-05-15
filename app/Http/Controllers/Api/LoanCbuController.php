@@ -420,4 +420,76 @@ class LoanCbuController extends Controller
             return response()->json(['error' => 'Failed to add CBU dividend.'], 500);
         }
     }
+
+    /**
+     * Get fund report data
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $id The CBU fund ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendFundReportEmail(Request $request, string $id)
+    {
+        try {
+            $validated = $request->validate([
+                'client_identifier' => 'required|string',
+            ]);
+
+            $fund = CbuFund::with(['contributions', 'history', 'dividends'])
+                ->where('id', $id)
+                ->where('client_identifier', $validated['client_identifier'])
+                ->firstOrFail();
+
+            // Get recent activities
+            $recentContributions = CbuContribution::where('cbu_fund_id', $id)
+                ->orderBy('contribution_date', 'desc')
+                ->take(5)
+                ->get();
+
+            $recentWithdrawals = CbuHistory::where('cbu_fund_id', $id)
+                ->where('action', 'withdrawal')
+                ->orderBy('date', 'desc')
+                ->take(5)
+                ->get();
+
+            $recentDividends = CbuDividend::where('cbu_fund_id', $id)
+                ->orderBy('dividend_date', 'desc')
+                ->take(5)
+                ->get();
+
+            // Calculate fund statistics
+            $totalContributions = $recentContributions->sum('amount');
+            $totalWithdrawals = $recentWithdrawals->sum('amount');
+            $totalDividends = $recentDividends->sum('amount');
+            $currentBalance = $fund->total_amount;
+
+            // Prepare report data
+            $reportData = [
+                'fund' => $fund,
+                'recentContributions' => $recentContributions,
+                'recentWithdrawals' => $recentWithdrawals,
+                'recentDividends' => $recentDividends,
+                'statistics' => [
+                    'totalContributions' => $totalContributions,
+                    'totalWithdrawals' => $totalWithdrawals,
+                    'totalDividends' => $totalDividends,
+                    'currentBalance' => $currentBalance,
+                    'numberOfShares' => $fund->number_of_shares,
+                    'valuePerShare' => $fund->value_per_share,
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fund report data retrieved successfully',
+                'data' => $reportData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve fund report data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

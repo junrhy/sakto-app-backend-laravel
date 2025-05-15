@@ -128,6 +128,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/cbu/{id}/process-withdrawal', [LoanCbuController::class, 'processCbuWithdrawal']);
         Route::get('/cbu/{id}/history', [LoanCbuController::class, 'getCbuHistory']);
         Route::get('/cbu/report', [LoanCbuController::class, 'generateCbuReport']);
+        Route::post('/cbu/{id}/send-report', [LoanCbuController::class, 'sendFundReportEmail']);
     });
 
     // Loan Payment Routes
