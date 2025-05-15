@@ -17,6 +17,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('target_amount', 10, 2);
             $table->decimal('total_amount', 10, 2)->default(0);
+            $table->decimal('value_per_share', 10, 2)->default(0);
+            $table->integer('number_of_shares')->default(0);
             $table->enum('frequency', ['daily', 'weekly', 'monthly', 'quarterly', 'annually'])->default('monthly')->nullable();
             $table->dateTime('start_date');
             $table->dateTime('end_date')->nullable();

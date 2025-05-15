@@ -39,13 +39,27 @@ class LoanCbuController extends Controller
             'target_amount' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
+            'value_per_share' => 'required|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $fund = CbuFund::create($request->all());
+        // Calculate number of shares based on total_amount (which starts at 0) and value per share
+        $numberOfShares = 0; // Initially 0 since total_amount is 0
+
+        $fund = CbuFund::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'target_amount' => $request->target_amount,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'value_per_share' => $request->value_per_share,
+            'number_of_shares' => $numberOfShares,
+            'client_identifier' => $request->client_identifier,
+        ]);
+
         return response()->json($fund, 201);
     }
 
@@ -60,6 +74,7 @@ class LoanCbuController extends Controller
             'target_amount' => 'numeric|min:0',
             'start_date' => 'date',
             'end_date' => 'nullable|date|after:start_date',
+            'value_per_share' => 'numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -67,6 +82,14 @@ class LoanCbuController extends Controller
         }
 
         $fund = CbuFund::findOrFail($id);
+        
+        // If value per share is being updated, recalculate number of shares based on total_amount
+        if ($request->has('value_per_share')) {
+            $valuePerShare = $request->value_per_share;
+            $numberOfShares = ceil($fund->total_amount / $valuePerShare);
+            $request->merge(['number_of_shares' => $numberOfShares]);
+        }
+
         $fund->update($request->all());
         return response()->json($fund);
     }
@@ -101,9 +124,10 @@ class LoanCbuController extends Controller
         try {
             $contribution = CbuContribution::create($request->all());
             
-            // Update fund total
+            // Update fund total and recalculate shares
             $fund = CbuFund::findOrFail($request->cbu_fund_id);
             $fund->total_amount += $request->amount;
+            $fund->number_of_shares = ceil($fund->total_amount / $fund->value_per_share);
             $fund->save();
 
             // Record in history
@@ -226,8 +250,9 @@ class LoanCbuController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update fund total
+            // Update fund total and recalculate shares
             $fund->total_amount -= $request->amount;
+            $fund->number_of_shares = ceil($fund->total_amount / $fund->value_per_share);
             $fund->save();
 
             // Record in history

@@ -12,6 +12,8 @@ class CbuFund extends Model
         'description',
         'target_amount',
         'total_amount',
+        'value_per_share',
+        'number_of_shares',
         'frequency',
         'start_date',
         'end_date',
