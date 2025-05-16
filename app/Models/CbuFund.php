@@ -43,4 +43,12 @@ class CbuFund extends Model
     {
         return $this->hasMany(CbuHistory::class);
     }
+
+    /**
+     * Get the dividends for the fund.
+     */
+    public function dividends(): HasMany
+    {
+        return $this->hasMany(CbuDividend::class);
+    }
 } 
