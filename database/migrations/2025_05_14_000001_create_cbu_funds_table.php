@@ -11,21 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cbu_funds', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->decimal('target_amount', 10, 2);
-            $table->decimal('total_amount', 10, 2)->default(0);
-            $table->decimal('value_per_share', 10, 2)->default(0);
-            $table->integer('number_of_shares')->default(0);
-            $table->enum('frequency', ['daily', 'weekly', 'monthly', 'quarterly', 'annually'])->default('monthly')->nullable();
-            $table->dateTime('start_date');
-            $table->dateTime('end_date')->nullable();
-            $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
-            $table->string('client_identifier');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('cbu_funds')) {
+            Schema::create('cbu_funds', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->text('description')->nullable();
+                $table->decimal('target_amount', 10, 2);
+                $table->decimal('total_amount', 10, 2)->default(0);
+                $table->decimal('value_per_share', 10, 2)->default(0);
+                $table->integer('number_of_shares')->default(0);
+                $table->enum('frequency', ['daily', 'weekly', 'monthly', 'quarterly', 'annually'])->default('monthly')->nullable();
+                $table->dateTime('start_date');
+                $table->dateTime('end_date')->nullable();
+                $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
+                $table->string('client_identifier');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -33,6 +35,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cbu_funds');
+        if (Schema::hasTable('cbu_funds')) {
+            $count = DB::table('cbu_funds')->count();
+            if ($count === 0) {
+                Schema::dropIfExists('cbu_funds');
+            }
+        }
     }
 }; 

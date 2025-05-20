@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cbu_dividends', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('cbu_fund_id')->constrained('cbu_funds')->onDelete('cascade');
-            $table->decimal('amount', 10, 2);
-            $table->date('dividend_date');
-            $table->text('notes')->nullable();
-            $table->string('client_identifier');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('cbu_dividends')) {
+            Schema::create('cbu_dividends', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('cbu_fund_id')->constrained('cbu_funds')->onDelete('cascade');
+                $table->decimal('amount', 10, 2);
+                $table->date('dividend_date');
+                $table->text('notes')->nullable();
+                $table->string('client_identifier');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -27,6 +29,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cbu_dividends');
+        if (Schema::hasTable('cbu_dividends')) {
+            $count = DB::table('cbu_dividends')->count();
+            if ($count === 0) {
+                Schema::dropIfExists('cbu_dividends');
+            }
+        }
     }
 }; 
