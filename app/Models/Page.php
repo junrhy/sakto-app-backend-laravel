@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use HTMLPurifier;
+use HTMLPurifier_Config;
 
 class Page extends Model
 {
@@ -49,7 +51,34 @@ class Page extends Model
             if (empty($page->slug)) {
                 $page->slug = Str::slug($page->title);
             }
+            // Sanitize HTML content
+            $page->content = static::sanitizeHtml($page->content);
         });
+
+        static::updating(function ($page) {
+            // Sanitize HTML content on update
+            if ($page->isDirty('content')) {
+                $page->content = static::sanitizeHtml($page->content);
+            }
+        });
+    }
+
+    /**
+     * Sanitize HTML content using HTMLPurifier
+     *
+     * @param string $content
+     * @return string
+     */
+    protected static function sanitizeHtml($content)
+    {
+        $config = HTMLPurifier_Config::createDefault();
+        $config->set('HTML.Allowed', 'p,b,strong,i,em,u,a[href|title],ul,ol,li,br,span[style],img[src|alt|title|width|height],h1,h2,h3,h4,h5,h6,blockquote,pre,code,table,thead,tbody,tr,td,th');
+        $config->set('CSS.AllowedProperties', 'font-weight,font-style,text-decoration,color,background-color,text-align');
+        $config->set('AutoFormat.AutoParagraph', true);
+        $config->set('AutoFormat.RemoveEmpty', true);
+        
+        $purifier = new HTMLPurifier($config);
+        return $purifier->purify($content);
     }
 
     /**
