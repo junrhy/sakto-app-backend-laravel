@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\FnbRestaurantController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use App\Http\Controllers\Api\ChallengeController;
+use App\Http\Controllers\Api\PagesController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -317,6 +318,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/statistics', [ChallengeController::class, 'getStatistics']);
         Route::post('/{id}/participants', [ChallengeController::class, 'addParticipant']);
         Route::delete('/{id}/participants/{participantId}', [ChallengeController::class, 'removeParticipant']);
+    });
+
+    // Pages Routes
+    Route::prefix('pages')->group(function () {
+        Route::get('/', [PagesController::class, 'index']);
+        Route::get('/list', [PagesController::class, 'getPages']);
+        Route::post('/', [PagesController::class, 'store']);
+        Route::get('/{id}', [PagesController::class, 'show']);
+        Route::put('/{id}', [PagesController::class, 'update']);
+        Route::delete('/{id}', [PagesController::class, 'destroy']);
+        Route::get('/slug/{slug}', [PagesController::class, 'getPage']);
+        Route::get('/settings', [PagesController::class, 'settings']);
     });
 
     // Future authenticated routes will go here...
