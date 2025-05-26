@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use App\Http\Controllers\Api\ChallengeController;
 use App\Http\Controllers\Api\PagesController;
+use App\Http\Controllers\Api\HealthInsuranceController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -330,6 +331,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [PagesController::class, 'destroy']);
         Route::get('/slug/{slug}', [PagesController::class, 'getPage']);
         Route::get('/settings', [PagesController::class, 'settings']);
+    });
+
+    // Health Insurance Routes
+    Route::prefix('health-insurance')->group(function () {
+        Route::get('/', [HealthInsuranceController::class, 'index']);
+        
+        // Member routes
+        Route::post('/members', [HealthInsuranceController::class, 'storeMember']);
+        Route::put('/members/{id}', [HealthInsuranceController::class, 'updateMember']);
+        
+        // Contribution routes
+        Route::post('/contributions/{memberId}', [HealthInsuranceController::class, 'recordContribution']);
+        Route::get('/contributions/{memberId}', [HealthInsuranceController::class, 'getMemberContributions']);
+        
+        // Claim routes
+        Route::post('/claims/{memberId}', [HealthInsuranceController::class, 'submitClaim']);
+        Route::patch('/claims/{claimId}/status', [HealthInsuranceController::class, 'updateClaimStatus']);
+        Route::get('/claims/{memberId}', [HealthInsuranceController::class, 'getMemberClaims']);
+        
+        // Report routes
+        Route::post('/reports', [HealthInsuranceController::class, 'generateReport']);
     });
 
     // Future authenticated routes will go here...
