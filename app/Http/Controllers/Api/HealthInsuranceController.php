@@ -569,14 +569,13 @@ class HealthInsuranceController extends Controller
     private function calculateUpcomingContributions($member)
     {
         $upcoming = [];
-        $startDate = new \DateTime($member->membership_start_date);
         $now = new \DateTime();
         $frequency = $member->contribution_frequency;
         $amount = $member->contribution_amount;
         
-        // Calculate next 12 contributions
+        // Calculate next 12 contributions starting from current date
         for ($i = 0; $i < 12; $i++) {
-            $dueDate = clone $startDate;
+            $dueDate = clone $now;
             
             switch ($frequency) {
                 case 'monthly':
@@ -590,12 +589,10 @@ class HealthInsuranceController extends Controller
                     break;
             }
             
-            if ($dueDate > $now) {
-                $upcoming[] = [
-                    'due_date' => $dueDate->format('Y-m-d'),
-                    'amount' => $amount,
-                ];
-            }
+            $upcoming[] = [
+                'due_date' => $dueDate->format('Y-m-d'),
+                'amount' => $amount
+            ];
         }
         
         return $upcoming;
