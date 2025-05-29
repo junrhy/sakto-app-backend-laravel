@@ -52,7 +52,8 @@ class HealthInsuranceController extends Controller
             'membership_start_date' => 'required|date',
             'contribution_amount' => 'required|numeric|min:0',
             'contribution_frequency' => 'required|in:monthly,quarterly,annually',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
+            'group' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -70,7 +71,8 @@ class HealthInsuranceController extends Controller
                 'membership_start_date' => $request->membership_start_date,
                 'contribution_amount' => $request->contribution_amount,
                 'contribution_frequency' => $request->contribution_frequency,
-                'status' => $request->status
+                'status' => $request->status,
+                'group' => $request->group
             ]);
 
             return response()->json(['data' => $member], 201);
@@ -94,7 +96,8 @@ class HealthInsuranceController extends Controller
             'membership_start_date' => 'required|date',
             'contribution_amount' => 'required|numeric|min:0',
             'contribution_frequency' => 'required|in:monthly,quarterly,annually',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
+            'group' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {

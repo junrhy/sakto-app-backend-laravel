@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class HealthInsuranceMember extends Model
 {
@@ -19,7 +20,8 @@ class HealthInsuranceMember extends Model
         'membership_start_date',
         'contribution_amount',
         'contribution_frequency',
-        'status'
+        'status',
+        'group'
     ];
 
     protected $casts = [

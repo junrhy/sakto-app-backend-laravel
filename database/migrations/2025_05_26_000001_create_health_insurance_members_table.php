@@ -21,6 +21,7 @@ return new class extends Migration
                 $table->decimal('contribution_amount', 10, 2);
                 $table->enum('contribution_frequency', ['monthly', 'quarterly', 'annually']);
                 $table->enum('status', ['active', 'inactive'])->default('active');
+                $table->string('group')->nullable();
                 $table->timestamps();
 
                 $table->index('client_identifier');
