@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->decimal('tax', 10, 2)->default(0);
                 $table->decimal('grand_total', 10, 2);
                 $table->string('special_instructions')->nullable();
-                $table->string('order_status')->enum(['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'])->default('pending');
+                $table->enum('order_status', ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'])->default('pending');
                 $table->string('order_payment_method');
                 $table->string('order_payment_status')->default('pending');
                 $table->string('order_payment_reference')->nullable();

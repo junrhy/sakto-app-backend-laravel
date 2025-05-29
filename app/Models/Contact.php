@@ -11,6 +11,7 @@ class Contact extends Model
         'middle_name',
         'last_name',
         'gender',
+        'date_of_birth',
         'fathers_name',
         'mothers_maiden_name',
         'email',
