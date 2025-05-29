@@ -173,6 +173,45 @@ class HealthInsuranceController extends Controller
     }
 
     /**
+     * Update an existing contribution for a member
+     */
+    public function updateContribution(Request $request, $memberId, $contributionId)
+    {
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|string',
+            'reference_number' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $member = HealthInsuranceMember::where('id', $memberId)
+                ->where('client_identifier', $request->client_identifier)
+                ->firstOrFail();
+
+            $contribution = HealthInsuranceContribution::where('id', $contributionId)
+                ->where('member_id', $memberId)
+                ->firstOrFail();
+
+            $contribution->update([
+                'amount' => $request->amount,
+                'payment_date' => $request->payment_date,
+                'payment_method' => $request->payment_method,
+                'reference_number' => $request->reference_number
+            ]);
+
+            return response()->json(['data' => $contribution]);
+        } catch (\Exception $e) {
+            Log::error('Error updating contribution: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update contribution'], 500);
+        }
+    }
+
+    /**
      * Submit a new claim for a member
      */
     public function submitClaim(Request $request, $memberId)
@@ -388,5 +427,107 @@ class HealthInsuranceController extends Controller
                     'active_claims' => $member->claims->where('status', 'pending')->count()
                 ];
             });
+    }
+
+    /**
+     * Delete a health insurance member
+     */
+    public function deleteMember(string $id)
+    {
+        try {
+            $member = HealthInsuranceMember::where('id', $id)
+                ->first();
+
+            if (!$member) {
+                return response()->json(['message' => 'Member not found'], 404);
+            }
+
+            // Delete associated contributions and claims
+            HealthInsuranceContribution::where('member_id', $member->id)->delete();
+            HealthInsuranceClaim::where('member_id', $member->id)->delete();
+            
+            $member->delete();
+
+            return response()->json(['message' => 'Member deleted successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error deleting member: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to delete member'], 500);
+        }
+    }
+
+    public function deleteContribution(string $memberId, string $contributionId)
+    {
+        try {
+            $contribution = HealthInsuranceContribution::where('id', $contributionId)
+                ->where('member_id', $memberId)
+                ->first();
+
+            if (!$contribution) {
+                return response()->json(['message' => 'Contribution not found'], 404);
+            }
+
+            $contribution->delete();
+
+            return response()->json(['message' => 'Contribution deleted successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error deleting contribution: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to delete contribution'], 500);
+        }
+    }
+
+    public function deleteClaim(string $memberId, string $claimId)
+    {
+        try {
+            $claim = HealthInsuranceClaim::where('id', $claimId)
+                ->where('member_id', $memberId)
+                ->first();
+
+            if (!$claim) {
+                return response()->json(['message' => 'Claim not found'], 404);
+            }
+
+            $claim->delete();
+
+            return response()->json(['message' => 'Claim deleted successfully']);
+        } catch (\Exception $e) {
+            Log::error('Error deleting claim: ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to delete claim'], 500);
+        }
+    }
+
+    public function updateClaim(Request $request, string $memberId, string $claimId)
+    {
+        $validated = $request->validate([
+            'claim_type' => 'required|in:hospitalization,outpatient,dental,optical',
+            'amount' => 'required|numeric|min:0',
+            'date_of_service' => 'required|date',
+            'hospital_name' => 'required|string',
+            'diagnosis' => 'required|string',
+            'status' => 'required|in:pending,approved,rejected',
+            'client_identifier' => 'required|string'
+        ]);
+
+        try {
+            $claim = HealthInsuranceClaim::where('id', $claimId)
+                ->where('member_id', $memberId)
+                ->firstOrFail();
+
+            $claim->update([
+                'claim_type' => $validated['claim_type'],
+                'amount' => $validated['amount'],
+                'date_of_service' => $validated['date_of_service'],
+                'hospital_name' => $validated['hospital_name'],
+                'diagnosis' => $validated['diagnosis'],
+                'status' => $validated['status']
+            ]);
+
+            return response()->json([
+                'message' => 'Claim updated successfully',
+                'data' => $claim
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating claim: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to update claim.'], 500);
+        }
     }
 }

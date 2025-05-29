@@ -340,16 +340,21 @@ Route::middleware('auth:sanctum')->group(function () {
         // Member routes
         Route::post('/members', [HealthInsuranceController::class, 'storeMember']);
         Route::put('/members/{id}', [HealthInsuranceController::class, 'updateMember']);
+        Route::delete('/members/{id}', [HealthInsuranceController::class, 'deleteMember']);
         
         // Contribution routes
         Route::post('/contributions/{memberId}', [HealthInsuranceController::class, 'recordContribution']);
+        Route::put('/contributions/{memberId}/{contributionId}', [HealthInsuranceController::class, 'updateContribution']);
         Route::get('/contributions/{memberId}', [HealthInsuranceController::class, 'getMemberContributions']);
+        Route::delete('/contributions/{memberId}/{contributionId}', [HealthInsuranceController::class, 'deleteContribution']);
         
         // Claim routes
         Route::post('/claims/{memberId}', [HealthInsuranceController::class, 'submitClaim']);
+        Route::put('/claims/{memberId}/{claimId}', [HealthInsuranceController::class, 'updateClaim']);
         Route::patch('/claims/{claimId}/status', [HealthInsuranceController::class, 'updateClaimStatus']);
         Route::patch('/claims/{claimId}/active-status', [HealthInsuranceController::class, 'toggleActiveStatus']);
         Route::get('/claims/{memberId}', [HealthInsuranceController::class, 'getMemberClaims']);
+        Route::delete('/claims/{memberId}/{claimId}', [HealthInsuranceController::class, 'deleteClaim']);
         
         // Report routes
         Route::post('/reports', [HealthInsuranceController::class, 'generateReport']);
