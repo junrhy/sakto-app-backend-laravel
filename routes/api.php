@@ -338,6 +338,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [HealthInsuranceController::class, 'index']);
         
         // Member routes
+        Route::get('/members/{id}', [HealthInsuranceController::class, 'showMember']);
         Route::post('/members', [HealthInsuranceController::class, 'storeMember']);
         Route::put('/members/{id}', [HealthInsuranceController::class, 'updateMember']);
         Route::delete('/members/{id}', [HealthInsuranceController::class, 'deleteMember']);

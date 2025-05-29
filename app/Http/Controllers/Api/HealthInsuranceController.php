@@ -530,4 +530,127 @@ class HealthInsuranceController extends Controller
             return response()->json(['error' => 'Failed to update claim.'], 500);
         }
     }
+
+    /**
+     * Get member details with contributions and claims
+     */
+    public function showMember(Request $request, $id)
+    {
+        try {
+            $member = HealthInsuranceMember::where('id', $id)
+                ->where('client_identifier', $request->client_identifier)
+                ->with(['contributions', 'claims'])
+                ->firstOrFail();
+
+            // Calculate upcoming contributions
+            $upcomingContributions = $this->calculateUpcomingContributions($member);
+            
+            // Calculate past due contributions
+            $pastDueContributions = $this->calculatePastDueContributions($member);
+
+            return response()->json([
+                'data' => [
+                    'member' => $member,
+                    'contributions' => $member->contributions,
+                    'claims' => $member->claims,
+                    'upcoming_contributions' => $upcomingContributions,
+                    'past_due_contributions' => $pastDueContributions
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching member details: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch member details'], 500);
+        }
+    }
+
+    /**
+     * Calculate upcoming contributions for a member
+     */
+    private function calculateUpcomingContributions($member)
+    {
+        $upcoming = [];
+        $startDate = new \DateTime($member->membership_start_date);
+        $now = new \DateTime();
+        $frequency = $member->contribution_frequency;
+        $amount = $member->contribution_amount;
+        
+        // Calculate next 12 contributions
+        for ($i = 0; $i < 12; $i++) {
+            $dueDate = clone $startDate;
+            
+            switch ($frequency) {
+                case 'monthly':
+                    $dueDate->modify("+{$i} month");
+                    break;
+                case 'quarterly':
+                    $dueDate->modify("+" . ($i * 3) . " month");
+                    break;
+                case 'annually':
+                    $dueDate->modify("+{$i} year");
+                    break;
+            }
+            
+            if ($dueDate > $now) {
+                $upcoming[] = [
+                    'due_date' => $dueDate->format('Y-m-d'),
+                    'amount' => $amount,
+                ];
+            }
+        }
+        
+        return $upcoming;
+    }
+
+    /**
+     * Calculate past due contributions for a member
+     */
+    private function calculatePastDueContributions($member)
+    {
+        $pastDue = [];
+        $startDate = new \DateTime($member->membership_start_date);
+        $now = new \DateTime();
+        $frequency = $member->contribution_frequency;
+        $amount = $member->contribution_amount;
+        
+        // Get all paid contribution dates
+        $paidDates = $member->contributions->pluck('payment_date')->toArray();
+        
+        // Calculate past due contributions
+        $currentDate = clone $startDate;
+        while ($currentDate < $now) {
+            $dueDate = clone $currentDate;
+            $dueDateStr = $dueDate->format('Y-m-d');
+            
+            // Check if this contribution was paid
+            $isPaid = false;
+            foreach ($paidDates as $paidDate) {
+                if (date('Y-m', strtotime($paidDate)) === date('Y-m', strtotime($dueDateStr))) {
+                    $isPaid = true;
+                    break;
+                }
+            }
+            
+            if (!$isPaid) {
+                $pastDue[] = [
+                    'due_date' => $dueDateStr,
+                    'amount' => $amount,
+                ];
+            }
+            
+            // Move to next due date
+            switch ($frequency) {
+                case 'monthly':
+                    $currentDate->modify('+1 month');
+                    break;
+                case 'quarterly':
+                    $currentDate->modify('+3 month');
+                    break;
+                case 'annually':
+                    $currentDate->modify('+1 year');
+                    break;
+            }
+        }
+        
+        return $pastDue;
+    }
 }
