@@ -178,11 +178,12 @@ class HealthInsuranceController extends Controller
     public function submitClaim(Request $request, $memberId)
     {
         $validator = Validator::make($request->all(), [
-            'claim_type' => 'required|in:hospitalization,outpatient,medication',
+            'claim_type' => 'required|in:hospitalization,outpatient,dental,optical,prescription',
             'amount' => 'required|numeric|min:0',
             'date_of_service' => 'required|date',
             'hospital_name' => 'required|string',
-            'diagnosis' => 'required|string'
+            'diagnosis' => 'required|string',
+            'is_active' => 'boolean'
         ]);
 
         if ($validator->fails()) {
@@ -201,7 +202,8 @@ class HealthInsuranceController extends Controller
                 'date_of_service' => $request->date_of_service,
                 'hospital_name' => $request->hospital_name,
                 'diagnosis' => $request->diagnosis,
-                'status' => 'pending'
+                'status' => 'pending',
+                'is_active' => $request->input('is_active', true)
             ]);
 
             return response()->json(['data' => $claim], 201);
@@ -253,7 +255,6 @@ class HealthInsuranceController extends Controller
                 ->firstOrFail();
 
             $claims = HealthInsuranceClaim::where('member_id', $memberId)
-                ->with('documents')
                 ->orderBy('date_of_service', 'desc')
                 ->get();
 
@@ -261,6 +262,35 @@ class HealthInsuranceController extends Controller
         } catch (\Exception $e) {
             Log::error('Error fetching member claims: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to fetch member claims'], 500);
+        }
+    }
+
+    /**
+     * Toggle the active status of a claim
+     */
+    public function toggleActiveStatus(Request $request, $claimId)
+    {
+        $validator = Validator::make($request->all(), [
+            'is_active' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $claim = HealthInsuranceClaim::whereHas('member', function ($query) {
+                $query->where('client_identifier', request()->client_identifier);
+            })->findOrFail($claimId);
+
+            $claim->update([
+                'is_active' => $request->is_active
+            ]);
+
+            return response()->json(['data' => $claim]);
+        } catch (\Exception $e) {
+            Log::error('Error toggling claim active status: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to toggle claim active status'], 500);
         }
     }
 

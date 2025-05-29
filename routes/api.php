@@ -348,6 +348,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Claim routes
         Route::post('/claims/{memberId}', [HealthInsuranceController::class, 'submitClaim']);
         Route::patch('/claims/{claimId}/status', [HealthInsuranceController::class, 'updateClaimStatus']);
+        Route::patch('/claims/{claimId}/active-status', [HealthInsuranceController::class, 'toggleActiveStatus']);
         Route::get('/claims/{memberId}', [HealthInsuranceController::class, 'getMemberClaims']);
         
         // Report routes

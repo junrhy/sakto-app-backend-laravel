@@ -12,7 +12,7 @@ return new class extends Migration
             Schema::create('health_insurance_claims', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('member_id')->constrained('health_insurance_members')->onDelete('cascade');
-                $table->enum('claim_type', ['hospitalization', 'outpatient', 'medication']);
+                $table->string('claim_type');
                 $table->decimal('amount', 10, 2);
                 $table->date('date_of_service');
                 $table->string('hospital_name');
