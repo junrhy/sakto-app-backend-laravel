@@ -37,10 +37,23 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('events')) {
-            // First drop any foreign key constraints
-            Schema::table('event_participants', function (Blueprint $table) {
-                $table->dropForeign(['event_id']);
-            });
+            // First check if the event_participants table exists
+            if (Schema::hasTable('event_participants')) {
+                // Get the actual constraint name from PostgreSQL
+                $constraintName = DB::select("
+                    SELECT tc.constraint_name
+                    FROM information_schema.table_constraints tc
+                    WHERE tc.table_name = 'event_participants'
+                    AND tc.constraint_type = 'FOREIGN KEY'
+                    AND tc.constraint_name LIKE '%event_id%'
+                ");
+
+                if (!empty($constraintName)) {
+                    Schema::table('event_participants', function (Blueprint $table) use ($constraintName) {
+                        $table->dropForeign($constraintName[0]->constraint_name);
+                    });
+                }
+            }
             
             // Then drop the table
             Schema::dropIfExists('events');
