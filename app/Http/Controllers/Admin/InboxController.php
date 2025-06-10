@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Inbox;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
-class InboxAdminController extends Controller
+class InboxController extends Controller
 {
     /**
      * Display a listing of messages.
@@ -18,7 +19,7 @@ class InboxAdminController extends Controller
         $messages = Inbox::orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('InboxAdmin/Index', [
+        return Inertia::render('Inbox/Index', [
             'messages' => $messages
         ]);
     }
@@ -30,7 +31,7 @@ class InboxAdminController extends Controller
     {
         $clients = Client::orderBy('name')->get(['id', 'name', 'client_identifier']);
 
-        return Inertia::render('InboxAdmin/Create', [
+        return Inertia::render('Inbox/Create', [
             'clients' => $clients
         ]);
     }
@@ -49,7 +50,7 @@ class InboxAdminController extends Controller
 
         Inbox::create($validated);
 
-        return redirect()->route('inbox-admin.index')
+        return redirect()->route('inbox.index')
             ->with('success', 'Message sent successfully');
     }
 
@@ -60,7 +61,7 @@ class InboxAdminController extends Controller
     {
         $message = Inbox::findOrFail($id);
         
-        return Inertia::render('InboxAdmin/Show', [
+        return Inertia::render('Inbox/Show', [
             'message' => $message
         ]);
     }
@@ -72,7 +73,7 @@ class InboxAdminController extends Controller
     {
         $message = Inbox::findOrFail($id);
         
-        return Inertia::render('InboxAdmin/Edit', [
+        return Inertia::render('Inbox/Edit', [
             'message' => $message
         ]);
     }
@@ -92,7 +93,7 @@ class InboxAdminController extends Controller
 
         $message->update($validated);
 
-        return redirect()->route('inbox-admin.index')
+        return redirect()->route('inbox.index')
             ->with('success', 'Message updated successfully');
     }
 
@@ -104,7 +105,7 @@ class InboxAdminController extends Controller
         $message = Inbox::findOrFail($id);
         $message->delete();
 
-        return redirect()->route('inbox-admin.index')
+        return redirect()->route('inbox.index')
             ->with('success', 'Message deleted successfully');
     }
 
@@ -120,7 +121,7 @@ class InboxAdminController extends Controller
 
         Inbox::whereIn('id', $validated['ids'])->delete();
 
-        return redirect()->route('inbox-admin.index')
+        return redirect()->route('inbox.index')
             ->with('success', 'Messages deleted successfully');
     }
 } 

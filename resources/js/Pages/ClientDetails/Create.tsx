@@ -4,7 +4,6 @@ import { router } from '@inertiajs/core';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Textarea } from '@/Components/ui/textarea';
 import {
     Select,
     SelectContent,
@@ -17,7 +16,6 @@ import { toast } from 'sonner';
 interface Client {
     id: number;
     name: string;
-    client_identifier: string;
 }
 
 interface Props {
@@ -26,26 +24,28 @@ interface Props {
 
 interface FormData {
     [key: string]: string;
+    client_id: string;
+    app_name: string;
+    name: string;
+    value: string;
     client_identifier: string;
-    subject: string;
-    message: string;
-    type: string;
 }
 
 export default function Create({ clients }: Props) {
     const [form, setForm] = useState<FormData>({
+        client_id: '',
+        app_name: '',
+        name: '',
+        value: '',
         client_identifier: '',
-        subject: '',
-        message: '',
-        type: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        router.post(route('inbox-admin.store'), form, {
+        router.post(route('clientdetails.store'), form, {
             onSuccess: () => {
-                toast.success('Message sent successfully');
+                toast.success('Client detail created successfully');
             },
             onError: (errors: Record<string, string>) => {
                 Object.keys(errors).forEach(key => {
@@ -64,26 +64,26 @@ export default function Create({ clients }: Props) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Create New Message</h2>}
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Create New Client Detail</h2>}
         >
-            <Head title="Create Message" />
+            <Head title="Create Client Detail" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6">
                             <div className="mb-6">
-                                <h2 className="text-2xl font-semibold">Create New Message</h2>
+                                <h2 className="text-2xl font-semibold">Create New Client Detail</h2>
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                                 <div className="space-y-2">
-                                    <label htmlFor="client_identifier" className="block text-sm font-medium">
+                                    <label htmlFor="client_id" className="block text-sm font-medium">
                                         Client
                                     </label>
                                     <Select 
-                                        value={form.client_identifier}
-                                        onValueChange={(value: string) => handleChange('client_identifier', value)}
+                                        value={form.client_id}
+                                        onValueChange={(value: string) => handleChange('client_id', value)}
                                     >
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select a client" />
@@ -92,7 +92,7 @@ export default function Create({ clients }: Props) {
                                             {clients.map((client) => (
                                                 <SelectItem 
                                                     key={client.id} 
-                                                    value={client.client_identifier}
+                                                    value={client.id.toString()}
                                                 >
                                                     {client.name}
                                                 </SelectItem>
@@ -102,61 +102,69 @@ export default function Create({ clients }: Props) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label htmlFor="subject" className="block text-sm font-medium">
-                                        Subject
+                                    <label htmlFor="app_name" className="block text-sm font-medium">
+                                        App Name
                                     </label>
                                     <Input
-                                        id="subject"
-                                        value={form.subject}
+                                        id="app_name"
+                                        value={form.app_name}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                                            handleChange('subject', e.target.value)
+                                            handleChange('app_name', e.target.value)
                                         }
                                         required
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label htmlFor="type" className="block text-sm font-medium">
-                                        Message Type
+                                    <label htmlFor="name" className="block text-sm font-medium">
+                                        Name
                                     </label>
-                                    <Select 
-                                        value={form.type} 
-                                        onValueChange={(value: string) => handleChange('type', value)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select message type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="notification">Notification</SelectItem>
-                                            <SelectItem value="alert">Alert</SelectItem>
-                                            <SelectItem value="message">Message</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Input
+                                        id="name"
+                                        value={form.name}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                                            handleChange('name', e.target.value)
+                                        }
+                                        required
+                                    />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label htmlFor="message" className="block text-sm font-medium">
-                                        Message
+                                    <label htmlFor="value" className="block text-sm font-medium">
+                                        Value
                                     </label>
-                                    <Textarea
-                                        id="message"
-                                        value={form.message}
-                                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => 
-                                            handleChange('message', e.target.value)
+                                    <Input
+                                        id="value"
+                                        value={form.value}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                                            handleChange('value', e.target.value)
                                         }
-                                        rows={6}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="client_identifier" className="block text-sm font-medium">
+                                        Client Identifier
+                                    </label>
+                                    <Input
+                                        id="client_identifier"
+                                        value={form.client_identifier}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                                            handleChange('client_identifier', e.target.value)
+                                        }
                                         required
                                     />
                                 </div>
 
                                 <div className="flex gap-4">
                                     <Button type="submit">
-                                        Send Message
+                                        Create Client Detail
                                     </Button>
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => router.visit(route('inbox-admin.index'))}
+                                        onClick={() => router.visit(route('clientdetails.index'))}
                                     >
                                         Cancel
                                     </Button>

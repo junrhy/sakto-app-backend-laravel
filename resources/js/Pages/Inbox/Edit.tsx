@@ -36,7 +36,7 @@ export default function Edit({ message }: Props) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        router.put(route('inbox-admin.update', message.id), form, {
+        router.put(route('inbox.update', message.id), form, {
             onSuccess: () => {
                 toast.success('Message updated successfully');
             },
@@ -129,7 +129,7 @@ export default function Edit({ message }: Props) {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        onClick={() => router.visit(route('inbox-admin.index'))}
+                                        onClick={() => router.visit(route('inbox.index'))}
                                     >
                                         Cancel
                                     </Button>

@@ -51,7 +51,7 @@ export default function Index({ messages }: Props) {
     const handleSearch = (value: string) => {
         setSearchTerm(value);
         router.get(
-            route('inbox-admin.index'),
+            route('inbox.index'),
             { search: value, type: messageType !== 'all' ? messageType : undefined },
             { preserveState: true }
         );
@@ -60,7 +60,7 @@ export default function Index({ messages }: Props) {
     const handleTypeFilter = (value: string) => {
         setMessageType(value);
         router.get(
-            route('inbox-admin.index'),
+            route('inbox.index'),
             { search: searchTerm, type: value !== 'all' ? value : undefined },
             { preserveState: true }
         );
@@ -68,7 +68,7 @@ export default function Index({ messages }: Props) {
 
     const handleDelete = (id: number) => {
         if (confirm('Are you sure you want to delete this message?')) {
-            router.delete(route('inbox-admin.destroy', id), {
+            router.delete(route('inbox.destroy', id), {
                 onSuccess: () => {
                     toast.success('Message deleted successfully');
                 },
@@ -84,7 +84,7 @@ export default function Index({ messages }: Props) {
 
         if (confirm('Are you sure you want to delete the selected messages?')) {
             router.post(
-                route('inbox-admin.bulk-destroy'),
+                route('inbox.bulk-destroy'),
                 { ids: selectedMessages },
                 {
                     onSuccess: () => {
@@ -124,7 +124,7 @@ export default function Index({ messages }: Props) {
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-semibold">Messages</h2>
-                                <Button onClick={() => router.visit(route('inbox-admin.create'))}>
+                                <Button onClick={() => router.visit(route('inbox.create'))}>
                                     New Message
                                 </Button>
                             </div>
@@ -201,14 +201,14 @@ export default function Index({ messages }: Props) {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => router.visit(route('inbox-admin.show', message.id))}
+                                                            onClick={() => router.visit(route('inbox.show', message.id))}
                                                         >
                                                             View
                                                         </Button>
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => router.visit(route('inbox-admin.edit', message.id))}
+                                                            onClick={() => router.visit(route('inbox.edit', message.id))}
                                                         >
                                                             Edit
                                                         </Button>

@@ -35,13 +35,13 @@ export default function Show({ message }: Props) {
                                 <div className="flex gap-4">
                                     <Button
                                         variant="outline"
-                                        onClick={() => router.visit(route('inbox-admin.edit', message.id))}
+                                        onClick={() => router.visit(route('inbox.edit', message.id))}
                                     >
                                         Edit Message
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        onClick={() => router.visit(route('inbox-admin.index'))}
+                                        onClick={() => router.visit(route('inbox.index'))}
                                     >
                                         Back to List
                                     </Button>
