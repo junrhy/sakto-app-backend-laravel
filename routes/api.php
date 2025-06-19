@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use App\Http\Controllers\Api\ChallengeController;
 use App\Http\Controllers\Api\PagesController;
 use App\Http\Controllers\Api\HealthInsuranceController;
+use App\Http\Controllers\Api\ContentCreatorController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -359,6 +360,20 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Report routes
         Route::post('/reports', [HealthInsuranceController::class, 'generateReport']);
+    });
+
+    // Content Creator Routes
+    Route::prefix('content-creator')->group(function () {
+        Route::get('/', [ContentCreatorController::class, 'index']);
+        Route::post('/', [ContentCreatorController::class, 'store']);
+        Route::get('/{id}', [ContentCreatorController::class, 'show']);
+        Route::put('/{id}', [ContentCreatorController::class, 'update']);
+        Route::delete('/{id}', [ContentCreatorController::class, 'destroy']);
+        Route::patch('/{id}/status', [ContentCreatorController::class, 'updateStatus']);
+        Route::post('/bulk-delete', [ContentCreatorController::class, 'bulkDestroy']);
+        Route::get('/{id}/preview', [ContentCreatorController::class, 'preview']);
+        Route::get('/settings', [ContentCreatorController::class, 'settings']);
+        Route::get('/list', [ContentCreatorController::class, 'getContent']);
     });
 
     // Future authenticated routes will go here...
