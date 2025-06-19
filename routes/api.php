@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\PagesController;
 use App\Http\Controllers\Api\HealthInsuranceController;
 use App\Http\Controllers\Api\ContentCreatorController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductOrderController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -61,6 +62,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories', [ProductController::class, 'getCategories']);
         Route::get('/settings', [ProductController::class, 'getSettings']);
         Route::post('/bulk-delete', [ProductController::class, 'bulkDestroy']);
+    });
+
+    // Product Orders Routes
+    Route::prefix('product-orders')->group(function () {
+        Route::get('/', [ProductOrderController::class, 'index']);
+        Route::post('/', [ProductOrderController::class, 'store']);
+        Route::get('/{id}', [ProductOrderController::class, 'show']);
+        Route::put('/{id}', [ProductOrderController::class, 'update']);
+        Route::delete('/{id}', [ProductOrderController::class, 'destroy']);
+        Route::get('/statistics', [ProductOrderController::class, 'getStatistics']);
+        Route::get('/recent', [ProductOrderController::class, 'getRecentOrders']);
+        Route::post('/{id}/process-payment', [ProductOrderController::class, 'processPayment']);
     });
 
     // Inventory Routes
