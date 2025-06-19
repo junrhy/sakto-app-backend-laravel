@@ -62,6 +62,22 @@ class ProductOrderController extends Controller
         $perPage = $request->get('per_page', 15);
         $orders = $query->paginate($perPage);
 
+        // Enhance order_items with product names for each order
+        $orders->getCollection()->transform(function ($order) {
+            $enhancedOrderItems = collect($order->order_items)->map(function ($item) {
+                $product = Product::find($item['product_id']);
+                return [
+                    'product_id' => $item['product_id'],
+                    'name' => $product ? $product->name : 'Product not found',
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ];
+            })->toArray();
+
+            $order->order_items = $enhancedOrderItems;
+            return $order;
+        });
+
         return response()->json($orders);
     }
 
@@ -162,7 +178,21 @@ class ProductOrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        return response()->json($order);
+        // Enhance order_items with product names
+        $enhancedOrderItems = collect($order->order_items)->map(function ($item) {
+            $product = Product::find($item['product_id']);
+            return [
+                'product_id' => $item['product_id'],
+                'name' => $product ? $product->name : 'Product not found',
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+            ];
+        })->toArray();
+
+        $orderData = $order->toArray();
+        $orderData['order_items'] = $enhancedOrderItems;
+
+        return response()->json($orderData);
     }
 
     /**
