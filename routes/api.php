@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\ChallengeController;
 use App\Http\Controllers\Api\PagesController;
 use App\Http\Controllers\Api\HealthInsuranceController;
 use App\Http\Controllers\Api\ContentCreatorController;
+use App\Http\Controllers\Api\ProductController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -48,6 +49,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/kitchen-orders-overview', [FnbOrderController::class, 'getKitchenOrdersOverview']);
     Route::get('/reservations-overview', [FnbReservationController::class, 'getReservationsOverview']);
  
+    // Products Routes
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index']);
+        Route::post('/', [ProductController::class, 'store']);
+        Route::get('/{id}', [ProductController::class, 'show']);
+        Route::put('/{id}', [ProductController::class, 'update']);
+        Route::delete('/{id}', [ProductController::class, 'destroy']);
+        Route::patch('/{id}/stock', [ProductController::class, 'updateStock']);
+        Route::get('/{id}/download', [ProductController::class, 'download']);
+        Route::get('/categories', [ProductController::class, 'getCategories']);
+        Route::get('/settings', [ProductController::class, 'getSettings']);
+        Route::post('/bulk-delete', [ProductController::class, 'bulkDestroy']);
+    });
+
     // Inventory Routes
     Route::prefix('inventory')->group(function () {
         Route::get('/', [InventoryController::class, 'index']);

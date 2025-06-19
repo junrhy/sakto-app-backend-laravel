@@ -11,28 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contents', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('slug')->unique();
-            $table->longText('content');
-            $table->text('excerpt')->nullable();
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-            $table->string('featured_image')->nullable();
-            $table->string('author')->nullable();
-            $table->string('client_identifier');
-            $table->string('meta_title')->nullable();
-            $table->text('meta_description')->nullable();
-            $table->json('tags')->nullable();
-            $table->json('categories')->nullable();
-            $table->timestamp('scheduled_at')->nullable();
-            $table->timestamp('published_at')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('contents')) {
+            Schema::create('contents', function (Blueprint $table) {
+                $table->id();
+                $table->string('title');
+                $table->string('slug')->unique();
+                $table->longText('content');
+                $table->text('excerpt')->nullable();
+                $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+                $table->string('featured_image')->nullable();
+                $table->string('author')->nullable();
+                $table->string('client_identifier');
+                $table->string('meta_title')->nullable();
+                $table->text('meta_description')->nullable();
+                $table->json('tags')->nullable();
+                $table->json('categories')->nullable();
+                $table->timestamp('scheduled_at')->nullable();
+                $table->timestamp('published_at')->nullable();
+                $table->timestamps();
 
-            $table->index(['client_identifier', 'status']);
-            $table->index(['author']);
-            $table->index(['slug']);
-        });
+                $table->index(['client_identifier', 'status']);
+                $table->index(['author']);
+                $table->index(['slug']);
+            });
+        }
     }
 
     /**
@@ -40,6 +42,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contents');
+        if (Schema::hasTable('contents')) {
+            $count = DB::table('contents')->count();
+            if ($count == 0) {
+                Schema::dropIfExists('contents');
+            }
+        }
     }
 };
