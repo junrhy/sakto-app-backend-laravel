@@ -77,6 +77,14 @@ class Page extends Model
         $config->set('AutoFormat.AutoParagraph', true);
         $config->set('AutoFormat.RemoveEmpty', true);
         
+        // Set cache directory to Laravel storage directory
+        $cacheDir = storage_path('app/htmlpurifier');
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0755, true);
+        }
+        $config->set('Cache.DefinitionImpl', 'Serializer');
+        $config->set('Cache.SerializerPath', $cacheDir);
+        
         $purifier = new HTMLPurifier($config);
         return $purifier->purify($content);
     }

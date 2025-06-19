@@ -33,7 +33,8 @@ RUN npm install
 RUN npm run build
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/vendor
+RUN chmod -R 755 /var/www/vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache
 
 # Expose port 9000
 EXPOSE 9000

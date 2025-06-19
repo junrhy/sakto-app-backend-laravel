@@ -41,13 +41,15 @@ RUN rm /etc/nginx/sites-enabled/default
 COPY docker/nginx/app.conf /etc/nginx/conf.d/
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/vendor
+RUN chmod -R 755 /var/www/vendor/ezyang/htmlpurifier/library/HTMLPurifier/DefinitionCache
 
 # Create startup script
 RUN echo '#!/bin/sh\n\
 php artisan config:cache && \
 php artisan route:cache && \
 php artisan view:cache && \
+php artisan htmlpurifier:create-cache && \
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USERNAME -d $DB_DATABASE -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";" && \
 php artisan migrate --force && \
 php artisan db:seed --force && \
