@@ -248,6 +248,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [ContactController::class, 'show']);
         Route::put('/{id}', [ContactController::class, 'update']);
         Route::delete('/{id}', [ContactController::class, 'destroy']);
+        Route::post('/bulk-delete', [ContactController::class, 'bulkDestroy']);
     });
 
     // Credit Routes

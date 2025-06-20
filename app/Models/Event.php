@@ -17,7 +17,16 @@ class Event extends Model
         'is_public',
         'category',
         'image',
+        'status',
         'client_identifier'
+    ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'registration_deadline' => 'datetime',
+        'is_public' => 'boolean',
+        'max_participants' => 'integer',
     ];
 
     public function participants()

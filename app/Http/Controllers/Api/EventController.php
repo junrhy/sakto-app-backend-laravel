@@ -34,6 +34,7 @@ class EventController extends Controller
                 'is_public' => 'boolean',
                 'category' => 'required|string',
                 'image' => 'nullable:string',
+                'status' => 'nullable|in:draft,published,archived',
                 'client_identifier' => 'required|string',
             ]);
 
@@ -75,6 +76,7 @@ class EventController extends Controller
             'max_participants' => 'nullable|integer|min:1',
             'registration_deadline' => 'nullable|date|before:start_date',
             'is_public' => 'boolean',
+            'status' => 'nullable|in:draft,published,archived',
         ]);
 
         $event->update($validated);
