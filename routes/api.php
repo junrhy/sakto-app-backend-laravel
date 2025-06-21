@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\HealthInsuranceController;
 use App\Http\Controllers\Api\ContentCreatorController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductOrderController;
+use App\Http\Controllers\Api\ProductVariantController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -62,6 +63,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories', [ProductController::class, 'getCategories']);
         Route::get('/settings', [ProductController::class, 'getSettings']);
         Route::post('/bulk-delete', [ProductController::class, 'bulkDestroy']);
+    });
+
+    // Product Variants Routes
+    Route::prefix('products/{productId}/variants')->group(function () {
+        Route::get('/', [ProductVariantController::class, 'index']);
+        Route::post('/', [ProductVariantController::class, 'store']);
+        Route::get('/attributes', [ProductVariantController::class, 'getAttributes']);
+        Route::post('/bulk-update', [ProductVariantController::class, 'bulkUpdate']);
+        Route::get('/{variantId}', [ProductVariantController::class, 'show']);
+        Route::put('/{variantId}', [ProductVariantController::class, 'update']);
+        Route::delete('/{variantId}', [ProductVariantController::class, 'destroy']);
+        Route::patch('/{variantId}/stock', [ProductVariantController::class, 'updateStock']);
     });
 
     // Product Orders Routes

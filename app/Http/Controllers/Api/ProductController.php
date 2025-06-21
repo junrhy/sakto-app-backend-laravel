@@ -69,7 +69,7 @@ class ProductController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $products = $query->get();
+        $products = $query->with('activeVariants')->get();
 
         return response()->json($products);
     }
@@ -119,7 +119,7 @@ class ProductController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $product = Product::find($id);
+        $product = Product::with('activeVariants')->find($id);
 
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
@@ -169,6 +169,9 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        // Reload the product with variants
+        $product->load('activeVariants');
 
         return response()->json($product);
     }

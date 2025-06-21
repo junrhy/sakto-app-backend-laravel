@@ -68,6 +68,8 @@ class ProductOrderController extends Controller
                 $product = Product::find($item['product_id']);
                 return [
                     'product_id' => $item['product_id'],
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'attributes' => $item['attributes'] ?? null,
                     'name' => $product ? $product->name : 'Product not found',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
@@ -86,6 +88,16 @@ class ProductOrderController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        // Debug logging to see what's being received
+        Log::info('Product order store request received', [
+            'request_data' => $request->all(),
+            'order_items' => $request->order_items,
+            'order_items_count' => count($request->order_items ?? []),
+            'order_items_raw' => $request->input('order_items'),
+            'order_items_first_item' => $request->order_items[0] ?? null,
+            'order_items_keys' => $request->order_items ? array_keys($request->order_items[0]) : [],
+        ]);
+
         $validator = Validator::make($request->all(), [
             'client_identifier' => 'required|string',
             'customer_name' => 'required|string|max:255',
@@ -94,24 +106,39 @@ class ProductOrderController extends Controller
             'shipping_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'order_items' => 'required|array|min:1',
-            'order_items.*.product_id' => 'required|integer|exists:products,id',
+            'order_items.*.product_id' => 'required|integer',
+            'order_items.*.name' => 'nullable|string',
+            'order_items.*.variant_id' => 'nullable|integer',
             'order_items.*.quantity' => 'required|integer|min:1',
             'order_items.*.price' => 'required|numeric|min:0',
+            'order_items.*.attributes' => 'nullable|array',
             'subtotal' => 'required|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
             'shipping_fee' => 'nullable|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'payment_method' => ['nullable', Rule::in(['cash', 'card', 'bank_transfer', 'digital_wallet', 'cod'])],
+            'payment_method' => 'nullable|string',
             'payment_reference' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
+            Log::error('Validation failed', [
+                'errors' => $validator->errors(),
+                'request_data' => $request->all(),
+            ]);
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
         try {
+            // Log validated data
+            $validatedData = $validator->validated();
+            Log::info('Validation passed', [
+                'validated_data' => $validatedData,
+                'order_items_validated' => $validatedData['order_items'] ?? [],
+                'order_items_keys' => array_keys($validatedData['order_items'][0] ?? []),
+            ]);
+
             // Validate stock availability
             foreach ($request->order_items as $item) {
                 $product = Product::find($item['product_id']);
@@ -128,12 +155,27 @@ class ProductOrderController extends Controller
             }
 
             // Create order
-            $orderData = $validator->validated();
+            $orderData = $validatedData;
             $orderData['order_number'] = ProductOrder::generateOrderNumber();
             $orderData['order_status'] = 'pending';
             $orderData['payment_status'] = 'pending';
 
+            Log::info('Creating order with data', [
+                'order_data' => $orderData,
+                'order_items_final' => $orderData['order_items'],
+            ]);
+
             $order = ProductOrder::create($orderData);
+
+            // Debug logging to see what was saved
+            Log::info('Product order created', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'client_identifier' => $order->client_identifier,
+                'total_amount' => $order->total_amount,
+                'saved_order_items' => $order->order_items,
+                'validated_order_items' => $orderData['order_items'],
+            ]);
 
             // Update product stock for physical products
             foreach ($request->order_items as $item) {
@@ -147,13 +189,6 @@ class ProductOrderController extends Controller
             if ($request->payment_method && $request->payment_method !== 'cod') {
                 $order->markAsPaid();
             }
-
-            Log::info('Product order created', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'client_identifier' => $order->client_identifier,
-                'total_amount' => $order->total_amount,
-            ]);
 
             return response()->json($order, 201);
 
@@ -183,6 +218,8 @@ class ProductOrderController extends Controller
             $product = Product::find($item['product_id']);
             return [
                 'product_id' => $item['product_id'],
+                'variant_id' => $item['variant_id'] ?? null,
+                'attributes' => $item['attributes'] ?? null,
                 'name' => $product ? $product->name : 'Product not found',
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],

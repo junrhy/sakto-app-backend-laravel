@@ -36,6 +36,22 @@ class Product extends Model
     ];
 
     /**
+     * Get the variants for this product
+     */
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    /**
+     * Get the active variants for this product
+     */
+    public function activeVariants()
+    {
+        return $this->hasMany(ProductVariant::class)->active();
+    }
+
+    /**
      * Set the tags attribute, ensuring it's always an array
      */
     public function setTagsAttribute($value)
@@ -91,7 +107,10 @@ class Product extends Model
     {
         return $query->where(function ($q) {
             $q->where('type', '!=', 'physical')
-              ->orWhere('stock_quantity', '>', 0);
+              ->orWhere('stock_quantity', '>', 0)
+              ->orWhereHas('variants', function ($variantQuery) {
+                  $variantQuery->active()->where('stock_quantity', '>', 0);
+              });
         });
     }
 
@@ -101,8 +120,14 @@ class Product extends Model
     public function scopeLowStock($query, $threshold = 10)
     {
         return $query->where('type', 'physical')
-                    ->where('stock_quantity', '<=', $threshold)
-                    ->where('stock_quantity', '>', 0);
+                    ->where(function ($q) use ($threshold) {
+                        $q->where(function ($subQ) use ($threshold) {
+                            $subQ->where('stock_quantity', '<=', $threshold)
+                                 ->where('stock_quantity', '>', 0);
+                        })->orWhereHas('variants', function ($variantQuery) use ($threshold) {
+                            $variantQuery->active()->lowStock($threshold);
+                        });
+                    });
     }
 
     /**
@@ -111,7 +136,12 @@ class Product extends Model
     public function scopeOutOfStock($query)
     {
         return $query->where('type', 'physical')
-                    ->where('stock_quantity', '<=', 0);
+                    ->where(function ($q) {
+                        $q->where('stock_quantity', '<=', 0)
+                          ->whereDoesntHave('variants', function ($variantQuery) {
+                              $variantQuery->active()->where('stock_quantity', '>', 0);
+                          });
+                    });
     }
 
     /**
@@ -123,7 +153,13 @@ class Product extends Model
             return true; // Digital, service, and subscription products are always "in stock"
         }
         
-        return $this->stock_quantity > 0;
+        // Check main product stock
+        if ($this->stock_quantity > 0) {
+            return true;
+        }
+        
+        // Check if any variants are in stock
+        return $this->variants()->active()->where('stock_quantity', '>', 0)->exists();
     }
 
     /**
@@ -135,7 +171,28 @@ class Product extends Model
             return false;
         }
         
-        return $this->stock_quantity > 0 && $this->stock_quantity <= $threshold;
+        // Check main product stock
+        if ($this->stock_quantity > 0 && $this->stock_quantity <= $threshold) {
+            return true;
+        }
+        
+        // Check if any variants are low in stock
+        return $this->variants()->active()->lowStock($threshold)->exists();
+    }
+
+    /**
+     * Get total stock quantity (including variants)
+     */
+    public function getTotalStockQuantityAttribute(): int
+    {
+        if ($this->type !== 'physical') {
+            return 0; // Not applicable for non-physical products
+        }
+        
+        $mainStock = $this->stock_quantity ?? 0;
+        $variantStock = $this->variants()->active()->sum('stock_quantity');
+        
+        return $mainStock + $variantStock;
     }
 
     /**
@@ -147,15 +204,17 @@ class Product extends Model
             return 'Unlimited';
         }
         
-        if ($this->stock_quantity === 0) {
+        $totalStock = $this->total_stock_quantity;
+        
+        if ($totalStock === 0) {
             return 'Out of Stock';
         }
         
-        if ($this->stock_quantity <= 10) {
-            return "Low Stock ({$this->stock_quantity})";
+        if ($totalStock <= 10) {
+            return "Low Stock ({$totalStock})";
         }
         
-        return "In Stock ({$this->stock_quantity})";
+        return "In Stock ({$totalStock})";
     }
 
     /**
@@ -188,5 +247,41 @@ class Product extends Model
         }
         
         return pathinfo($this->file_url, PATHINFO_EXTENSION);
+    }
+
+    /**
+     * Check if product has variants
+     */
+    public function hasVariants(): bool
+    {
+        return $this->type === 'physical' && $this->variants()->active()->exists();
+    }
+
+    /**
+     * Get available attribute options for variants
+     */
+    public function getAvailableAttributesAttribute(): array
+    {
+        if (!$this->hasVariants()) {
+            return [];
+        }
+
+        $attributes = [];
+        $variants = $this->variants()->active()->get();
+
+        foreach ($variants as $variant) {
+            if (!empty($variant->attributes)) {
+                foreach ($variant->attributes as $key => $value) {
+                    if (!isset($attributes[$key])) {
+                        $attributes[$key] = [];
+                    }
+                    if (!in_array($value, $attributes[$key])) {
+                        $attributes[$key][] = $value;
+                    }
+                }
+            }
+        }
+
+        return $attributes;
     }
 }
