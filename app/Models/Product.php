@@ -36,6 +36,23 @@ class Product extends Model
     ];
 
     /**
+     * Set the tags attribute, ensuring it's always an array
+     */
+    public function setTagsAttribute($value)
+    {
+        $this->attributes['tags'] = is_array($value) ? json_encode($value) : json_encode([]);
+    }
+
+    /**
+     * Get the tags attribute, ensuring it's always an array
+     */
+    public function getTagsAttribute($value)
+    {
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
      * Get the products for a specific client
      */
     public function scopeForClient($query, $clientIdentifier)
