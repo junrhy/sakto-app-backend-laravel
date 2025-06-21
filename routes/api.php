@@ -321,6 +321,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/participants/{participantId}/check-in', [EventController::class, 'checkInParticipant']);
         Route::post('/{id}/participants', [EventController::class, 'registerParticipant']);
         Route::delete('/{id}/participants/{participantId}', [EventController::class, 'unregisterParticipant']);
+        Route::put('/{id}/participants/{participantId}/payment', [EventController::class, 'updatePaymentStatus']);
         Route::post('/bulk-delete', [EventController::class, 'bulkDestroy']);
     });
 

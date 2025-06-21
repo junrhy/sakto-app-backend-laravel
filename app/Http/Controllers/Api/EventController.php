@@ -32,6 +32,10 @@ class EventController extends Controller
                 'max_participants' => 'nullable|integer|min:1',
                 'registration_deadline' => 'nullable|date|before:start_date',
                 'is_public' => 'boolean',
+                'is_paid_event' => 'boolean',
+                'event_price' => 'nullable|numeric|min:0|required_if:is_paid_event,true',
+                'currency' => 'nullable|string|size:3',
+                'payment_instructions' => 'nullable|string',
                 'category' => 'required|string',
                 'image' => 'nullable:string',
                 'status' => 'nullable|in:draft,published,archived',
@@ -76,6 +80,10 @@ class EventController extends Controller
             'max_participants' => 'nullable|integer|min:1',
             'registration_deadline' => 'nullable|date|before:start_date',
             'is_public' => 'boolean',
+            'is_paid_event' => 'boolean',
+            'event_price' => 'nullable|numeric|min:0|required_if:is_paid_event,true',
+            'currency' => 'nullable|string|size:3',
+            'payment_instructions' => 'nullable|string',
             'status' => 'nullable|in:draft,published,archived',
         ]);
 
@@ -184,6 +192,15 @@ class EventController extends Controller
             ], 400);
         }
 
+        // Set payment status based on event type
+        if ($event->is_paid_event) {
+            $validated['payment_status'] = 'pending';
+            $validated['amount_paid'] = 0; // Set to 0 by default, not event price
+        } else {
+            $validated['payment_status'] = 'paid'; // Free events are automatically marked as paid
+            $validated['amount_paid'] = 0;
+        }
+
         $participant = $event->participants()->create($validated);
 
         return response()->json([
@@ -203,6 +220,34 @@ class EventController extends Controller
 
         return response()->json([
             'message' => 'Participant unregistered successfully'
+        ]);
+    }
+
+    public function updatePaymentStatus(Request $request, $id, $participantId)
+    {
+        $event = Event::findOrFail($id);
+        $participant = EventParticipant::where('event_id', $id)
+            ->where('id', $participantId)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'payment_status' => 'required|in:pending,paid,cancelled',
+            'amount_paid' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|string|max:255',
+            'transaction_id' => 'nullable|string|max:255',
+            'payment_notes' => 'nullable|string',
+        ]);
+
+        // Set payment date if status is being changed to paid
+        if ($validated['payment_status'] === 'paid' && $participant->payment_status !== 'paid') {
+            $validated['payment_date'] = now();
+        }
+
+        $participant->update($validated);
+
+        return response()->json([
+            'message' => 'Payment status updated successfully',
+            'data' => $participant
         ]);
     }
 
