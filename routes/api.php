@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\ContentCreatorController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductOrderController;
 use App\Http\Controllers\Api\ProductVariantController;
+use App\Http\Controllers\Api\MortuaryController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -403,6 +404,34 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Report routes
         Route::post('/reports', [HealthInsuranceController::class, 'generateReport']);
+    });
+
+    // Mortuary Routes
+    Route::prefix('mortuary')->group(function () {
+        Route::get('/', [MortuaryController::class, 'index']);
+        
+        // Member routes
+        Route::get('/members/{id}', [MortuaryController::class, 'showMember']);
+        Route::post('/members', [MortuaryController::class, 'storeMember']);
+        Route::put('/members/{id}', [MortuaryController::class, 'updateMember']);
+        Route::delete('/members/{id}', [MortuaryController::class, 'deleteMember']);
+        
+        // Contribution routes
+        Route::post('/contributions/{memberId}', [MortuaryController::class, 'recordContribution']);
+        Route::put('/contributions/{memberId}/{contributionId}', [MortuaryController::class, 'updateContribution']);
+        Route::get('/contributions/{memberId}', [MortuaryController::class, 'getMemberContributions']);
+        Route::delete('/contributions/{memberId}/{contributionId}', [MortuaryController::class, 'deleteContribution']);
+        
+        // Claim routes
+        Route::post('/claims/{memberId}', [MortuaryController::class, 'submitClaim']);
+        Route::put('/claims/{memberId}/{claimId}', [MortuaryController::class, 'updateClaim']);
+        Route::patch('/claims/{claimId}/status', [MortuaryController::class, 'updateClaimStatus']);
+        Route::patch('/claims/{claimId}/active-status', [MortuaryController::class, 'toggleActiveStatus']);
+        Route::get('/claims/{memberId}', [MortuaryController::class, 'getMemberClaims']);
+        Route::delete('/claims/{memberId}/{claimId}', [MortuaryController::class, 'deleteClaim']);
+        
+        // Report routes
+        Route::post('/reports', [MortuaryController::class, 'generateReport']);
     });
 
     // Content Creator Routes
