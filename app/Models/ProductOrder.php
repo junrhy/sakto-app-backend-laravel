@@ -14,6 +14,7 @@ class ProductOrder extends Model
     protected $fillable = [
         'order_number',
         'client_identifier',
+        'contact_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -46,6 +47,14 @@ class ProductOrder extends Model
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];
+
+    /**
+     * Get the contact that placed this order
+     */
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
+    }
 
     /**
      * Get orders for a specific client

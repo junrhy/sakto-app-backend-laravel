@@ -26,6 +26,11 @@ class ProductOrderController extends Controller
 
         $query = ProductOrder::forClient($clientIdentifier);
 
+        // Filter by contact_id if provided
+        if ($request->has('contact_id') && $request->contact_id) {
+            $query->where('contact_id', $request->contact_id);
+        }
+
         // Apply filters
         if ($request->has('status')) {
             $query->byStatus($request->status);
@@ -100,6 +105,7 @@ class ProductOrderController extends Controller
 
         $validator = Validator::make($request->all(), [
             'client_identifier' => 'required|string',
+            'contact_id' => 'nullable|integer',
             'customer_name' => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'nullable|string|max:20',
@@ -137,6 +143,8 @@ class ProductOrderController extends Controller
                 'validated_data' => $validatedData,
                 'order_items_validated' => $validatedData['order_items'] ?? [],
                 'order_items_keys' => array_keys($validatedData['order_items'][0] ?? []),
+                'contact_id_validated' => $validatedData['contact_id'] ?? 'not_set',
+                'has_contact_id_in_validated' => isset($validatedData['contact_id']),
             ]);
 
             // Validate stock availability
@@ -163,6 +171,8 @@ class ProductOrderController extends Controller
             Log::info('Creating order with data', [
                 'order_data' => $orderData,
                 'order_items_final' => $orderData['order_items'],
+                'contact_id_in_order_data' => $orderData['contact_id'] ?? 'not_set',
+                'has_contact_id' => isset($orderData['contact_id']),
             ]);
 
             $order = ProductOrder::create($orderData);
@@ -172,6 +182,7 @@ class ProductOrderController extends Controller
                 'order_id' => $order->id,
                 'order_number' => $order->order_number,
                 'client_identifier' => $order->client_identifier,
+                'contact_id_saved' => $order->contact_id,
                 'total_amount' => $order->total_amount,
                 'saved_order_items' => $order->order_items,
                 'validated_order_items' => $orderData['order_items'],
