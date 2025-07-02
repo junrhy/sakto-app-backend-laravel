@@ -446,6 +446,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/preview', [ContentCreatorController::class, 'preview']);
         Route::get('/settings', [ContentCreatorController::class, 'settings']);
         Route::get('/list', [ContentCreatorController::class, 'getContent']);
+        Route::get('/public/{slug}', [ContentCreatorController::class, 'publicShow']);
     });
 
     // Future authenticated routes will go here...

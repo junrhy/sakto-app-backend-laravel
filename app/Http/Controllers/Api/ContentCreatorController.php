@@ -246,4 +246,44 @@ class ContentCreatorController extends Controller
 
         return response()->json($content);
     }
+
+    public function publicShow($slug)
+    {
+        try {
+            $content = Content::where('slug', $slug)
+                ->where('status', 'published')
+                ->first();
+
+            if (!$content) {
+                return response()->json([
+                    'message' => 'Post not found'
+                ], 404);
+            }
+
+            // Get suggested content (other published posts excluding current one)
+            $suggestedContent = Content::where('status', 'published')
+                ->where('id', '!=', $content->id)
+                ->inRandomOrder()
+                ->limit(3)
+                ->select('id', 'title', 'slug', 'excerpt', 'featured_image', 'author', 'created_at')
+                ->get();
+
+            return response()->json([
+                'content' => $content,
+                'suggestedContent' => $suggestedContent
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Content public show failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to fetch post',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 } 
