@@ -35,6 +35,10 @@ class Event extends Model
         'event_price' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'current_participants'
+    ];
+
     public function participants()
     {
         return $this->hasMany(EventParticipant::class);
@@ -57,5 +61,10 @@ class Event extends Model
     public function getPendingPaymentCountAttribute()
     {
         return $this->participants()->where('payment_status', 'pending')->count();
+    }
+
+    public function getCurrentParticipantsAttribute()
+    {
+        return $this->participants()->count();
     }
 }
