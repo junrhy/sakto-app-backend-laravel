@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends Model
 {
@@ -34,4 +36,28 @@ class Contact extends Model
         'group' => 'array',
         'id_numbers' => 'array',
     ];
+
+    /**
+     * Get the wallet for this contact.
+     */
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(ContactWallet::class);
+    }
+
+    /**
+     * Get the wallet transactions for this contact.
+     */
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(ContactWalletTransaction::class);
+    }
+
+    /**
+     * Get the client that owns this contact.
+     */
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_identifier', 'client_identifier');
+    }
 }

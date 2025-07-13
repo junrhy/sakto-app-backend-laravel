@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\PatientBillController;
 use App\Http\Controllers\Api\PatientPaymentController;
 use App\Http\Controllers\Api\PatientCheckupController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ContactWalletController;
 use App\Http\Controllers\Api\CreditController;
 use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\InboxController;
@@ -263,6 +264,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [ContactController::class, 'update']);
         Route::delete('/{id}', [ContactController::class, 'destroy']);
         Route::post('/bulk-delete', [ContactController::class, 'bulkDestroy']);
+    });
+
+    // Contact Wallet Routes
+    Route::prefix('contact-wallets')->group(function () {
+        Route::get('/{contactId}/balance', [ContactWalletController::class, 'getBalance']);
+        Route::post('/{contactId}/add-funds', [ContactWalletController::class, 'addFunds']);
+        Route::post('/{contactId}/deduct-funds', [ContactWalletController::class, 'deductFunds']);
+        Route::get('/{contactId}/transactions', [ContactWalletController::class, 'getTransactionHistory']);
+        Route::get('/client-summary', [ContactWalletController::class, 'getClientWallets']);
+        Route::post('/transfer', [ContactWalletController::class, 'transferFunds']);
     });
 
     // Credit Routes
