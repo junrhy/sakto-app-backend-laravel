@@ -11,10 +11,34 @@ class ContactController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $contacts = Contact::all();
-        return response()->json($contacts);
+        $clientIdentifier = $request->get('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $contacts = Contact::where('client_identifier', $clientIdentifier)
+            ->with(['wallet' => function($query) {
+                $query->select('id', 'contact_id', 'balance', 'currency', 'status');
+            }])
+            ->get()
+            ->map(function($contact) {
+                $contactData = $contact->toArray();
+                $contactData['wallet_balance'] = $contact->wallet ? $contact->wallet->balance : 0;
+                $contactData['wallet_currency'] = $contact->wallet ? $contact->wallet->currency : 'PHP';
+                $contactData['wallet_status'] = $contact->wallet ? $contact->wallet->status : 'active';
+                return $contactData;
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => $contacts
+        ]);
     }
 
     /**
