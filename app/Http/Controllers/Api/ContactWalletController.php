@@ -192,9 +192,16 @@ class ContactWalletController extends Controller
             ]);
         }
 
-        $transactions = $wallet->transactions()
+        $query = $wallet->transactions();
+        // Date filter: expects 'date' in YYYY-MM-DD
+        if ($request->has('date')) {
+            $date = $request->get('date');
+            $query->whereDate('transaction_date', $date);
+        }
+
+        $transactions = $query
             ->orderBy('transaction_date', 'desc')
-            ->paginate($request->get('per_page', 15));
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -301,14 +308,14 @@ class ContactWalletController extends Controller
             // Deduct from source wallet
             $fromWallet->deductFunds(
                 $request->amount,
-                'Transfer to ' . $toContact->first_name . ' ' . $toContact->last_name,
+                $request->description ?? 'Transfer to ' . ($toContact->sms_number ?? $toContact->first_name . ' ' . $toContact->last_name),
                 $request->reference
             );
 
             // Add to destination wallet
             $toWallet->addFunds(
                 $request->amount,
-                'Transfer from ' . $fromContact->first_name . ' ' . $fromContact->last_name,
+                'Transfer from ' . ($fromContact->sms_number ?? $fromContact->first_name . ' ' . $fromContact->last_name),
                 $request->reference
             );
 
