@@ -141,4 +141,19 @@ class ContactController extends Controller
         Contact::whereIn('id', $request->ids)->delete();
         return response()->json(['message' => 'Contacts deleted successfully'], 204);
     }
+
+    /**
+     * Get total count of all contacts across all clients
+     */
+    public function getTotalCount()
+    {
+        $totalCount = Contact::count();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'total_contacts' => $totalCount
+            ]
+        ]);
+    }
 }

@@ -264,6 +264,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [ContactController::class, 'update']);
         Route::delete('/{id}', [ContactController::class, 'destroy']);
         Route::post('/bulk-delete', [ContactController::class, 'bulkDestroy']);
+        Route::get('/total/count', [ContactController::class, 'getTotalCount']);
     });
 
     // Contact Wallet Routes
