@@ -16,7 +16,9 @@ class InboxController extends Controller
      */
     public function index()
     {
-        $messages = Inbox::orderBy('created_at', 'desc')
+        $messages = Inbox::leftJoin('clients', 'inboxes.client_identifier', '=', 'clients.client_identifier')
+            ->select('inboxes.*', 'clients.name as client_name')
+            ->orderBy('inboxes.created_at', 'desc')
             ->paginate(10);
 
         return Inertia::render('Inbox/Index', [
@@ -59,7 +61,7 @@ class InboxController extends Controller
      */
     public function show($id)
     {
-        $message = Inbox::findOrFail($id);
+        $message = Inbox::with('client')->findOrFail($id);
         
         return Inertia::render('Inbox/Show', [
             'message' => $message
@@ -71,7 +73,7 @@ class InboxController extends Controller
      */
     public function edit($id)
     {
-        $message = Inbox::findOrFail($id);
+        $message = Inbox::with('client')->findOrFail($id);
         
         return Inertia::render('Inbox/Edit', [
             'message' => $message

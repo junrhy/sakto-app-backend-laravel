@@ -31,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/{credit}', [CreditController::class, 'update'])->name('update');
         Route::delete('/{credit}', [CreditController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-destroy', [CreditController::class, 'bulkDestroy'])->name('bulk-destroy');
+        
+        // Admin credit request actions
+        Route::post('/accept-request/{id}', [CreditController::class, 'acceptRequest'])->name('accept-request');
+        Route::post('/reject-request/{id}', [CreditController::class, 'rejectRequest'])->name('reject-request');
     });
 
     Route::prefix('inbox')->name('inbox.')->group(function () {

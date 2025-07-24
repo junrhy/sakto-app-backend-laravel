@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 interface Message {
     id: number;
     client_identifier: string;
+    client_name?: string;
     subject: string;
     message: string;
     type: string;
@@ -164,7 +165,7 @@ export default function Index({ messages }: Props) {
                                                     onCheckedChange={toggleSelectAll}
                                                 />
                                             </TableHead>
-                                            <TableHead>Client</TableHead>
+                                            <TableHead>Client Name</TableHead>
                                             <TableHead>Subject</TableHead>
                                             <TableHead>Type</TableHead>
                                             <TableHead>Date</TableHead>
@@ -180,7 +181,9 @@ export default function Index({ messages }: Props) {
                                                         onCheckedChange={() => toggleSelect(message.id)}
                                                     />
                                                 </TableCell>
-                                                <TableCell>{message.client_identifier}</TableCell>
+                                                <TableCell>
+                                                    {message.client_name || message.client_identifier}
+                                                </TableCell>
                                                 <TableCell>{message.subject}</TableCell>
                                                 <TableCell>
                                                     <span className={`capitalize px-2 py-1 rounded-full text-sm ${

@@ -14,4 +14,28 @@ class Client extends Model
         'referrer',
         'active'
     ];
+
+    /**
+     * Get the credit record for this client.
+     */
+    public function credit()
+    {
+        return $this->hasOne(Credit::class, 'client_identifier', 'client_identifier');
+    }
+
+    /**
+     * Get the credit histories for this client.
+     */
+    public function creditHistories()
+    {
+        return $this->hasMany(CreditHistory::class, 'client_identifier', 'client_identifier');
+    }
+
+    /**
+     * Get the credit spent histories for this client.
+     */
+    public function creditSpentHistories()
+    {
+        return $this->hasMany(CreditSpentHistory::class, 'client_identifier', 'client_identifier');
+    }
 }

@@ -45,10 +45,10 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'id' => $item->id,
-                    'client_name' => $item->client->name,
-                    'client_identifier' => $item->client->client_identifier,
-                    'package_credit' => $item->package_credit,
-                    'status' => $item->status,
+                    'client_name' => $item->client->name ?? 'N/A',
+                    'client_identifier' => $item->client->client_identifier ?? 'N/A',
+                    'package_credit' => $item->package_credit ?? 'N/A',
+                    'status' => $item->status ?? 'N/A',
                     'created_at' => $item->created_at->format('Y-m-d H:i:s'),
                 ];
             });

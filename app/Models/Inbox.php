@@ -32,4 +32,12 @@ class Inbox extends Model
         'is_read' => 'boolean',
         'read_at' => 'datetime',
     ];
+
+    /**
+     * Get the client that owns this message.
+     */
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_identifier', 'client_identifier');
+    }
 }

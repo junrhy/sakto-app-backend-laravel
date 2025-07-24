@@ -20,6 +20,12 @@ interface Message {
     subject: string;
     message: string;
     type: string;
+    client?: {
+        id: number;
+        name: string;
+        email: string;
+        client_identifier: string;
+    } | null;
 }
 
 interface Props {
@@ -72,10 +78,10 @@ export default function Edit({ message }: Props) {
                             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium">
-                                        Client Identifier
+                                        Client Name
                                     </label>
                                     <Input
-                                        value={message.client_identifier}
+                                        value={message.client ? message.client.name : 'Client not found'}
                                         disabled
                                         className="bg-gray-100"
                                     />

@@ -13,6 +13,12 @@ interface Message {
     is_read: boolean;
     created_at: string;
     read_at: string | null;
+    client?: {
+        id: number;
+        name: string;
+        email: string;
+        client_identifier: string;
+    } | null;
 }
 
 interface Props {
@@ -52,9 +58,11 @@ export default function Show({ message }: Props) {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                            Client Identifier
+                                            Client Name
                                         </h3>
-                                        <p className="mt-1">{message.client_identifier}</p>
+                                        <p className="mt-1">
+                                            {message.client ? message.client.name : 'Client not found'}
+                                        </p>
                                     </div>
 
                                     <div>

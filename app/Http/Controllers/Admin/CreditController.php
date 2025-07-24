@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Credit;
 use App\Models\CreditHistory;
+use App\Models\Client;
+use App\Models\CreditSpentHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,8 +24,36 @@ class CreditController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Get all clients with their credit information
+        $clientsWithCredits = Client::with(['credit', 'creditHistories', 'creditSpentHistories'])
+            ->orderBy('name')
+            ->get()
+            ->map(function ($client) {
+                $credit = $client->credit;
+                $totalPurchased = $client->creditHistories()
+                    ->where('status', 'approved')
+                    ->sum('package_credit');
+                $totalSpent = $client->creditSpentHistories()->sum('amount');
+                
+                return [
+                    'id' => $client->id,
+                    'name' => $client->name,
+                    'client_identifier' => $client->client_identifier,
+                    'email' => $client->email,
+                    'contact_number' => $client->contact_number,
+                    'active' => $client->active,
+                    'current_credits' => $credit ? $credit->available_credit : 0,
+                    'pending_credits' => $credit ? $credit->pending_credit : 0,
+                    'total_purchased' => $totalPurchased,
+                    'total_spent' => $totalSpent,
+                    'last_activity' => $this->getLastActivity($client),
+                    'recent_history' => $this->getRecentHistory($client)
+                ];
+            });
+
         return Inertia::render('Credits/Index', [
-            'creditRequests' => $creditRequests
+            'creditRequests' => $creditRequests,
+            'clientsWithCredits' => $clientsWithCredits
         ]);
     }
 
@@ -102,5 +132,70 @@ class CreditController extends Controller
             DB::rollBack();
             return back()->with('error', 'Error processing credit request: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get the last activity for a client
+     */
+    private function getLastActivity($client)
+    {
+        $lastCreditHistory = $client->creditHistories()
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        $lastSpentHistory = $client->creditSpentHistories()
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($lastCreditHistory && $lastSpentHistory) {
+            return $lastCreditHistory->created_at > $lastSpentHistory->created_at 
+                ? $lastCreditHistory->created_at 
+                : $lastSpentHistory->created_at;
+        } elseif ($lastCreditHistory) {
+            return $lastCreditHistory->created_at;
+        } elseif ($lastSpentHistory) {
+            return $lastSpentHistory->created_at;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get recent history for a client
+     */
+    private function getRecentHistory($client)
+    {
+        $recentCreditHistory = $client->creditHistories()
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get()
+            ->map(function ($history) {
+                return [
+                    'type' => 'purchase',
+                    'amount' => $history->package_credit,
+                    'status' => $history->status,
+                    'date' => $history->created_at,
+                    'details' => $history->package_name
+                ];
+            });
+
+        $recentSpentHistory = $client->creditSpentHistories()
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get()
+            ->map(function ($history) {
+                return [
+                    'type' => 'spent',
+                    'amount' => $history->amount,
+                    'status' => $history->status,
+                    'date' => $history->created_at,
+                    'details' => $history->purpose
+                ];
+            });
+
+        return $recentCreditHistory->concat($recentSpentHistory)
+            ->sortByDesc('date')
+            ->take(5)
+            ->values();
     }
 } 
