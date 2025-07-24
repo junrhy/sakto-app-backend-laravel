@@ -54,7 +54,7 @@
         "framer-motion": "^12.6.3",
         "react-d3-tree": "^3.6.5",
         "react-day-picker": "^9.5.0",
-        "recharts": "^2.15.0",
+        "recharts": "^2.15.4",
         "sonner": "^1.7.4"
     }
 }

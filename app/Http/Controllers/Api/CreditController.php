@@ -240,4 +240,62 @@ class CreditController extends Controller
 
         return response()->json($creditSpentHistories);
     }
+
+    /**
+     * Add credits directly (for admin operations)
+     */
+    public function addCredits(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string',
+            'amount' => 'required|integer|min:1',
+            'source' => 'required|string',
+            'reference_id' => 'required|string',
+            'note' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $credit = Credit::firstOrCreate(
+            ['client_identifier' => $request->client_identifier],
+            [
+                'available_credit' => 0,
+                'pending_credit' => 0
+            ]
+        );
+
+        // Add credits directly to available balance
+        $credit->available_credit += $request->amount;
+        $credit->save();
+
+        // Create a credit history record for tracking
+        $creditHistory = new CreditHistory([
+            'credit_id' => $credit->id,
+            'client_identifier' => $request->client_identifier,
+            'package_name' => $request->source,
+            'package_credit' => $request->amount,
+            'package_amount' => 0, // No payment amount for direct additions
+            'payment_method' => 'direct_addition',
+            'payment_method_details' => $request->note ?? 'Direct credit addition',
+            'transaction_id' => $request->reference_id,
+            'proof_of_payment' => null,
+            'status' => 'approved',
+            'approved_date' => now(),
+            'approved_by' => 'admin_system'
+        ]);
+
+        $creditHistory->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Credits added successfully',
+            'credit' => $credit,
+            'credit_history' => $creditHistory
+        ]);
+    }
 }

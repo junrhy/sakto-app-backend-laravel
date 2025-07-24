@@ -286,6 +286,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{clientIdentifier}/history', [CreditController::class, 'getCreditHistory']);
         Route::get('/{clientIdentifier}/spent-history', [CreditController::class, 'getSpentCreditHistory']);
         Route::post('/spend', [CreditController::class, 'spendCredit']);
+        Route::post('/add', [CreditController::class, 'addCredits']);
     });
 
     // Family Tree Routes

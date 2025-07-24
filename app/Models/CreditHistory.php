@@ -16,7 +16,9 @@ class CreditHistory extends Model
         'payment_method_details', 
         'transaction_id',
         'proof_of_payment', 
-        'status'
+        'status',
+        'approved_date',
+        'approved_by'
     ];
 
     public function credit()
