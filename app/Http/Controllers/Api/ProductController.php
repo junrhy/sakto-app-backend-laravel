@@ -69,7 +69,7 @@ class ProductController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $products = $query->with('activeVariants')->get();
+        $products = $query->with(['activeVariants', 'images'])->get();
 
         return response()->json($products);
     }
@@ -95,6 +95,23 @@ class ProductController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'metadata' => 'nullable|array',
+            // Supplier related fields
+            'supplier_name' => 'nullable|string|max:255',
+            'supplier_email' => 'nullable|email|max:255',
+            'supplier_phone' => 'nullable|string|max:255',
+            'supplier_address' => 'nullable|string|max:500',
+            'supplier_website' => 'nullable|url|max:255',
+            'supplier_contact_person' => 'nullable|string|max:255',
+            // Purchase related fields
+            'purchase_price' => 'nullable|numeric|min:0',
+            'purchase_currency' => 'nullable|string|max:10',
+            'purchase_date' => 'nullable|date',
+            'purchase_order_number' => 'nullable|string|max:255',
+            'purchase_notes' => 'nullable|string|max:1000',
+            'reorder_point' => 'nullable|integer|min:0',
+            'reorder_quantity' => 'nullable|integer|min:0',
+            'lead_time_days' => 'nullable|integer|min:0',
+            'payment_terms' => 'nullable|string|max:255',
             'client_identifier' => 'required|string',
         ]);
 
@@ -119,7 +136,7 @@ class ProductController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $product = Product::with('activeVariants')->find($id);
+        $product = Product::with(['activeVariants', 'images'])->find($id);
 
         if (!$product) {
             return response()->json(['error' => 'Product not found'], 404);
@@ -155,6 +172,23 @@ class ProductController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'metadata' => 'nullable|array',
+            // Supplier related fields
+            'supplier_name' => 'nullable|string|max:255',
+            'supplier_email' => 'nullable|email|max:255',
+            'supplier_phone' => 'nullable|string|max:255',
+            'supplier_address' => 'nullable|string|max:500',
+            'supplier_website' => 'nullable|url|max:255',
+            'supplier_contact_person' => 'nullable|string|max:255',
+            // Purchase related fields
+            'purchase_price' => 'nullable|numeric|min:0',
+            'purchase_currency' => 'nullable|string|max:10',
+            'purchase_date' => 'nullable|date',
+            'purchase_order_number' => 'nullable|string|max:255',
+            'purchase_notes' => 'nullable|string|max:1000',
+            'reorder_point' => 'nullable|integer|min:0',
+            'reorder_quantity' => 'nullable|integer|min:0',
+            'lead_time_days' => 'nullable|integer|min:0',
+            'payment_terms' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {

@@ -25,6 +25,23 @@ class Product extends Model
         'tags',
         'metadata',
         'client_identifier',
+        // Supplier related fields
+        'supplier_name',
+        'supplier_email',
+        'supplier_phone',
+        'supplier_address',
+        'supplier_website',
+        'supplier_contact_person',
+        // Purchase related fields
+        'purchase_price',
+        'purchase_currency',
+        'purchase_date',
+        'purchase_order_number',
+        'purchase_notes',
+        'reorder_point',
+        'reorder_quantity',
+        'lead_time_days',
+        'payment_terms',
     ];
 
     protected $casts = [
@@ -33,6 +50,12 @@ class Product extends Model
         'stock_quantity' => 'integer',
         'tags' => 'array',
         'metadata' => 'array',
+        // Purchase related casts
+        'purchase_price' => 'decimal:2',
+        'purchase_date' => 'date',
+        'reorder_point' => 'integer',
+        'reorder_quantity' => 'integer',
+        'lead_time_days' => 'integer',
     ];
 
     /**
@@ -49,6 +72,82 @@ class Product extends Model
     public function activeVariants()
     {
         return $this->hasMany(ProductVariant::class)->active();
+    }
+
+    /**
+     * Get all images for this product
+     */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->ordered();
+    }
+
+    /**
+     * Get the primary image for this product
+     */
+    public function primaryImage()
+    {
+        return $this->hasOne(ProductImage::class)->primary();
+    }
+
+    /**
+     * Get the first image (primary or first available)
+     */
+    public function getFirstImageAttribute()
+    {
+        return $this->primaryImage ?? $this->images->first();
+    }
+
+    /**
+     * Get all reviews for this product
+     */
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Get approved reviews for this product
+     */
+    public function approvedReviews()
+    {
+        return $this->hasMany(ProductReview::class)->approved();
+    }
+
+    /**
+     * Get featured reviews for this product
+     */
+    public function featuredReviews()
+    {
+        return $this->hasMany(ProductReview::class)->featured();
+    }
+
+    /**
+     * Get the average rating for this product
+     */
+    public function getAverageRatingAttribute()
+    {
+        return $this->approvedReviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get the total reviews count for this product
+     */
+    public function getReviewsCountAttribute()
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get the rating distribution for this product
+     */
+    public function getRatingDistributionAttribute()
+    {
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = $this->approvedReviews()->byRating($i)->count();
+        }
+        return $distribution;
     }
 
     /**

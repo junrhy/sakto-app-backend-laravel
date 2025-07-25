@@ -34,8 +34,10 @@ use App\Http\Controllers\Api\PagesController;
 use App\Http\Controllers\Api\HealthInsuranceController;
 use App\Http\Controllers\Api\ContentCreatorController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductImageController;
 use App\Http\Controllers\Api\ProductOrderController;
 use App\Http\Controllers\Api\ProductVariantController;
+use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\MortuaryController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -77,6 +79,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{variantId}', [ProductVariantController::class, 'update']);
         Route::delete('/{variantId}', [ProductVariantController::class, 'destroy']);
         Route::patch('/{variantId}/stock', [ProductVariantController::class, 'updateStock']);
+    });
+
+    // Product Images Routes
+    Route::prefix('products/{productId}/images')->group(function () {
+        Route::get('/', [ProductImageController::class, 'index']);
+        Route::post('/', [ProductImageController::class, 'store']);
+        Route::put('/{imageId}', [ProductImageController::class, 'update']);
+        Route::delete('/{imageId}', [ProductImageController::class, 'destroy']);
+        Route::post('/reorder', [ProductImageController::class, 'reorder']);
+    });
+
+    // Product Reviews Routes
+    Route::prefix('products/{productId}/reviews')->group(function () {
+        Route::get('/', [ProductReviewController::class, 'index']);
+        Route::post('/', [ProductReviewController::class, 'store']);
+        Route::get('/statistics', [ProductReviewController::class, 'statistics']);
+        Route::get('/{reviewId}', [ProductReviewController::class, 'show']);
+        Route::put('/{reviewId}', [ProductReviewController::class, 'update']);
+        Route::delete('/{reviewId}', [ProductReviewController::class, 'destroy']);
+        Route::post('/{reviewId}/vote', [ProductReviewController::class, 'vote']);
+        Route::post('/{reviewId}/approve', [ProductReviewController::class, 'approve']);
+        Route::post('/{reviewId}/toggle-feature', [ProductReviewController::class, 'toggleFeature']);
     });
 
     // Product Orders Routes
