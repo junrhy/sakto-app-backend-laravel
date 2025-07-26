@@ -13,7 +13,8 @@ class ProductReview extends Model
 
     protected $fillable = [
         'product_id',
-        'user_id',
+        'reviewer_name',
+        'reviewer_email',
         'title',
         'content',
         'rating',
@@ -44,20 +45,18 @@ class ProductReview extends Model
         'featured_at',
     ];
 
+    protected $appends = [
+        'helpful_votes_count',
+        'unhelpful_votes_count',
+        'total_votes_count',
+    ];
+
     /**
      * Get the product that owns the review.
      */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    /**
-     * Get the user that wrote the review.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     /**

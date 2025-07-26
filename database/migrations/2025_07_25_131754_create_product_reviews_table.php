@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('product_reviews', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('reviewer_name');
+            $table->string('reviewer_email');
             $table->string('title')->nullable();
             $table->text('content');
             $table->integer('rating')->comment('1-5 star rating');
@@ -31,9 +32,9 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['product_id', 'is_approved']);
             $table->index(['product_id', 'rating']);
-            $table->index(['user_id', 'is_approved']);
+            $table->index(['reviewer_email', 'is_approved']);
             $table->index(['is_featured', 'is_approved']);
-            $table->unique(['product_id', 'user_id'], 'unique_product_user_review');
+            $table->unique(['product_id', 'reviewer_email'], 'unique_product_reviewer_review');
         });
     }
 

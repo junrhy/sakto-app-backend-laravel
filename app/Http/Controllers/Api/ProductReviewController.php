@@ -20,13 +20,14 @@ class ProductReviewController extends Controller
     {
         $product = Product::findOrFail($productId);
         
-        $query = $product->reviews()->with(['user:id,name,email']);
+        $query = $product->reviews();
         
         // Filter by approval status
         if ($request->has('approved')) {
             if ($request->boolean('approved')) {
                 $query->approved();
             }
+            // If approved=false, don't filter - show all reviews (both approved and pending)
         } else {
             // Default to approved reviews only
             $query->approved();
@@ -94,16 +95,17 @@ class ProductReviewController extends Controller
             'rating' => 'required|integer|between:1,5',
             'images' => 'nullable|array',
             'images.*' => 'string|url',
+            'reviewer_name' => 'required|string|max:255',
+            'reviewer_email' => 'required|email|max:255',
             'client_identifier' => 'required|string',
-            'user_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Check if user has already reviewed this product
-        $existingReview = $product->reviews()->where('user_id', $request->user_id)->first();
+        // Check if reviewer has already reviewed this product
+        $existingReview = $product->reviews()->where('reviewer_email', $request->reviewer_email)->first();
         if ($existingReview) {
             return response()->json([
                 'error' => 'You have already reviewed this product'
@@ -112,11 +114,12 @@ class ProductReviewController extends Controller
 
         $data = $validator->validated();
         
-        // Check if user has purchased this product (for verified purchase status)
-        $isVerifiedPurchase = $this->checkVerifiedPurchase($product, $request->user_id);
+        // Check if reviewer has purchased this product (for verified purchase status)
+        $isVerifiedPurchase = $this->checkVerifiedPurchase($product, $request->reviewer_email);
         
         $review = $product->reviews()->create([
-            'user_id' => $request->user_id,
+            'reviewer_name' => $data['reviewer_name'],
+            'reviewer_email' => $data['reviewer_email'],
             'title' => $data['title'] ?? null,
             'content' => $data['content'],
             'rating' => $data['rating'],
@@ -124,8 +127,6 @@ class ProductReviewController extends Controller
             'is_verified_purchase' => $isVerifiedPurchase,
             'is_approved' => false, // Requires admin approval
         ]);
-
-        $review->load('user:id,name,email');
 
         return response()->json([
             'message' => 'Review submitted successfully and is pending approval',
@@ -138,7 +139,7 @@ class ProductReviewController extends Controller
      */
     public function show(string $productId, string $reviewId): JsonResponse
     {
-        $review = ProductReview::with(['user:id,name,email', 'product:id,name'])
+        $review = ProductReview::with(['product:id,name'])
             ->where('product_id', $productId)
             ->findOrFail($reviewId);
 
@@ -153,7 +154,7 @@ class ProductReviewController extends Controller
         $review = ProductReview::where('product_id', $productId)->findOrFail($reviewId);
         
         // Check if user owns the review or is admin
-        if ($review->user_id !== Auth::id() && !Auth::user()->is_admin) {
+        if ($review->reviewer_email !== $request->reviewer_email && !Auth::user()->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -163,6 +164,7 @@ class ProductReviewController extends Controller
             'rating' => 'required|integer|between:1,5',
             'images' => 'nullable|array',
             'images.*' => 'string|url',
+            'reviewer_email' => 'required|email|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -177,7 +179,6 @@ class ProductReviewController extends Controller
         }
         
         $review->update($data);
-        $review->load('user:id,name,email');
 
         return response()->json([
             'message' => 'Review updated successfully',
@@ -193,7 +194,7 @@ class ProductReviewController extends Controller
         $review = ProductReview::where('product_id', $productId)->findOrFail($reviewId);
         
         // Check if user owns the review or is admin
-        if ($review->user_id !== $request->user_id && !Auth::user()->is_admin) {
+        if ($review->reviewer_email !== $request->reviewer_email && !Auth::user()->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -268,7 +269,10 @@ class ProductReviewController extends Controller
      */
     public function approve(Request $request, string $productId, string $reviewId): JsonResponse
     {
-        if (!Auth::user()->is_admin) {
+        // For now, allow any authenticated user to approve reviews
+        // In a production environment, you would implement proper role checking
+        // based on your team member system
+        if (!Auth::user()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -286,7 +290,10 @@ class ProductReviewController extends Controller
      */
     public function toggleFeature(Request $request, string $productId, string $reviewId): JsonResponse
     {
-        if (!Auth::user()->is_admin) {
+        // For now, allow any authenticated user to feature/unfeature reviews
+        // In a production environment, you would implement proper role checking
+        // based on your team member system
+        if (!Auth::user()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -323,12 +330,12 @@ class ProductReviewController extends Controller
     }
 
     /**
-     * Check if user has purchased the product (for verified purchase status)
+     * Check if reviewer has purchased the product (for verified purchase status)
      */
-    private function checkVerifiedPurchase(Product $product, int $userId): bool
+    private function checkVerifiedPurchase(Product $product, string $reviewerEmail): bool
     {
         // This is a placeholder implementation
-        // You would typically check against your orders table
+        // You would typically check against your orders table using the reviewer email
         // For now, we'll return false as a default
         return false;
     }
