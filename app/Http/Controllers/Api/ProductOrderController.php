@@ -347,17 +347,106 @@ class ProductOrderController extends Controller
         
         $query->whereBetween('created_at', [$dateFrom, $dateTo]);
 
+        // Basic statistics
+        $totalOrders = $query->count();
+        $totalRevenue = $query->sum('total_amount');
+        $averageOrderValue = $query->avg('total_amount') ?? 0;
+
+        // Orders by status
+        $ordersByStatus = [
+            'pending' => $query->clone()->byStatus('pending')->count(),
+            'confirmed' => $query->clone()->byStatus('confirmed')->count(),
+            'processing' => $query->clone()->byStatus('processing')->count(),
+            'shipped' => $query->clone()->byStatus('shipped')->count(),
+            'delivered' => $query->clone()->byStatus('delivered')->count(),
+            'cancelled' => $query->clone()->byStatus('cancelled')->count(),
+            'refunded' => $query->clone()->byStatus('refunded')->count(),
+        ];
+
+        // Orders by payment status
+        $ordersByPaymentStatus = [
+            'pending' => $query->clone()->byPaymentStatus('pending')->count(),
+            'paid' => $query->clone()->byPaymentStatus('paid')->count(),
+            'failed' => $query->clone()->byPaymentStatus('failed')->count(),
+            'refunded' => $query->clone()->byPaymentStatus('refunded')->count(),
+            'partially_refunded' => $query->clone()->byPaymentStatus('partially_refunded')->count(),
+        ];
+
+        // Revenue by month (last 12 months)
+        $revenueByMonth = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthRevenue = ProductOrder::forClient($clientIdentifier)
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->sum('total_amount');
+            $monthOrders = ProductOrder::forClient($clientIdentifier)
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+            
+            $revenueByMonth[] = [
+                'month' => $month->format('M Y'),
+                'revenue' => $monthRevenue,
+                'orders' => $monthOrders,
+            ];
+        }
+
+        // Top products (by revenue)
+        $topProducts = [];
+        $orderItems = ProductOrder::forClient($clientIdentifier)
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->get()
+            ->flatMap(function ($order) {
+                return collect($order->order_items);
+            })
+            ->groupBy('product_id')
+            ->map(function ($items, $productId) {
+                $product = Product::find($productId);
+                $quantitySold = $items->sum('quantity');
+                $revenue = $items->sum(function ($item) {
+                    return $item['quantity'] * $item['price'];
+                });
+                
+                return [
+                    'product_id' => (int) $productId,
+                    'name' => $product ? $product->name : 'Unknown Product',
+                    'quantity_sold' => $quantitySold,
+                    'revenue' => $revenue,
+                ];
+            })
+            ->sortByDesc('revenue')
+            ->take(10)
+            ->values()
+            ->toArray();
+
+        // Recent orders
+        $recentOrders = ProductOrder::forClient($clientIdentifier)
+            ->whereBetween('created_at', [$dateFrom, $dateTo])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer_name' => $order->customer_name,
+                    'total_amount' => $order->total_amount,
+                    'order_status' => $order->order_status,
+                    'created_at' => $order->created_at->toISOString(),
+                ];
+            })
+            ->toArray();
+
         $statistics = [
-            'total_orders' => $query->count(),
-            'total_revenue' => $query->sum('total_amount'),
-            'pending_orders' => $query->clone()->byStatus('pending')->count(),
-            'processing_orders' => $query->clone()->byStatus('processing')->count(),
-            'shipped_orders' => $query->clone()->byStatus('shipped')->count(),
-            'delivered_orders' => $query->clone()->byStatus('delivered')->count(),
-            'cancelled_orders' => $query->clone()->byStatus('cancelled')->count(),
-            'paid_orders' => $query->clone()->byPaymentStatus('paid')->count(),
-            'pending_payments' => $query->clone()->byPaymentStatus('pending')->count(),
-            'average_order_value' => $query->avg('total_amount') ?? 0,
+            'total_orders' => $totalOrders,
+            'total_revenue' => $totalRevenue,
+            'average_order_value' => $averageOrderValue,
+            'orders_by_status' => $ordersByStatus,
+            'orders_by_payment_status' => $ordersByPaymentStatus,
+            'revenue_by_month' => $revenueByMonth,
+            'top_products' => $topProducts,
+            'recent_orders' => $recentOrders,
         ];
 
         return response()->json($statistics);

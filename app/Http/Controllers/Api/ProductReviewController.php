@@ -330,6 +330,53 @@ class ProductReviewController extends Controller
     }
 
     /**
+     * Report a review
+     */
+    public function report(Request $request, string $productId, string $reviewId): JsonResponse
+    {
+        $review = ProductReview::where('product_id', $productId)->findOrFail($reviewId);
+
+        $validated = $request->validate([
+            'reason' => 'required|string|max:255',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        $report = \App\Models\ProductReviewReport::create([
+            'review_id' => $review->id,
+            'reporter_name' => Auth::user()->name ?? 'Anonymous',
+            'reason' => $validated['reason'],
+            'comment' => $validated['comment'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        return response()->json(['message' => 'Report submitted', 'report_id' => $report->id]);
+    }
+
+    public function getReports(): JsonResponse
+    {
+        $reports = \App\Models\ProductReviewReport::with(['review.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($reports);
+    }
+
+    public function updateReportStatus(Request $request, string $reportId): JsonResponse
+    {
+        $report = \App\Models\ProductReviewReport::findOrFail($reportId);
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:reviewed,dismissed',
+        ]);
+
+        $report->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json(['message' => 'Report status updated', 'report' => $report]);
+    }
+
+    /**
      * Check if reviewer has purchased the product (for verified purchase status)
      */
     private function checkVerifiedPurchase(Product $product, string $reviewerEmail): bool

@@ -101,17 +101,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{reviewId}/vote', [ProductReviewController::class, 'vote']);
         Route::post('/{reviewId}/approve', [ProductReviewController::class, 'approve']);
         Route::post('/{reviewId}/toggle-feature', [ProductReviewController::class, 'toggleFeature']);
+        Route::post('/{reviewId}/report', [ProductReviewController::class, 'report']);
+    });
+
+    // Product Review Reports Routes
+    Route::prefix('product-review-reports')->group(function () {
+        Route::get('/reports', [ProductReviewController::class, 'getReports']);
+        Route::patch('/reports/{reportId}/status', [ProductReviewController::class, 'updateReportStatus']);
     });
 
     // Product Orders Routes
     Route::prefix('product-orders')->group(function () {
         Route::get('/', [ProductOrderController::class, 'index']);
         Route::post('/', [ProductOrderController::class, 'store']);
+        Route::get('/statistics', [ProductOrderController::class, 'getStatistics']);
+        Route::get('/recent', [ProductOrderController::class, 'getRecentOrders']);
         Route::get('/{id}', [ProductOrderController::class, 'show']);
         Route::put('/{id}', [ProductOrderController::class, 'update']);
         Route::delete('/{id}', [ProductOrderController::class, 'destroy']);
-        Route::get('/statistics', [ProductOrderController::class, 'getStatistics']);
-        Route::get('/recent', [ProductOrderController::class, 'getRecentOrders']);
         Route::post('/{id}/process-payment', [ProductOrderController::class, 'processPayment']);
     });
 
