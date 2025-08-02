@@ -312,8 +312,233 @@ class ChallengeController extends Controller
      */
     public function removeParticipant($id, $participantId)
     {
-        $participant = ChallengeParticipant::findOrFail($participantId);
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $participantId)
+            ->firstOrFail();
+        
         $participant->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * Start timer for a participant
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function startTimer(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'participant_id' => 'required|integer|exists:challenge_participants,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $request->participant_id)
+            ->firstOrFail();
+        
+        $participant->startTimer();
+        
+        return response()->json([
+            'participant' => $participant->fresh(),
+            'message' => 'Timer started successfully'
+        ]);
+    }
+
+    /**
+     * Stop timer for a participant
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function stopTimer(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'participant_id' => 'required|integer|exists:challenge_participants,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $request->participant_id)
+            ->firstOrFail();
+        
+        // Debug logging
+        \Log::info('StopTimer API called', [
+            'participant_id' => $participant->id,
+            'timer_is_active' => $participant->timer_is_active,
+            'timer_started_at' => $participant->timer_started_at,
+            'elapsed_time_seconds' => $participant->elapsed_time_seconds,
+        ]);
+        
+        $participant->stopTimer();
+        
+        // Debug logging after stop
+        $freshParticipant = $participant->fresh();
+        \Log::info('StopTimer API completed', [
+            'participant_id' => $freshParticipant->id,
+            'timer_is_active' => $freshParticipant->timer_is_active,
+            'timer_started_at' => $freshParticipant->timer_started_at,
+            'timer_ended_at' => $freshParticipant->timer_ended_at,
+            'elapsed_time_seconds' => $freshParticipant->elapsed_time_seconds,
+        ]);
+        
+        return response()->json([
+            'participant' => $freshParticipant,
+            'message' => 'Timer stopped successfully'
+        ]);
+    }
+
+    /**
+     * Pause timer for a participant
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function pauseTimer(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'participant_id' => 'required|integer|exists:challenge_participants,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $request->participant_id)
+            ->firstOrFail();
+        
+        // Debug logging
+        \Log::info('PauseTimer API called', [
+            'participant_id' => $participant->id,
+            'timer_is_active' => $participant->timer_is_active,
+            'timer_started_at' => $participant->timer_started_at,
+            'elapsed_time_seconds' => $participant->elapsed_time_seconds,
+        ]);
+        
+        $participant->pauseTimer();
+        
+        // Debug logging after pause
+        $freshParticipant = $participant->fresh();
+        \Log::info('PauseTimer API completed', [
+            'participant_id' => $freshParticipant->id,
+            'timer_is_active' => $freshParticipant->timer_is_active,
+            'timer_started_at' => $freshParticipant->timer_started_at,
+            'timer_ended_at' => $freshParticipant->timer_ended_at,
+            'elapsed_time_seconds' => $freshParticipant->elapsed_time_seconds,
+        ]);
+        
+        return response()->json([
+            'participant' => $freshParticipant,
+            'message' => 'Timer paused successfully'
+        ]);
+    }
+
+    /**
+     * Resume timer for a participant
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resumeTimer(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'participant_id' => 'required|integer|exists:challenge_participants,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $request->participant_id)
+            ->firstOrFail();
+        
+        $participant->resumeTimer();
+        
+        return response()->json([
+            'participant' => $participant->fresh(),
+            'message' => 'Timer resumed successfully'
+        ]);
+    }
+
+    /**
+     * Reset timer for a participant
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function resetTimer(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'participant_id' => 'required|integer|exists:challenge_participants,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $request->participant_id)
+            ->firstOrFail();
+        
+        $participant->resetTimer();
+        
+        return response()->json([
+            'participant' => $participant->fresh(),
+            'message' => 'Timer reset successfully'
+        ]);
+    }
+
+    /**
+     * Get timer status for a participant
+     *
+     * @param  int  $id
+     * @param  int  $participantId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTimerStatus($id, $participantId)
+    {
+        $challenge = Challenge::findOrFail($id);
+        $participant = ChallengeParticipant::where('challenge_id', $id)
+            ->where('id', $participantId)
+            ->firstOrFail();
+        
+        // Debug information
+        \Log::info('Timer Status Debug', [
+            'participant_id' => $participant->id,
+            'timer_started_at' => $participant->timer_started_at,
+            'timer_ended_at' => $participant->timer_ended_at,
+            'timer_is_active' => $participant->timer_is_active,
+            'elapsed_time_seconds_db' => $participant->elapsed_time_seconds,
+            'calculated_elapsed' => $participant->getCurrentElapsedTime(),
+        ]);
+        
+        return response()->json([
+            'participant_id' => $participant->id,
+            'is_running' => $participant->isTimerRunning(),
+            'has_started' => $participant->hasStartedTimer(),
+            'elapsed_time_seconds' => $participant->getCurrentElapsedTime(),
+            'formatted_time' => $participant->getFormattedElapsedTime(),
+            'timer_started_at' => $participant->timer_started_at,
+            'timer_ended_at' => $participant->timer_ended_at,
+        ]);
     }
 }

@@ -408,6 +408,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/statistics', [ChallengeController::class, 'getStatistics']);
         Route::post('/{id}/participants', [ChallengeController::class, 'addParticipant']);
         Route::delete('/{id}/participants/{participantId}', [ChallengeController::class, 'removeParticipant']);
+        
+        // Timer routes
+        Route::post('/{id}/timer/start', [ChallengeController::class, 'startTimer']);
+        Route::post('/{id}/timer/stop', [ChallengeController::class, 'stopTimer']);
+        Route::post('/{id}/timer/pause', [ChallengeController::class, 'pauseTimer']);
+        Route::post('/{id}/timer/resume', [ChallengeController::class, 'resumeTimer']);
+        Route::post('/{id}/timer/reset', [ChallengeController::class, 'resetTimer']);
+        Route::get('/{id}/timer/{participantId}/status', [ChallengeController::class, 'getTimerStatus']);
     });
 
     // Pages Routes
