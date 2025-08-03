@@ -25,23 +25,6 @@ class Product extends Model
         'tags',
         'metadata',
         'client_identifier',
-        // Supplier related fields
-        'supplier_name',
-        'supplier_email',
-        'supplier_phone',
-        'supplier_address',
-        'supplier_website',
-        'supplier_contact_person',
-        // Purchase related fields
-        'purchase_price',
-        'purchase_currency',
-        'purchase_date',
-        'purchase_order_number',
-        'purchase_notes',
-        'reorder_point',
-        'reorder_quantity',
-        'lead_time_days',
-        'payment_terms',
     ];
 
     protected $casts = [
@@ -50,12 +33,6 @@ class Product extends Model
         'stock_quantity' => 'integer',
         'tags' => 'array',
         'metadata' => 'array',
-        // Purchase related casts
-        'purchase_price' => 'decimal:2',
-        'purchase_date' => 'date',
-        'reorder_point' => 'integer',
-        'reorder_quantity' => 'integer',
-        'lead_time_days' => 'integer',
     ];
 
     /**
@@ -96,6 +73,22 @@ class Product extends Model
     public function getFirstImageAttribute()
     {
         return $this->primaryImage ?? $this->images->first();
+    }
+
+    /**
+     * Get all suppliers for this product
+     */
+    public function suppliers()
+    {
+        return $this->hasMany(ProductSupplier::class);
+    }
+
+    /**
+     * Get all purchase records for this product
+     */
+    public function purchaseRecords()
+    {
+        return $this->hasMany(ProductPurchaseRecord::class);
     }
 
     /**
