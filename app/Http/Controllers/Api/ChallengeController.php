@@ -18,7 +18,16 @@ class ChallengeController extends Controller
      */
     public function index()
     {
-        $challenges = Challenge::all();
+        $challenges = Challenge::withCount('participants')->get();
+        
+        // Transform the data to include participants array for frontend compatibility
+        $challenges = $challenges->map(function ($challenge) {
+            $challengeArray = $challenge->toArray();
+            // Add participants array with participant IDs for frontend compatibility
+            $challengeArray['participants'] = $challenge->participants()->pluck('id')->toArray();
+            return $challengeArray;
+        });
+        
         return response()->json($challenges);
     }
 
@@ -52,7 +61,13 @@ class ChallengeController extends Controller
             }
 
             $challenge = Challenge::create($request->all());
-            return response()->json($challenge, 201);
+            
+            // Reload with participant count and transform for frontend compatibility
+            $challenge = Challenge::withCount('participants')->findOrFail($challenge->id);
+            $challengeArray = $challenge->toArray();
+            $challengeArray['participants'] = $challenge->participants()->pluck('id')->toArray();
+            
+            return response()->json($challengeArray, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -66,8 +81,13 @@ class ChallengeController extends Controller
      */
     public function show($id)
     {
-        $challenge = Challenge::findOrFail($id);
-        return response()->json($challenge);
+        $challenge = Challenge::withCount('participants')->findOrFail($id);
+        
+        // Transform the data to include participants array for frontend compatibility
+        $challengeArray = $challenge->toArray();
+        $challengeArray['participants'] = $challenge->participants()->pluck('id')->toArray();
+        
+        return response()->json($challengeArray);
     }
 
     /**
@@ -100,7 +120,13 @@ class ChallengeController extends Controller
 
         $challenge = Challenge::findOrFail($id);
         $challenge->update($request->all());
-        return response()->json($challenge);
+        
+        // Reload with participant count and transform for frontend compatibility
+        $challenge = Challenge::withCount('participants')->findOrFail($id);
+        $challengeArray = $challenge->toArray();
+        $challengeArray['participants'] = $challenge->participants()->pluck('id')->toArray();
+        
+        return response()->json($challengeArray);
     }
 
     /**
@@ -218,7 +244,54 @@ class ChallengeController extends Controller
         
         $leaderboard = ChallengeParticipant::where('challenge_id', $id)
             ->orderBy('progress', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($participant) {
+                // Calculate time difference if timer has ended
+                $timeDifference = null;
+                $timeDifferenceSeconds = null;
+                
+                if ($participant->timer_started_at && $participant->timer_ended_at) {
+                    // Ensure we're working with Carbon instances and calculate the difference correctly
+                    $startTime = $participant->timer_started_at;
+                    $endTime = $participant->timer_ended_at;
+                    
+                    // Simple and reliable calculation using timestamp difference
+                    $timeDifferenceSeconds = $endTime->timestamp - $startTime->timestamp;
+                    
+                    // Ensure positive value
+                    $timeDifferenceSeconds = max(0, $timeDifferenceSeconds);
+                    
+                    $hours = floor($timeDifferenceSeconds / 3600);
+                    $minutes = floor(($timeDifferenceSeconds % 3600) / 60);
+                    $seconds = $timeDifferenceSeconds % 60;
+                    $timeDifference = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+                } elseif ($participant->elapsed_time_seconds > 0) {
+                    // Use elapsed time if timer has been paused/resumed
+                    $timeDifferenceSeconds = $participant->elapsed_time_seconds;
+                    $hours = floor($timeDifferenceSeconds / 3600);
+                    $minutes = floor(($timeDifferenceSeconds % 3600) / 60);
+                    $seconds = $timeDifferenceSeconds % 60;
+                    $timeDifference = sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+                }
+                
+                return [
+                    'id' => $participant->id,
+                    'first_name' => $participant->first_name,
+                    'last_name' => $participant->last_name,
+                    'email' => $participant->email,
+                    'progress_value' => (float) $participant->progress,
+                    'progress_percentage' => round((float) $participant->progress, 2),
+                    'rank' => 0, // Will be calculated on frontend
+                    'joined_at' => $participant->created_at,
+                    'last_updated' => $participant->updated_at,
+                    'timer_started_at' => $participant->timer_started_at,
+                    'timer_ended_at' => $participant->timer_ended_at,
+                    'timer_is_active' => $participant->timer_is_active,
+                    'elapsed_time_seconds' => $participant->elapsed_time_seconds,
+                    'time_difference' => $timeDifference,
+                    'time_difference_seconds' => $timeDifferenceSeconds,
+                ];
+            });
             
         return response()->json($leaderboard);
     }
