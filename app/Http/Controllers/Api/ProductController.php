@@ -64,6 +64,11 @@ class ProductController extends Controller
             }
         }
 
+        // Filter for contact's own products
+        if ($request->has('contact_products') && $request->boolean('contact_products') && $request->has('contact_id')) {
+            $query->byContact($request->contact_id);
+        }
+
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
@@ -115,6 +120,7 @@ class ProductController extends Controller
             'purchase_records.*.lead_time_days' => 'nullable|integer|min:0',
             'purchase_records.*.payment_terms' => 'nullable|string|max:255',
             'client_identifier' => 'required|string',
+            'contact_id' => 'nullable|integer|exists:contacts,id',
         ]);
 
         if ($validator->fails()) {

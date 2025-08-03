@@ -25,6 +25,7 @@ class Product extends Model
         'tags',
         'metadata',
         'client_identifier',
+        'contact_id',
     ];
 
     protected $casts = [
@@ -97,6 +98,14 @@ class Product extends Model
     public function reviews()
     {
         return $this->hasMany(ProductReview::class);
+    }
+
+    /**
+     * Get the contact that owns this product
+     */
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
     }
 
     /**
@@ -190,6 +199,11 @@ class Product extends Model
     public function scopeByCategory($query, $category)
     {
         return $query->where('category', $category);
+    }
+
+    public function scopeByContact($query, $contactId)
+    {
+        return $query->where('contact_id', $contactId);
     }
 
     /**
