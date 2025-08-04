@@ -474,6 +474,82 @@ class ProductOrderController extends Controller
     }
 
     /**
+     * Get orders for a specific product
+     */
+    public function getOrdersForProduct(Request $request, string $productId): JsonResponse
+    {
+        $clientIdentifier = $request->get('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json(['error' => 'Client identifier is required'], 400);
+        }
+
+        $query = ProductOrder::forClient($clientIdentifier);
+
+        // Filter orders that contain the specific product
+        $query->whereJsonContains('order_items', ['product_id' => (int) $productId]);
+
+        // Apply filters
+        if ($request->has('status')) {
+            $query->byStatus($request->status);
+        }
+
+        if ($request->has('payment_status')) {
+            $query->byPaymentStatus($request->payment_status);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply date filters
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        $orders = $query->paginate($perPage);
+
+        // Enhance order_items to highlight the specific product
+        $orders->getCollection()->transform(function ($order) use ($productId) {
+            $enhancedOrderItems = collect($order->order_items)->map(function ($item) use ($productId) {
+                $product = Product::find($item['product_id']);
+                $isTargetProduct = $item['product_id'] == $productId;
+                
+                return [
+                    'product_id' => $item['product_id'],
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'attributes' => $item['attributes'] ?? null,
+                    'name' => $product ? $product->name : 'Product not found',
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'is_target_product' => $isTargetProduct,
+                ];
+            })->toArray();
+
+            $order->order_items = $enhancedOrderItems;
+            return $order;
+        });
+
+        return response()->json($orders);
+    }
+
+    /**
      * Process payment for an order
      */
     public function processPayment(Request $request, string $id): JsonResponse
