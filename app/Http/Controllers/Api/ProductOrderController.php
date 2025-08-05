@@ -78,6 +78,7 @@ class ProductOrderController extends Controller
                     'name' => $product ? $product->name : 'Product not found',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'status' => $item['status'] ?? 'pending',
                 ];
             })->toArray();
 
@@ -118,6 +119,7 @@ class ProductOrderController extends Controller
             'order_items.*.quantity' => 'required|integer|min:1',
             'order_items.*.price' => 'required|numeric|min:0',
             'order_items.*.attributes' => 'nullable|array',
+            'order_items.*.status' => 'nullable|string|in:pending,confirmed,processing,shipped,delivered,cancelled,out_of_stock',
             'subtotal' => 'required|numeric|min:0',
             'tax_amount' => 'nullable|numeric|min:0',
             'shipping_fee' => 'nullable|numeric|min:0',
@@ -147,7 +149,8 @@ class ProductOrderController extends Controller
                 'has_contact_id_in_validated' => isset($validatedData['contact_id']),
             ]);
 
-            // Validate stock availability
+            // Validate stock availability and set item statuses
+            $processedOrderItems = [];
             foreach ($request->order_items as $item) {
                 $product = Product::find($item['product_id']);
                 
@@ -155,15 +158,31 @@ class ProductOrderController extends Controller
                     return response()->json(['error' => "Product with ID {$item['product_id']} not found"], 404);
                 }
 
-                if ($product->type === 'physical' && $product->stock_quantity < $item['quantity']) {
-                    return response()->json([
-                        'error' => "Insufficient stock for product: {$product->name}. Available: {$product->stock_quantity}, Requested: {$item['quantity']}"
-                    ], 400);
+                // Set item status based on stock availability
+                $itemStatus = 'pending'; // Default status
+                
+                if ($product->type === 'physical') {
+                    if ($product->stock_quantity < $item['quantity']) {
+                        return response()->json([
+                            'error' => "Insufficient stock for product: {$product->name}. Available: {$product->stock_quantity}, Requested: {$item['quantity']}"
+                        ], 400);
+                    } else {
+                        $itemStatus = 'confirmed'; // Stock is available
+                    }
+                } else {
+                    // Digital, service, or subscription products
+                    $itemStatus = 'confirmed';
                 }
+
+                // Add status to the item
+                $processedItem = $item;
+                $processedItem['status'] = $itemStatus;
+                $processedOrderItems[] = $processedItem;
             }
 
             // Create order
             $orderData = $validatedData;
+            $orderData['order_items'] = $processedOrderItems; // Use processed items with statuses
             $orderData['order_number'] = ProductOrder::generateOrderNumber();
             $orderData['order_status'] = 'pending';
             $orderData['payment_status'] = 'pending';
@@ -189,7 +208,7 @@ class ProductOrderController extends Controller
             ]);
 
             // Update product stock for physical products
-            foreach ($request->order_items as $item) {
+            foreach ($processedOrderItems as $item) {
                 $product = Product::find($item['product_id']);
                 if ($product->type === 'physical') {
                     $product->decrement('stock_quantity', $item['quantity']);
@@ -234,6 +253,7 @@ class ProductOrderController extends Controller
                 'name' => $product ? $product->name : 'Product not found',
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
+                'status' => $item['status'] ?? 'pending',
             ];
         })->toArray();
 
@@ -262,13 +282,29 @@ class ProductOrderController extends Controller
             'shipping_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
             'notes' => 'nullable|string',
+            'order_items' => 'nullable|array',
+            'order_items.*.product_id' => 'required|integer',
+            'order_items.*.name' => 'nullable|string',
+            'order_items.*.variant_id' => 'nullable|integer',
+            'order_items.*.quantity' => 'required|integer|min:1',
+            'order_items.*.price' => 'required|numeric|min:0',
+            'order_items.*.attributes' => 'nullable|array',
+            'order_items.*.status' => 'nullable|string|in:pending,confirmed,processing,shipped,delivered,cancelled,out_of_stock',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $order->update($validator->validated());
+        $validatedData = $validator->validated();
+        
+        // Update order items if provided
+        if (isset($validatedData['order_items'])) {
+            $order->order_items = $validatedData['order_items'];
+            unset($validatedData['order_items']); // Remove from main update data
+        }
+        
+        $order->update($validatedData);
 
         // Handle status-specific actions
         if ($request->has('order_status')) {
@@ -538,6 +574,7 @@ class ProductOrderController extends Controller
                     'name' => $product ? $product->name : 'Product not found',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'status' => $item['status'] ?? 'pending',
                     'is_target_product' => $isTargetProduct,
                 ];
             })->toArray();
