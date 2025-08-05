@@ -159,18 +159,17 @@ class ProductOrderController extends Controller
                 }
 
                 // Set item status based on stock availability
-                $itemStatus = 'pending'; // Default status
+                $itemStatus = 'pending'; // Default status for all items initially
                 
                 if ($product->type === 'physical') {
                     if ($product->stock_quantity < $item['quantity']) {
                         return response()->json([
                             'error' => "Insufficient stock for product: {$product->name}. Available: {$product->stock_quantity}, Requested: {$item['quantity']}"
                         ], 400);
-                    } else {
-                        $itemStatus = 'confirmed'; // Stock is available
                     }
+                    // Keep as 'pending' - stock will be reserved when order is confirmed
                 } else {
-                    // Digital, service, or subscription products
+                    // Digital, service, or subscription products can be confirmed immediately
                     $itemStatus = 'confirmed';
                 }
 
@@ -196,6 +195,8 @@ class ProductOrderController extends Controller
 
             $order = ProductOrder::create($orderData);
 
+            // No stock adjustment needed for initial pending state
+
             // Debug logging to see what was saved
             Log::info('Product order created', [
                 'order_id' => $order->id,
@@ -207,13 +208,8 @@ class ProductOrderController extends Controller
                 'validated_order_items' => $orderData['order_items'],
             ]);
 
-            // Update product stock for physical products
-            foreach ($processedOrderItems as $item) {
-                $product = Product::find($item['product_id']);
-                if ($product->type === 'physical') {
-                    $product->decrement('stock_quantity', $item['quantity']);
-                }
-            }
+            // Stock will be adjusted automatically based on order status changes
+            // No manual stock adjustment needed here
 
             // If payment method is provided and not COD, mark as paid
             if ($request->payment_method && $request->payment_method !== 'cod') {
@@ -306,7 +302,7 @@ class ProductOrderController extends Controller
         
         $order->update($validatedData);
 
-        // Handle status-specific actions
+        // Handle status-specific actions with automatic stock adjustment
         if ($request->has('order_status')) {
             switch ($request->order_status) {
                 case 'shipped':
@@ -317,13 +313,15 @@ class ProductOrderController extends Controller
                     break;
                 case 'cancelled':
                     $order->cancel();
-                    // Restore stock for cancelled orders
-                    foreach ($order->order_items as $item) {
-                        $product = Product::find($item['product_id']);
-                        if ($product && $product->type === 'physical') {
-                            $product->increment('stock_quantity', $item['quantity']);
-                        }
-                    }
+                    break;
+                case 'confirmed':
+                    $order->updateOrderStatus('confirmed');
+                    break;
+                case 'processing':
+                    $order->updateOrderStatus('processing');
+                    break;
+                case 'refunded':
+                    $order->updateOrderStatus('refunded');
                     break;
             }
         }
@@ -351,14 +349,7 @@ class ProductOrderController extends Controller
             return response()->json(['error' => 'Cannot delete order with current status'], 400);
         }
 
-        // Restore stock for physical products
-        foreach ($order->order_items as $item) {
-            $product = Product::find($item['product_id']);
-            if ($product && $product->type === 'physical') {
-                $product->increment('stock_quantity', $item['quantity']);
-            }
-        }
-
+        // Stock restoration is handled automatically by the model
         $order->delete();
 
         return response()->json(['message' => 'Order deleted successfully']);
@@ -616,6 +607,113 @@ class ProductOrderController extends Controller
         return response()->json([
             'message' => 'Payment processed successfully',
             'order' => $order,
+        ]);
+    }
+
+    /**
+     * Update status for a specific order item
+     */
+    public function updateItemStatus(Request $request, string $orderId, string $productId): JsonResponse
+    {
+        $order = ProductOrder::find($orderId);
+        
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', Rule::in(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'out_of_stock'])],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Check if the product exists in the order
+        $itemExists = collect($order->order_items)->contains('product_id', (int) $productId);
+        if (!$itemExists) {
+            return response()->json(['error' => 'Product not found in order'], 404);
+        }
+
+        $order->updateItemStatus((int) $productId, $request->status);
+
+        return response()->json([
+            'message' => 'Item status updated successfully',
+            'order' => $order->fresh(),
+        ]);
+    }
+
+    /**
+     * Get stock availability for an order
+     */
+    public function getStockAvailability(string $id): JsonResponse
+    {
+        $order = ProductOrder::find($id);
+        
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        $availability = $order->getStockAvailability();
+        $hasAvailableStock = $order->hasAvailableStock();
+        $stockSummary = $order->getStockStatusSummary();
+
+        return response()->json([
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'has_available_stock' => $hasAvailableStock,
+            'stock_availability' => $availability,
+            'stock_summary' => $stockSummary,
+        ]);
+    }
+
+    /**
+     * Confirm order and reserve stock
+     */
+    public function confirmOrder(string $id): JsonResponse
+    {
+        $order = ProductOrder::find($id);
+        
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        // Check if stock is available before confirming
+        if (!$order->hasAvailableStock()) {
+            return response()->json([
+                'error' => 'Insufficient stock to confirm order',
+                'stock_availability' => $order->getStockAvailability(),
+            ], 400);
+        }
+
+        $order->updateOrderStatus('confirmed');
+
+        return response()->json([
+            'message' => 'Order confirmed and stock reserved',
+            'order' => $order->fresh(),
+        ]);
+    }
+
+    /**
+     * Cancel order and restore stock
+     */
+    public function cancelOrder(string $id): JsonResponse
+    {
+        $order = ProductOrder::find($id);
+        
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        if (!$order->canBeCancelled()) {
+            return response()->json(['error' => 'Order cannot be cancelled in its current status'], 400);
+        }
+
+        $order->cancel();
+
+        return response()->json([
+            'message' => 'Order cancelled and stock restored',
+            'order' => $order->fresh(),
         ]);
     }
 } 

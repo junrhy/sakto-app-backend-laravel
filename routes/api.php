@@ -121,6 +121,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [ProductOrderController::class, 'update']);
         Route::delete('/{id}', [ProductOrderController::class, 'destroy']);
         Route::post('/{id}/process-payment', [ProductOrderController::class, 'processPayment']);
+        
+        // Stock management routes
+        Route::get('/{id}/stock-availability', [ProductOrderController::class, 'getStockAvailability']);
+        Route::post('/{id}/confirm', [ProductOrderController::class, 'confirmOrder']);
+        Route::post('/{id}/cancel', [ProductOrderController::class, 'cancelOrder']);
+        Route::patch('/{orderId}/items/{productId}/status', [ProductOrderController::class, 'updateItemStatus']);
     });
 
     // Inventory Routes

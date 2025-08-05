@@ -116,8 +116,8 @@ class ProductOrder extends Model
      */
     public function markAsShipped(): void
     {
+        $this->updateOrderStatus('shipped');
         $this->update([
-            'order_status' => 'shipped',
             'shipped_at' => now(),
         ]);
     }
@@ -127,8 +127,8 @@ class ProductOrder extends Model
      */
     public function markAsDelivered(): void
     {
+        $this->updateOrderStatus('delivered');
         $this->update([
-            'order_status' => 'delivered',
             'delivered_at' => now(),
         ]);
     }
@@ -138,9 +138,7 @@ class ProductOrder extends Model
      */
     public function cancel(): void
     {
-        $this->update([
-            'order_status' => 'cancelled',
-        ]);
+        $this->updateOrderStatus('cancelled');
     }
 
     /**
@@ -247,5 +245,312 @@ class ProductOrder extends Model
                 'subtotal' => $item['quantity'] * $item['price'],
             ];
         });
+    }
+
+    /**
+     * Adjust stock quantities based on order status
+     */
+    public function adjustStockForOrderStatus(string $newStatus, string $previousStatus = null): void
+    {
+        // Only process physical products
+        $physicalItems = collect($this->order_items)->filter(function ($item) {
+            $product = Product::find($item['product_id']);
+            return $product && $product->type === 'physical';
+        });
+
+        if ($physicalItems->isEmpty()) {
+            return;
+        }
+
+        // Handle stock adjustments based on status transitions
+        switch ($newStatus) {
+            case 'confirmed':
+                // Reserve stock when order is confirmed
+                $this->reserveStock($physicalItems);
+                break;
+                
+            case 'processing':
+                // Stock is already reserved, no additional adjustment needed
+                break;
+                
+            case 'shipped':
+                // Stock remains reserved during shipping
+                break;
+                
+            case 'delivered':
+                // Stock is already consumed during reservation, no additional action needed
+                break;
+                
+            case 'cancelled':
+                // Restore stock when cancelled
+                $this->restoreStock($physicalItems);
+                break;
+                
+            case 'refunded':
+                // Restore stock when refunded
+                $this->restoreStock($physicalItems);
+                break;
+                
+            case 'pending':
+                // If moving back to pending from a confirmed state, restore stock
+                if (in_array($previousStatus, ['confirmed', 'processing', 'shipped'])) {
+                    $this->restoreStock($physicalItems);
+                }
+                // If initial pending state, no stock adjustment needed
+                break;
+        }
+    }
+
+    /**
+     * Adjust stock quantities based on order item status
+     */
+    public function adjustStockForItemStatus(int $productId, string $newStatus, string $previousStatus = null): void
+    {
+        $product = Product::find($productId);
+        if (!$product || $product->type !== 'physical') {
+            return;
+        }
+
+        $item = collect($this->order_items)->firstWhere('product_id', $productId);
+        if (!$item) {
+            return;
+        }
+
+        $quantity = $item['quantity'];
+
+        // Handle stock adjustments based on item status transitions
+        switch ($newStatus) {
+            case 'confirmed':
+                // Reserve stock when item is confirmed
+                if ($previousStatus !== 'confirmed') {
+                    $this->reserveStockForItem($product, $quantity);
+                }
+                break;
+                
+            case 'processing':
+                // Stock is already reserved, no additional adjustment needed
+                break;
+                
+            case 'shipped':
+                // Stock remains reserved during shipping
+                break;
+                
+            case 'delivered':
+                // Stock is already consumed during reservation, no additional action needed
+                break;
+                
+            case 'cancelled':
+            case 'out_of_stock':
+                // Restore stock when item is cancelled or out of stock
+                if (!in_array($previousStatus, ['cancelled', 'out_of_stock'])) {
+                    $this->restoreStockForItem($product, $quantity);
+                }
+                break;
+                
+            case 'pending':
+                // If moving back to pending from a confirmed state, restore stock
+                if (in_array($previousStatus, ['confirmed', 'processing', 'shipped'])) {
+                    $this->restoreStockForItem($product, $quantity);
+                }
+                break;
+        }
+    }
+
+    /**
+     * Reserve stock for order items
+     */
+    private function reserveStock($items): void
+    {
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product && $product->stock_quantity >= $item['quantity']) {
+                $product->decrement('stock_quantity', $item['quantity']);
+            }
+        }
+    }
+
+    /**
+     * Consume stock for order items (final consumption)
+     */
+    private function consumeStock($items): void
+    {
+        // For delivered orders, stock is already consumed during reservation
+        // This method is for cases where we need to ensure stock is consumed
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product) {
+                // Stock was already decremented during reservation
+                // No additional action needed for delivery
+            }
+        }
+    }
+
+    /**
+     * Restore stock for order items
+     */
+    private function restoreStock($items): void
+    {
+        foreach ($items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product) {
+                $product->increment('stock_quantity', $item['quantity']);
+            }
+        }
+    }
+
+    /**
+     * Reserve stock for a specific item
+     */
+    private function reserveStockForItem(Product $product, int $quantity): void
+    {
+        if ($product->stock_quantity >= $quantity) {
+            $product->decrement('stock_quantity', $quantity);
+        }
+    }
+
+    /**
+     * Consume stock for a specific item
+     */
+    private function consumeStockForItem(Product $product, int $quantity): void
+    {
+        // Stock was already decremented during reservation
+        // No additional action needed for delivery
+    }
+
+    /**
+     * Restore stock for a specific item
+     */
+    private function restoreStockForItem(Product $product, int $quantity): void
+    {
+        $product->increment('stock_quantity', $quantity);
+    }
+
+    /**
+     * Get the previous order status before update
+     */
+    public function getPreviousStatus(): ?string
+    {
+        return $this->getOriginal('order_status');
+    }
+
+    /**
+     * Get the previous item status for a specific product
+     */
+    public function getPreviousItemStatus(int $productId): ?string
+    {
+        $originalItems = $this->getOriginal('order_items') ?? [];
+        $item = collect($originalItems)->firstWhere('product_id', $productId);
+        return $item['status'] ?? null;
+    }
+
+    /**
+     * Update order status with stock adjustment
+     */
+    public function updateOrderStatus(string $newStatus): void
+    {
+        $previousStatus = $this->getPreviousStatus();
+        
+        $this->update(['order_status' => $newStatus]);
+        
+        // Adjust stock based on status change
+        $this->adjustStockForOrderStatus($newStatus, $previousStatus);
+    }
+
+    /**
+     * Update item status with stock adjustment
+     */
+    public function updateItemStatus(int $productId, string $newStatus): void
+    {
+        $previousStatus = $this->getPreviousItemStatus($productId);
+        
+        // Update the item status in order_items
+        $updatedItems = collect($this->order_items)->map(function ($item) use ($productId, $newStatus) {
+            if ($item['product_id'] == $productId) {
+                $item['status'] = $newStatus;
+            }
+            return $item;
+        })->toArray();
+        
+        $this->update(['order_items' => $updatedItems]);
+        
+        // Adjust stock based on item status change
+        $this->adjustStockForItemStatus($productId, $newStatus, $previousStatus);
+    }
+
+    /**
+     * Check if stock is available for all items
+     */
+    public function hasAvailableStock(): bool
+    {
+        foreach ($this->order_items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product && $product->type === 'physical') {
+                if ($product->stock_quantity < $item['quantity']) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Get stock availability for each item
+     */
+    public function getStockAvailability(): array
+    {
+        $availability = [];
+        
+        foreach ($this->order_items as $item) {
+            $product = Product::find($item['product_id']);
+            if ($product && $product->type === 'physical') {
+                $availability[] = [
+                    'product_id' => $item['product_id'],
+                    'product_name' => $product->name,
+                    'requested_quantity' => $item['quantity'],
+                    'available_quantity' => $product->stock_quantity,
+                    'is_available' => $product->stock_quantity >= $item['quantity'],
+                    'item_status' => $item['status'] ?? 'pending',
+                ];
+            } else {
+                $availability[] = [
+                    'product_id' => $item['product_id'],
+                    'product_name' => $product ? $product->name : 'Unknown Product',
+                    'requested_quantity' => $item['quantity'],
+                    'available_quantity' => null,
+                    'is_available' => true, // Non-physical products are always available
+                    'item_status' => $item['status'] ?? 'pending',
+                ];
+            }
+        }
+        
+        return $availability;
+    }
+
+    /**
+     * Get current stock status summary for the order
+     */
+    public function getStockStatusSummary(): array
+    {
+        $physicalItems = collect($this->order_items)->filter(function ($item) {
+            $product = Product::find($item['product_id']);
+            return $product && $product->type === 'physical';
+        });
+
+        $confirmedItems = $physicalItems->filter(function ($item) {
+            return ($item['status'] ?? 'pending') === 'confirmed';
+        });
+
+        $pendingItems = $physicalItems->filter(function ($item) {
+            return ($item['status'] ?? 'pending') === 'pending';
+        });
+
+        return [
+            'order_status' => $this->order_status,
+            'total_physical_items' => $physicalItems->count(),
+            'confirmed_items' => $confirmedItems->count(),
+            'pending_items' => $pendingItems->count(),
+            'stock_reserved' => $confirmedItems->count() > 0,
+            'can_confirm' => $this->hasAvailableStock() && $this->order_status === 'pending',
+        ];
     }
 } 
