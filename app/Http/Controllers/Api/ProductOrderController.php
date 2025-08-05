@@ -256,6 +256,10 @@ class ProductOrderController extends Controller
         $orderData = $order->toArray();
         $orderData['order_items'] = $enhancedOrderItems;
 
+        // Add stock availability data
+        $orderData['stock_availability'] = $order->getStockAvailability();
+        $orderData['stock_summary'] = $order->getStockStatusSummary();
+
         return response()->json($orderData);
     }
 
