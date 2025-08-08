@@ -78,6 +78,7 @@ class ProductOrderController extends Controller
                     'name' => $product ? $product->name : 'Product not found',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'shipping_fee' => $item['shipping_fee'] ?? null,
                     'status' => $item['status'] ?? 'pending',
                 ];
             })->toArray();
@@ -251,6 +252,7 @@ class ProductOrderController extends Controller
                 'name' => $product ? $product->name : 'Product not found',
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
+                'shipping_fee' => $item['shipping_fee'] ?? null,
                 'status' => $item['status'] ?? 'pending',
             ];
         })->toArray();
@@ -571,6 +573,7 @@ class ProductOrderController extends Controller
                     'name' => $product ? $product->name : 'Product not found',
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
+                    'shipping_fee' => $item['shipping_fee'] ?? null,
                     'status' => $item['status'] ?? 'pending',
                     'is_target_product' => $isTargetProduct,
                 ];
