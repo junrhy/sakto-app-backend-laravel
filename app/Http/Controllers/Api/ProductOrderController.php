@@ -407,30 +407,40 @@ class ProductOrderController extends Controller
             'partially_refunded' => $query->clone()->byPaymentStatus('partially_refunded')->count(),
         ];
 
-        // Revenue by month (last 12 months)
+        // Revenue by month (last 60 months)
         $revenueByMonth = [];
-        for ($i = 11; $i >= 0; $i--) {
+        for ($i = 0; $i <= 59; $i++) {
             $month = now()->subMonths($i);
-            $monthRevenue = ProductOrder::forClient($clientIdentifier)
-                ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->sum('total_amount');
             $monthOrders = ProductOrder::forClient($clientIdentifier)
                 ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->count();
+                ->whereMonth('created_at', $month->month);
+            
+            $monthRevenue = $monthOrders->sum('total_amount');
+            $monthSubtotal = $monthOrders->sum('subtotal');
+            $monthServiceFee = $monthOrders->sum('service_fee');
+            $monthTaxAmount = $monthOrders->sum('tax_amount');
+            $monthShippingFee = $monthOrders->sum('shipping_fee');
+            $monthDiscountAmount = $monthOrders->sum('discount_amount');
+            $monthOrderCount = $monthOrders->count();
             
             $revenueByMonth[] = [
                 'month' => $month->format('M Y'),
                 'revenue' => $monthRevenue,
-                'orders' => $monthOrders,
+                'subtotal' => $monthSubtotal,
+                'service_fee' => $monthServiceFee,
+                'tax_amount' => $monthTaxAmount,
+                'shipping_fee' => $monthShippingFee,
+                'discount_amount' => $monthDiscountAmount,
+                'orders' => $monthOrderCount,
             ];
         }
 
-        // Top products (by revenue)
-        $topProducts = [];
-        $orderItems = ProductOrder::forClient($clientIdentifier)
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
+        // Top products (by revenue) - Use last 12 months for better data
+        $topProductsDateFrom = $request->get('date_from', now()->subMonths(12)->startOfMonth());
+        $topProductsDateTo = $request->get('date_to', now()->endOfMonth());
+        
+        $topProducts = ProductOrder::forClient($clientIdentifier)
+            ->whereBetween('created_at', [$topProductsDateFrom, $topProductsDateTo])
             ->get()
             ->flatMap(function ($order) {
                 return collect($order->order_items);
