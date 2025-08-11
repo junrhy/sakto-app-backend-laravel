@@ -41,6 +41,10 @@ use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\MortuaryController;
 use App\Http\Controllers\Api\BillPaymentController;
 use App\Http\Controllers\Api\BillerController;
+use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\LessonController;
+use App\Http\Controllers\Api\CourseEnrollmentController;
+use App\Http\Controllers\Api\LessonProgressController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -534,6 +538,59 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [BillerController::class, 'destroy']);
         Route::post('/bulk-update-status', [BillerController::class, 'bulkUpdateStatus']);
         Route::post('/bulk-delete', [BillerController::class, 'bulkDelete']);
+    });
+
+    // Course Routes
+    Route::prefix('courses')->group(function () {
+        Route::get('/', [CourseController::class, 'index']);
+        Route::post('/', [CourseController::class, 'store']);
+        Route::get('/categories', [CourseController::class, 'categories']);
+        Route::get('/statistics', [CourseController::class, 'statistics']);
+        Route::post('/bulk-update-status', [CourseController::class, 'bulkUpdateStatus']);
+        Route::post('/bulk-delete', [CourseController::class, 'bulkDelete']);
+        Route::get('/{id}', [CourseController::class, 'show']);
+        Route::put('/{id}', [CourseController::class, 'update']);
+        Route::delete('/{id}', [CourseController::class, 'destroy']);
+        
+        // Lesson routes
+        Route::prefix('{courseId}/lessons')->group(function () {
+            Route::get('/', [LessonController::class, 'index']);
+            Route::post('/', [LessonController::class, 'store']);
+            Route::post('/reorder', [LessonController::class, 'reorder']);
+            Route::post('/bulk-delete', [LessonController::class, 'bulkDestroy']);
+            Route::get('/{lessonId}', [LessonController::class, 'show']);
+            Route::put('/{lessonId}', [LessonController::class, 'update']);
+            Route::delete('/{lessonId}', [LessonController::class, 'destroy']);
+        });
+    });
+
+    // Course Enrollment Routes
+    Route::prefix('course-enrollments')->group(function () {
+        Route::get('/', [CourseEnrollmentController::class, 'index']);
+        Route::post('/', [CourseEnrollmentController::class, 'store']);
+        Route::get('/statistics', [CourseEnrollmentController::class, 'getStatistics']);
+        Route::get('/{id}', [CourseEnrollmentController::class, 'show']);
+        Route::put('/{id}', [CourseEnrollmentController::class, 'update']);
+        Route::delete('/{id}', [CourseEnrollmentController::class, 'destroy']);
+        Route::post('/{id}/process-payment', [CourseEnrollmentController::class, 'processPayment']);
+        Route::post('/{id}/generate-certificate', [CourseEnrollmentController::class, 'generateCertificate']);
+        
+        // Lesson progress routes
+        Route::prefix('{enrollmentId}/progress')->group(function () {
+            Route::get('/', [LessonProgressController::class, 'index']);
+            Route::get('/overview', [LessonProgressController::class, 'getEnrollmentProgress']);
+            Route::get('/{lessonId}', [LessonProgressController::class, 'show']);
+            Route::put('/{lessonId}', [LessonProgressController::class, 'update']);
+            Route::post('/{lessonId}/start', [LessonProgressController::class, 'markAsStarted']);
+            Route::post('/{lessonId}/complete', [LessonProgressController::class, 'markAsCompleted']);
+            Route::post('/{lessonId}/video-progress', [LessonProgressController::class, 'updateVideoProgress']);
+            Route::post('/{lessonId}/submit-quiz', [LessonProgressController::class, 'submitQuiz']);
+        });
+    });
+
+    // Course Progress Routes
+    Route::prefix('course-progress')->group(function () {
+        Route::get('/{courseId}/{contactId}', [CourseController::class, 'getProgress']);
     });
 
     // Future authenticated routes will go here...
