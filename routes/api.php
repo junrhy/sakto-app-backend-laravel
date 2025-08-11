@@ -39,6 +39,8 @@ use App\Http\Controllers\Api\ProductOrderController;
 use App\Http\Controllers\Api\ProductVariantController;
 use App\Http\Controllers\Api\ProductReviewController;
 use App\Http\Controllers\Api\MortuaryController;
+use App\Http\Controllers\Api\BillPaymentController;
+use App\Http\Controllers\Api\BillerController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
@@ -506,6 +508,32 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/settings', [ContentCreatorController::class, 'settings']);
         Route::get('/list', [ContentCreatorController::class, 'getContent']);
         Route::get('/public/{slug}', [ContentCreatorController::class, 'publicShow']);
+    });
+
+    // Bill Payment Routes
+    Route::prefix('bill-payments')->group(function () {
+        Route::get('/', [BillPaymentController::class, 'index']);
+        Route::post('/', [BillPaymentController::class, 'store']);
+        Route::get('/statistics', [BillPaymentController::class, 'statistics']);
+        Route::get('/overdue', [BillPaymentController::class, 'overdue']);
+        Route::get('/upcoming', [BillPaymentController::class, 'upcoming']);
+        Route::post('/bulk-update-status', [BillPaymentController::class, 'bulkUpdateStatus']);
+        Route::post('/bulk-delete', [BillPaymentController::class, 'bulkDelete']);
+        Route::get('/{id}', [BillPaymentController::class, 'show']);
+        Route::put('/{id}', [BillPaymentController::class, 'update']);
+        Route::delete('/{id}', [BillPaymentController::class, 'destroy']);
+    });
+
+    // Biller Routes
+    Route::prefix('billers')->group(function () {
+        Route::get('/', [BillerController::class, 'index']);
+        Route::post('/', [BillerController::class, 'store']);
+        Route::get('/categories', [BillerController::class, 'categories']);
+        Route::get('/{id}', [BillerController::class, 'show']);
+        Route::put('/{id}', [BillerController::class, 'update']);
+        Route::delete('/{id}', [BillerController::class, 'destroy']);
+        Route::post('/bulk-update-status', [BillerController::class, 'bulkUpdateStatus']);
+        Route::post('/bulk-delete', [BillerController::class, 'bulkDelete']);
     });
 
     // Future authenticated routes will go here...
