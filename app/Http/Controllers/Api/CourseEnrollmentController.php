@@ -275,4 +275,33 @@ class CourseEnrollmentController extends Controller
             ], 500);
         }
     }
+
+    public function checkEnrollmentStatus(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'course_id' => 'required|integer|exists:courses,id',
+                'contact_id' => 'required|string',
+                'client_identifier' => 'required|string',
+            ]);
+
+            $enrollment = CourseEnrollment::where('course_id', $validated['course_id'])
+                ->where('contact_id', $validated['contact_id'])
+                ->where('status', '!=', 'cancelled')
+                ->first();
+
+            return response()->json([
+                'message' => 'Enrollment status checked successfully',
+                'data' => [
+                    'is_enrolled' => $enrollment ? true : false,
+                    'enrollment' => $enrollment
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to check enrollment status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

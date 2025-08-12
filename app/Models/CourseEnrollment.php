@@ -165,10 +165,18 @@ class CourseEnrollment extends Model
                 ->where('status', 'completed')
                 ->count();
             
+            $progressPercentage = round(($completedLessons / $totalLessons) * 100);
+            
             $this->update([
                 'lessons_completed' => $completedLessons,
-                'progress_percentage' => round(($completedLessons / $totalLessons) * 100)
+                'progress_percentage' => $progressPercentage
             ]);
+
+            // If progress reaches 100%, mark enrollment as completed and generate certificate
+            if ($progressPercentage >= 100 && $this->status !== 'completed') {
+                $this->markAsCompleted();
+                $this->generateCertificate();
+            }
         }
     }
 

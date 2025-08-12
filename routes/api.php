@@ -569,6 +569,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [CourseEnrollmentController::class, 'index']);
         Route::post('/', [CourseEnrollmentController::class, 'store']);
         Route::get('/statistics', [CourseEnrollmentController::class, 'getStatistics']);
+        Route::post('/check-status', [CourseEnrollmentController::class, 'checkEnrollmentStatus']);
         Route::get('/{id}', [CourseEnrollmentController::class, 'show']);
         Route::put('/{id}', [CourseEnrollmentController::class, 'update']);
         Route::delete('/{id}', [CourseEnrollmentController::class, 'destroy']);
