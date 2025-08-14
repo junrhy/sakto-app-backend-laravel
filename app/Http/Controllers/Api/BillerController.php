@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Biller;
+use App\Models\BillerFavorite;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -51,6 +52,22 @@ class BillerController extends Controller
             // Paginate
             $perPage = $request->get('per_page', 15);
             $billers = $query->paginate($perPage);
+
+            // Add favorite status if contact_id is provided
+            if ($request->filled('contact_id') && $request->filled('client_identifier')) {
+                $contactId = $request->contact_id;
+                $clientIdentifier = $request->client_identifier;
+
+                $billers->getCollection()->transform(function ($biller) use ($contactId, $clientIdentifier) {
+                    $isFavorite = BillerFavorite::where('biller_id', $biller->id)
+                        ->where('contact_id', $contactId)
+                        ->where('client_identifier', $clientIdentifier)
+                        ->exists();
+                    
+                    $biller->is_favorite = $isFavorite;
+                    return $biller;
+                });
+            }
 
             return response()->json([
                 'success' => true,
@@ -336,6 +353,89 @@ class BillerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete billers',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle favorite status for a biller.
+     */
+    public function toggleFavorite(Request $request, $billerId): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'contact_id' => 'required|integer|exists:contacts,id',
+                'client_identifier' => 'required|string',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            // Check if biller exists and belongs to the client
+            $biller = Biller::where('id', $billerId)
+                ->where('client_identifier', $request->client_identifier)
+                ->first();
+
+            if (!$biller) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Biller not found',
+                ], 404);
+            }
+
+            // Check if contact belongs to the client
+            $contact = \App\Models\Contact::where('id', $request->contact_id)
+                ->where('client_identifier', $request->client_identifier)
+                ->first();
+
+            if (!$contact) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Contact not found',
+                ], 404);
+            }
+
+            // Check if already favorited
+            $existingFavorite = BillerFavorite::where('biller_id', $billerId)
+                ->where('contact_id', $request->contact_id)
+                ->where('client_identifier', $request->client_identifier)
+                ->first();
+
+            if ($existingFavorite) {
+                // Remove from favorites
+                $existingFavorite->delete();
+                $isFavorite = false;
+                $message = 'Biller removed from favorites';
+            } else {
+                // Add to favorites
+                BillerFavorite::create([
+                    'biller_id' => $billerId,
+                    'contact_id' => $request->contact_id,
+                    'client_identifier' => $request->client_identifier,
+                ]);
+                $isFavorite = true;
+                $message = 'Biller added to favorites';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'data' => [
+                    'biller_id' => $billerId,
+                    'contact_id' => $request->contact_id,
+                    'is_favorite' => $isFavorite,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to toggle favorite status',
                 'error' => $e->getMessage(),
             ], 500);
         }

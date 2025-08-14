@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Biller extends Model
 {
@@ -29,6 +30,11 @@ class Biller extends Model
     public function billPayments(): HasMany
     {
         return $this->hasMany(BillPayment::class);
+    }
+
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(BillerFavorite::class);
     }
 
     public function client()

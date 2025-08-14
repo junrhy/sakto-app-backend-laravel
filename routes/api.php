@@ -538,6 +538,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [BillerController::class, 'destroy']);
         Route::post('/bulk-update-status', [BillerController::class, 'bulkUpdateStatus']);
         Route::post('/bulk-delete', [BillerController::class, 'bulkDelete']);
+        Route::post('/{id}/toggle-favorite', [BillerController::class, 'toggleFavorite']);
     });
 
     // Course Routes
