@@ -15,6 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_shipment_trackings')) {
             Schema::create('transportation_shipment_trackings', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->foreignId('truck_id')->constrained('transportation_fleets')->onDelete('cascade');
                 $table->string('driver');
                 $table->string('destination');
@@ -29,6 +30,8 @@ return new class extends Migration
                 $table->string('customer_contact');
                 $table->enum('priority', ['Low', 'Medium', 'High'])->default('Medium');
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

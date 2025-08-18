@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TransportationFuelUpdate extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'truck_id',
         'timestamp',
         'previous_level',

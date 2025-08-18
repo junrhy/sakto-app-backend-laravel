@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class TransportationFleet extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'plate_number',
         'model',
         'capacity',

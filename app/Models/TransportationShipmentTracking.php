@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class TransportationShipmentTracking extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'truck_id',
         'driver',
         'destination',

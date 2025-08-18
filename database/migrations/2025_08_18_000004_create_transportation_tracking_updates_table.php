@@ -15,6 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_tracking_updates')) {
             Schema::create('transportation_tracking_updates', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->foreignId('shipment_id')->constrained('transportation_shipment_trackings')->onDelete('cascade');
                 $table->enum('status', ['Scheduled', 'In Transit', 'Delivered', 'Delayed']);
                 $table->string('location');
@@ -22,6 +23,8 @@ return new class extends Migration
                 $table->text('notes')->nullable();
                 $table->string('updated_by');
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

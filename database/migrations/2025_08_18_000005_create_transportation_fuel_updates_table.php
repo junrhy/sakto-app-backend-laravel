@@ -15,6 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_fuel_updates')) {
             Schema::create('transportation_fuel_updates', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->foreignId('truck_id')->constrained('transportation_fleets')->onDelete('cascade');
                 $table->timestamp('timestamp');
                 $table->decimal('previous_level', 5, 2); // percentage
@@ -24,6 +25,8 @@ return new class extends Migration
                 $table->string('location');
                 $table->string('updated_by');
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

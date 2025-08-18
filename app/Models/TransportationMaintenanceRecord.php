@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TransportationMaintenanceRecord extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'truck_id',
         'date',
         'type',

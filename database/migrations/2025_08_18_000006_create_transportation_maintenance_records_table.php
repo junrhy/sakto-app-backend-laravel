@@ -15,12 +15,15 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_maintenance_records')) {
             Schema::create('transportation_maintenance_records', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->foreignId('truck_id')->constrained('transportation_fleets')->onDelete('cascade');
                 $table->date('date');
                 $table->enum('type', ['Routine', 'Repair']);
                 $table->text('description');
                 $table->decimal('cost', 10, 2);
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

@@ -15,6 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_cargo_monitorings')) {
             Schema::create('transportation_cargo_monitorings', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->foreignId('shipment_id')->constrained('transportation_shipment_trackings')->onDelete('cascade');
                 $table->string('name');
                 $table->integer('quantity');
@@ -25,6 +26,8 @@ return new class extends Migration
                 $table->decimal('temperature', 5, 2)->nullable(); // in Celsius
                 $table->decimal('humidity', 5, 2)->nullable(); // percentage
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

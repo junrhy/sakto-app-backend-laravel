@@ -15,6 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_fleets')) {
             Schema::create('transportation_fleets', function (Blueprint $table) {
                 $table->id();
+                $table->string('client_identifier');
                 $table->string('plate_number')->unique();
                 $table->string('model');
                 $table->integer('capacity'); // in tons
@@ -25,6 +26,8 @@ return new class extends Migration
                 $table->string('driver')->nullable();
                 $table->string('driver_contact')->nullable();
                 $table->timestamps();
+                
+                $table->index('client_identifier');
             });
         }
     }

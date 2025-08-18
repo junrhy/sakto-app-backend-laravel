@@ -17,7 +17,16 @@ class TransportationCargoMonitoringController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = TransportationCargoMonitoring::query();
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $query = TransportationCargoMonitoring::where('client_identifier', $clientIdentifier);
 
         // Apply filters
         if ($request->has('status')) {
@@ -69,6 +78,7 @@ class TransportationCargoMonitoringController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
             'shipment_id' => 'required|exists:transportation_shipment_trackings,id',
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1',
@@ -82,6 +92,15 @@ class TransportationCargoMonitoringController extends Controller
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Verify shipment belongs to the same client
+        $shipment = TransportationShipmentTracking::find($request->shipment_id);
+        if (!$shipment || $shipment->client_identifier !== $request->client_identifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid shipment or unauthorized access'
+            ], 403);
         }
 
         $cargoItem = TransportationCargoMonitoring::create($validator->validated());
@@ -92,8 +111,26 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Display the specified cargo item
      */
-    public function show(TransportationCargoMonitoring $transportationCargoMonitoring): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationCargoMonitoring = TransportationCargoMonitoring::findOrFail($id);
+        
+        if ($transportationCargoMonitoring->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $cargoItem = $transportationCargoMonitoring->load(['shipment.truck']);
         return response()->json($cargoItem);
     }
@@ -101,7 +138,7 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(TransportationCargoMonitoring $transportationCargoMonitoring)
+    public function edit($id)
     {
         //
     }
@@ -109,9 +146,12 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Update the specified cargo item
      */
-    public function update(Request $request, TransportationCargoMonitoring $transportationCargoMonitoring): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
+        $transportationCargoMonitoring = TransportationCargoMonitoring::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
             'shipment_id' => 'required|exists:transportation_shipment_trackings,id',
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1',
@@ -127,7 +167,26 @@ class TransportationCargoMonitoringController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $transportationCargoMonitoring->update($validator->validated());
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationCargoMonitoring->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        // Verify shipment belongs to the same client
+        $shipment = TransportationShipmentTracking::find($request->shipment_id);
+        if (!$shipment || $shipment->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid shipment or unauthorized access'
+            ], 403);
+        }
+
+        $transportationCargoMonitoring->update($validated);
 
         return response()->json($transportationCargoMonitoring);
     }
@@ -135,8 +194,26 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Remove the specified cargo item
      */
-    public function destroy(TransportationCargoMonitoring $transportationCargoMonitoring): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationCargoMonitoring = TransportationCargoMonitoring::findOrFail($id);
+        
+        if ($transportationCargoMonitoring->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $transportationCargoMonitoring->delete();
         return response()->json(['message' => 'Cargo item deleted successfully']);
     }
@@ -144,9 +221,12 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Update cargo status
      */
-    public function updateStatus(Request $request, TransportationCargoMonitoring $transportationCargoMonitoring): JsonResponse
+    public function updateStatus(Request $request, $id): JsonResponse
     {
+        $transportationCargoMonitoring = TransportationCargoMonitoring::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
             'status' => ['required', Rule::in(['Loaded', 'In Transit', 'Delivered', 'Damaged'])],
         ]);
 
@@ -154,7 +234,17 @@ class TransportationCargoMonitoringController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $transportationCargoMonitoring->update(['status' => $request->status]);
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationCargoMonitoring->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        $transportationCargoMonitoring->update(['status' => $validated['status']]);
 
         return response()->json(['message' => 'Status updated successfully']);
     }
@@ -162,8 +252,26 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Get cargo items by shipment
      */
-    public function byShipment(TransportationShipmentTracking $shipment): JsonResponse
+    public function byShipment(Request $request, $shipmentId): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $shipment = TransportationShipmentTracking::findOrFail($shipmentId);
+        
+        if ($shipment->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $cargoItems = $shipment->cargoItems()->get();
         return response()->json($cargoItems);
     }
@@ -171,14 +279,23 @@ class TransportationCargoMonitoringController extends Controller
     /**
      * Get dashboard stats
      */
-    public function dashboardStats(): JsonResponse
+    public function dashboardStats(Request $request): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
         $stats = [
-            'total_cargo_items' => TransportationCargoMonitoring::count(),
-            'loaded_cargo' => TransportationCargoMonitoring::loaded()->count(),
-            'in_transit_cargo' => TransportationCargoMonitoring::inTransit()->count(),
-            'delivered_cargo' => TransportationCargoMonitoring::delivered()->count(),
-            'damaged_cargo' => TransportationCargoMonitoring::damaged()->count(),
+            'total_cargo_items' => TransportationCargoMonitoring::where('client_identifier', $clientIdentifier)->count(),
+            'loaded_cargo' => TransportationCargoMonitoring::where('client_identifier', $clientIdentifier)->loaded()->count(),
+            'in_transit_cargo' => TransportationCargoMonitoring::where('client_identifier', $clientIdentifier)->inTransit()->count(),
+            'delivered_cargo' => TransportationCargoMonitoring::where('client_identifier', $clientIdentifier)->delivered()->count(),
+            'damaged_cargo' => TransportationCargoMonitoring::where('client_identifier', $clientIdentifier)->damaged()->count(),
         ];
 
         return response()->json($stats);

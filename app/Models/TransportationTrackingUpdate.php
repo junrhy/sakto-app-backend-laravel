@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TransportationTrackingUpdate extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'shipment_id',
         'status',
         'location',

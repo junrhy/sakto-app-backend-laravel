@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TransportationCargoMonitoring extends Model
 {
     protected $fillable = [
+        'client_identifier',
         'shipment_id',
         'name',
         'quantity',

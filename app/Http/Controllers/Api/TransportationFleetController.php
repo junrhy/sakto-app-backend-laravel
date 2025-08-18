@@ -18,7 +18,16 @@ class TransportationFleetController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = TransportationFleet::query();
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $query = TransportationFleet::where('client_identifier', $clientIdentifier);
 
         // Apply filters
         if ($request->has('status')) {
@@ -70,7 +79,8 @@ class TransportationFleetController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'plate_number' => 'required|string|max:255|unique:transportation_fleets',
+            'client_identifier' => 'required|string|max:255',
+            'plate_number' => ['required', 'string', 'max:255', Rule::unique('transportation_fleets')->where('client_identifier', $request->client_identifier)],
             'model' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
             'status' => ['required', Rule::in(['Available', 'In Transit', 'Maintenance'])],
@@ -93,8 +103,26 @@ class TransportationFleetController extends Controller
     /**
      * Display the specified truck
      */
-    public function show(TransportationFleet $transportationFleet): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        if ($transportationFleet->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $truck = $transportationFleet->load(['shipments', 'fuelUpdates', 'maintenanceRecords']);
         return response()->json($truck);
     }
@@ -110,10 +138,13 @@ class TransportationFleetController extends Controller
     /**
      * Update the specified truck
      */
-    public function update(Request $request, TransportationFleet $transportationFleet): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
-            'plate_number' => ['required', 'string', 'max:255', Rule::unique('transportation_fleets')->ignore($transportationFleet->id)],
+            'client_identifier' => 'required|string|max:255',
+            'plate_number' => ['required', 'string', 'max:255', Rule::unique('transportation_fleets')->ignore($transportationFleet->id)->where('client_identifier', $request->client_identifier)],
             'model' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1',
             'status' => ['required', Rule::in(['Available', 'In Transit', 'Maintenance'])],
@@ -128,7 +159,17 @@ class TransportationFleetController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $transportationFleet->update($validator->validated());
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationFleet->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        $transportationFleet->update($validated);
 
         return response()->json($transportationFleet);
     }
@@ -136,8 +177,26 @@ class TransportationFleetController extends Controller
     /**
      * Remove the specified truck
      */
-    public function destroy(TransportationFleet $transportationFleet): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        if ($transportationFleet->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $transportationFleet->delete();
         return response()->json(['message' => 'Truck deleted successfully']);
     }
@@ -145,9 +204,12 @@ class TransportationFleetController extends Controller
     /**
      * Update fuel level for a truck
      */
-    public function updateFuel(Request $request, TransportationFleet $transportationFleet): JsonResponse
+    public function updateFuel(Request $request, $id): JsonResponse
     {
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
             'liters_added' => 'required|numeric|min:0',
             'cost' => 'required|numeric|min:0',
             'location' => 'required|string|max:255',
@@ -157,8 +219,18 @@ class TransportationFleetController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationFleet->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $previousLevel = $transportationFleet->fuel_level;
-        $litersAdded = $request->liters_added;
+        $litersAdded = $validated['liters_added'];
         $newLevel = min(100, $previousLevel + ($litersAdded / $transportationFleet->capacity) * 100);
 
         // Update truck fuel level
@@ -166,13 +238,14 @@ class TransportationFleetController extends Controller
 
         // Create fuel update record
         TransportationFuelUpdate::create([
+            'client_identifier' => $validated['client_identifier'],
             'truck_id' => $transportationFleet->id,
             'timestamp' => now(),
             'previous_level' => $previousLevel,
             'new_level' => $newLevel,
             'liters_added' => $litersAdded,
-            'cost' => $request->cost,
-            'location' => $request->location,
+            'cost' => $validated['cost'],
+            'location' => $validated['location'],
             'updated_by' => $request->user()->name ?? 'System',
         ]);
 
@@ -182,9 +255,12 @@ class TransportationFleetController extends Controller
     /**
      * Schedule maintenance for a truck
      */
-    public function scheduleMaintenance(Request $request, TransportationFleet $transportationFleet): JsonResponse
+    public function scheduleMaintenance(Request $request, $id): JsonResponse
     {
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
         $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
             'type' => ['required', Rule::in(['Routine', 'Repair'])],
             'description' => 'required|string',
             'cost' => 'required|numeric|min:0',
@@ -194,16 +270,27 @@ class TransportationFleetController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationFleet->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         // Update truck status to maintenance
         $transportationFleet->update(['status' => 'Maintenance']);
 
         // Create maintenance record
         TransportationMaintenanceRecord::create([
+            'client_identifier' => $validated['client_identifier'],
             'truck_id' => $transportationFleet->id,
             'date' => now(),
-            'type' => $request->type,
-            'description' => $request->description,
-            'cost' => $request->cost,
+            'type' => $validated['type'],
+            'description' => $validated['description'],
+            'cost' => $validated['cost'],
         ]);
 
         return response()->json(['message' => 'Maintenance scheduled successfully']);
@@ -212,8 +299,26 @@ class TransportationFleetController extends Controller
     /**
      * Get fuel history for a truck
      */
-    public function fuelHistory(TransportationFleet $transportationFleet): JsonResponse
+    public function fuelHistory(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        if ($transportationFleet->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $fuelHistory = $transportationFleet->fuelUpdates()
             ->orderBy('timestamp', 'desc')
             ->get();
@@ -224,8 +329,26 @@ class TransportationFleetController extends Controller
     /**
      * Get maintenance history for a truck
      */
-    public function maintenanceHistory(TransportationFleet $transportationFleet): JsonResponse
+    public function maintenanceHistory(Request $request, $id): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        if ($transportationFleet->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
         $maintenanceHistory = $transportationFleet->maintenanceRecords()
             ->orderBy('date', 'desc')
             ->get();
@@ -236,13 +359,23 @@ class TransportationFleetController extends Controller
     /**
      * Get dashboard stats
      */
-    public function dashboardStats(): JsonResponse
+    public function dashboardStats(Request $request): JsonResponse
     {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
         $stats = [
-            'total_trucks' => TransportationFleet::count(),
-            'available_trucks' => TransportationFleet::available()->count(),
-            'in_transit_trucks' => TransportationFleet::inTransit()->count(),
-            'maintenance_trucks' => TransportationFleet::inMaintenance()->count(),
+            'total_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->count(),
+            'available_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->available()->count(),
+            'in_transit_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->inTransit()->count(),
+            'maintenance_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->inMaintenance()->count(),
+            'low_fuel_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->where('fuel_level', '<', 20)->count(),
         ];
 
         return response()->json($stats);
