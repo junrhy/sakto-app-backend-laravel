@@ -15,6 +15,15 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_cargo_monitorings')) {
             Schema::create('transportation_cargo_monitorings', function (Blueprint $table) {
                 $table->id();
+                $table->foreignId('shipment_id')->constrained('transportation_shipment_trackings')->onDelete('cascade');
+                $table->string('name');
+                $table->integer('quantity');
+                $table->enum('unit', ['kg', 'pieces', 'pallets', 'boxes']);
+                $table->text('description')->nullable();
+                $table->string('special_handling')->nullable();
+                $table->enum('status', ['Loaded', 'In Transit', 'Delivered', 'Damaged'])->default('Loaded');
+                $table->decimal('temperature', 5, 2)->nullable(); // in Celsius
+                $table->decimal('humidity', 5, 2)->nullable(); // percentage
                 $table->timestamps();
             });
         }

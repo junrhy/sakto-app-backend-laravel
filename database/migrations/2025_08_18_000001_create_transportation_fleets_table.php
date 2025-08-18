@@ -15,6 +15,15 @@ return new class extends Migration
         if (!Schema::hasTable('transportation_fleets')) {
             Schema::create('transportation_fleets', function (Blueprint $table) {
                 $table->id();
+                $table->string('plate_number')->unique();
+                $table->string('model');
+                $table->integer('capacity'); // in tons
+                $table->enum('status', ['Available', 'In Transit', 'Maintenance'])->default('Available');
+                $table->date('last_maintenance')->nullable();
+                $table->decimal('fuel_level', 5, 2)->default(0); // percentage
+                $table->integer('mileage')->default(0);
+                $table->string('driver')->nullable();
+                $table->string('driver_contact')->nullable();
                 $table->timestamps();
             });
         }

@@ -48,6 +48,9 @@ use App\Http\Controllers\Api\LessonProgressController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Http\Controllers\Api\TransportationFleetController;
+use App\Http\Controllers\Api\TransportationShipmentTrackingController;
+use App\Http\Controllers\Api\TransportationCargoMonitoringController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -593,6 +596,44 @@ Route::middleware('auth:sanctum')->group(function () {
     // Course Progress Routes
     Route::prefix('course-progress')->group(function () {
         Route::get('/{courseId}/{contactId}', [CourseController::class, 'getProgress']);
+    });
+
+    // Transportation Fleet Routes
+    Route::prefix('transportation/fleet')->group(function () {
+        Route::get('/', [TransportationFleetController::class, 'index']);
+        Route::post('/', [TransportationFleetController::class, 'store']);
+        Route::get('/stats', [TransportationFleetController::class, 'dashboardStats']);
+        Route::get('/{id}', [TransportationFleetController::class, 'show']);
+        Route::put('/{id}', [TransportationFleetController::class, 'update']);
+        Route::delete('/{id}', [TransportationFleetController::class, 'destroy']);
+        Route::post('/{id}/fuel', [TransportationFleetController::class, 'updateFuel']);
+        Route::post('/{id}/maintenance', [TransportationFleetController::class, 'scheduleMaintenance']);
+        Route::get('/{id}/fuel-history', [TransportationFleetController::class, 'fuelHistory']);
+        Route::get('/{id}/maintenance-history', [TransportationFleetController::class, 'maintenanceHistory']);
+    });
+
+    // Transportation Shipment Routes
+    Route::prefix('transportation/shipments')->group(function () {
+        Route::get('/', [TransportationShipmentTrackingController::class, 'index']);
+        Route::post('/', [TransportationShipmentTrackingController::class, 'store']);
+        Route::get('/stats', [TransportationShipmentTrackingController::class, 'dashboardStats']);
+        Route::get('/{id}', [TransportationShipmentTrackingController::class, 'show']);
+        Route::put('/{id}', [TransportationShipmentTrackingController::class, 'update']);
+        Route::delete('/{id}', [TransportationShipmentTrackingController::class, 'destroy']);
+        Route::post('/{id}/status', [TransportationShipmentTrackingController::class, 'updateStatus']);
+        Route::get('/{id}/tracking-history', [TransportationShipmentTrackingController::class, 'trackingHistory']);
+    });
+
+    // Transportation Cargo Routes
+    Route::prefix('transportation/cargo')->group(function () {
+        Route::get('/', [TransportationCargoMonitoringController::class, 'index']);
+        Route::post('/', [TransportationCargoMonitoringController::class, 'store']);
+        Route::get('/stats', [TransportationCargoMonitoringController::class, 'dashboardStats']);
+        Route::get('/{id}', [TransportationCargoMonitoringController::class, 'show']);
+        Route::put('/{id}', [TransportationCargoMonitoringController::class, 'update']);
+        Route::delete('/{id}', [TransportationCargoMonitoringController::class, 'destroy']);
+        Route::post('/{id}/status', [TransportationCargoMonitoringController::class, 'updateStatus']);
+        Route::get('/shipment/{shipmentId}', [TransportationCargoMonitoringController::class, 'byShipment']);
     });
 
     // Future authenticated routes will go here...
