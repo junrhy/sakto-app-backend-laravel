@@ -51,6 +51,8 @@ use App\Models\User;
 use App\Http\Controllers\Api\TransportationFleetController;
 use App\Http\Controllers\Api\TransportationShipmentTrackingController;
 use App\Http\Controllers\Api\TransportationCargoMonitoringController;
+use App\Http\Controllers\Api\TransportationBookingController;
+use App\Http\Controllers\Api\TransportationPricingConfigController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -634,6 +636,28 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [TransportationCargoMonitoringController::class, 'destroy']);
         Route::post('/{id}/status', [TransportationCargoMonitoringController::class, 'updateStatus']);
         Route::get('/shipment/{shipmentId}', [TransportationCargoMonitoringController::class, 'byShipment']);
+    });
+
+    // Transportation Booking Routes (Public - No authentication required)
+    Route::prefix('transportation/bookings')->group(function () {
+        Route::get('/', [TransportationBookingController::class, 'index']);
+        Route::post('/', [TransportationBookingController::class, 'store']);
+        Route::get('/stats', [TransportationBookingController::class, 'dashboardStats']);
+        Route::get('/reference', [TransportationBookingController::class, 'getByReference']);
+        Route::get('/{id}', [TransportationBookingController::class, 'show']);
+        Route::put('/{id}', [TransportationBookingController::class, 'update']);
+        Route::delete('/{id}', [TransportationBookingController::class, 'destroy']);
+    });
+
+    // Transportation Pricing Configuration Routes
+    Route::prefix('transportation/pricing-configs')->group(function () {
+        Route::get('/', [TransportationPricingConfigController::class, 'index']);
+        Route::post('/', [TransportationPricingConfigController::class, 'store']);
+        Route::get('/default', [TransportationPricingConfigController::class, 'getDefault']);
+        Route::get('/preview', [TransportationPricingConfigController::class, 'calculatePreview']);
+        Route::get('/{id}', [TransportationPricingConfigController::class, 'show']);
+        Route::put('/{id}', [TransportationPricingConfigController::class, 'update']);
+        Route::delete('/{id}', [TransportationPricingConfigController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...

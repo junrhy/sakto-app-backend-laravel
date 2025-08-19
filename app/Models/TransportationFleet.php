@@ -53,6 +53,14 @@ class TransportationFleet extends Model
     }
 
     /**
+     * Get the bookings for this truck.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(TransportationBooking::class, 'truck_id');
+    }
+
+    /**
      * Scope a query to only include available trucks.
      */
     public function scopeAvailable($query)
