@@ -60,7 +60,7 @@ class TransportationFleetController extends Controller
         $sortOrder = $request->get('sort_order', 'desc');
         $query->orderBy($sortBy, $sortOrder);
 
-        $trucks = $query->with(['shipments', 'fuelUpdates', 'maintenanceRecords'])->get();
+        $trucks = $query->with(['shipments', 'fuelUpdates', 'maintenanceRecords', 'bookings'])->get();
 
         return response()->json($trucks);
     }
@@ -123,7 +123,7 @@ class TransportationFleetController extends Controller
             ], 403);
         }
 
-        $truck = $transportationFleet->load(['shipments', 'fuelUpdates', 'maintenanceRecords']);
+        $truck = $transportationFleet->load(['shipments', 'fuelUpdates', 'maintenanceRecords', 'bookings']);
         return response()->json($truck);
     }
 
