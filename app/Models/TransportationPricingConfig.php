@@ -239,6 +239,14 @@ class TransportationPricingConfig extends Model
     }
 
     /**
+     * Check if date is a weekend (Saturday or Sunday)
+     */
+    public function isWeekend($date)
+    {
+        return $date->isWeekend();
+    }
+
+    /**
      * Get insurance rate
      */
     public function getInsuranceRate()
