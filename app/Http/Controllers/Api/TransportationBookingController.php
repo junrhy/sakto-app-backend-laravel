@@ -325,4 +325,138 @@ class TransportationBookingController extends Controller
 
         return response()->json($stats);
     }
+
+    /**
+     * Process payment for a booking
+     */
+    public function processPayment(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
+            'payment_method' => ['required', Rule::in(['cash', 'card', 'bank_transfer', 'digital_wallet'])],
+            'payment_reference' => 'nullable|string|max:255',
+            'paid_amount' => 'nullable|numeric|min:0',
+            'payment_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $validated = $validator->validated();
+
+        $booking = TransportationBooking::where('id', $id)
+            ->where('client_identifier', $validated['client_identifier'])
+            ->first();
+
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        if ($booking->isPaid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking is already paid'
+            ], 400);
+        }
+
+        // Generate payment reference if not provided
+        $paymentReference = $validated['payment_reference'] ?? TransportationBooking::generatePaymentReference();
+
+        // Mark as paid
+        $booking->markAsPaid(
+            $validated['payment_method'],
+            $paymentReference,
+            $validated['paid_amount'] ?? null,
+            $validated['payment_notes'] ?? null
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment processed successfully',
+            'data' => $booking->load('truck'),
+            'payment_reference' => $paymentReference
+        ]);
+    }
+
+    /**
+     * Update payment status for a booking
+     */
+    public function updatePaymentStatus(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
+            'payment_status' => ['required', Rule::in(['pending', 'paid', 'failed', 'refunded'])],
+            'payment_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $validated = $validator->validated();
+
+        $booking = TransportationBooking::where('id', $id)
+            ->where('client_identifier', $validated['client_identifier'])
+            ->first();
+
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found'
+            ], 404);
+        }
+
+        $booking->update([
+            'payment_status' => $validated['payment_status'],
+            'payment_notes' => $validated['payment_notes'] ?? $booking->payment_notes,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment status updated successfully',
+            'data' => $booking->load('truck')
+        ]);
+    }
+
+    /**
+     * Get payment statistics for a client
+     */
+    public function paymentStats(Request $request): JsonResponse
+    {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $stats = [
+            'total_paid' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'paid')
+                ->sum('paid_amount'),
+            'total_pending' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'pending')
+                ->sum('estimated_cost'),
+            'total_failed' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'failed')
+                ->sum('estimated_cost'),
+            'paid_bookings_count' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'paid')
+                ->count(),
+            'pending_payments_count' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'pending')
+                ->count(),
+            'failed_payments_count' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'failed')
+                ->count(),
+        ];
+
+        return response()->json($stats);
+    }
 }

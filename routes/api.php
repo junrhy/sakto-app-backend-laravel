@@ -643,10 +643,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [TransportationBookingController::class, 'index']);
         Route::post('/', [TransportationBookingController::class, 'store']);
         Route::get('/stats', [TransportationBookingController::class, 'dashboardStats']);
+        Route::get('/payment-stats', [TransportationBookingController::class, 'paymentStats']);
         Route::get('/reference', [TransportationBookingController::class, 'getByReference']);
         Route::get('/{id}', [TransportationBookingController::class, 'show']);
         Route::put('/{id}', [TransportationBookingController::class, 'update']);
         Route::delete('/{id}', [TransportationBookingController::class, 'destroy']);
+        Route::post('/{id}/payment', [TransportationBookingController::class, 'processPayment']);
+        Route::put('/{id}/payment-status', [TransportationBookingController::class, 'updatePaymentStatus']);
     });
 
     // Transportation Pricing Configuration Routes

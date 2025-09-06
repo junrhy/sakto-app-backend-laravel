@@ -53,6 +53,12 @@ class TransportationBooking extends Model
         'booking_reference',
         'pricing_breakdown',
         'pricing_version',
+        'payment_method',
+        'payment_status',
+        'payment_reference',
+        'paid_amount',
+        'payment_date',
+        'payment_notes',
     ];
 
     protected $casts = [
@@ -82,6 +88,8 @@ class TransportationBooking extends Model
         'toll_fees' => 'decimal:2',
         'parking_fees' => 'decimal:2',
         'pricing_breakdown' => 'array',
+        'paid_amount' => 'decimal:2',
+        'payment_date' => 'datetime',
     ];
 
     /**
@@ -141,6 +149,30 @@ class TransportationBooking extends Model
     }
 
     /**
+     * Scope a query to only include paid bookings.
+     */
+    public function scopePaid($query)
+    {
+        return $query->where('payment_status', 'paid');
+    }
+
+    /**
+     * Scope a query to only include pending payment bookings.
+     */
+    public function scopePaymentPending($query)
+    {
+        return $query->where('payment_status', 'pending');
+    }
+
+    /**
+     * Scope a query to only include failed payment bookings.
+     */
+    public function scopePaymentFailed($query)
+    {
+        return $query->where('payment_status', 'failed');
+    }
+
+    /**
      * Generate a unique booking reference.
      */
     public static function generateBookingReference(): string
@@ -182,5 +214,75 @@ class TransportationBooking extends Model
     public function getFormattedEstimatedCostAttribute(): string
     {
         return $this->estimated_cost ? '₱' . number_format($this->estimated_cost, 2) : 'TBD';
+    }
+
+    /**
+     * Get the formatted paid amount.
+     */
+    public function getFormattedPaidAmountAttribute(): string
+    {
+        return $this->paid_amount ? '₱' . number_format($this->paid_amount, 2) : 'Not paid';
+    }
+
+    /**
+     * Check if the booking is paid.
+     */
+    public function isPaid(): bool
+    {
+        return $this->payment_status === 'paid';
+    }
+
+    /**
+     * Check if the booking payment is pending.
+     */
+    public function isPaymentPending(): bool
+    {
+        return $this->payment_status === 'pending';
+    }
+
+    /**
+     * Check if the booking payment failed.
+     */
+    public function isPaymentFailed(): bool
+    {
+        return $this->payment_status === 'failed';
+    }
+
+    /**
+     * Mark the booking as paid.
+     */
+    public function markAsPaid(string $paymentMethod, string $paymentReference = null, float $paidAmount = null, string $notes = null): void
+    {
+        $this->update([
+            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'payment_reference' => $paymentReference,
+            'paid_amount' => $paidAmount ?? $this->estimated_cost,
+            'payment_date' => now(),
+            'payment_notes' => $notes,
+        ]);
+    }
+
+    /**
+     * Mark the booking payment as failed.
+     */
+    public function markPaymentAsFailed(string $notes = null): void
+    {
+        $this->update([
+            'payment_status' => 'failed',
+            'payment_notes' => $notes,
+        ]);
+    }
+
+    /**
+     * Generate a unique payment reference.
+     */
+    public static function generatePaymentReference(): string
+    {
+        do {
+            $reference = 'PAY' . date('Ymd') . strtoupper(substr(md5(uniqid()), 0, 8));
+        } while (self::where('payment_reference', $reference)->exists());
+
+        return $reference;
     }
 }

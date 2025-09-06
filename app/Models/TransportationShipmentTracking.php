@@ -12,6 +12,7 @@ class TransportationShipmentTracking extends Model
         'client_identifier',
         'truck_id',
         'driver',
+        'helpers',
         'destination',
         'origin',
         'departure_date',
@@ -30,6 +31,7 @@ class TransportationShipmentTracking extends Model
         'arrival_date' => 'date',
         'weight' => 'decimal:2',
         'estimated_delay' => 'integer',
+        'helpers' => 'array',
     ];
 
     /**
