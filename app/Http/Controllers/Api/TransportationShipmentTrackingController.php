@@ -225,6 +225,15 @@ class TransportationShipmentTrackingController extends Controller
             }
         }
 
+        // Update cargo items status based on shipment status
+        if ($request->status === 'In Transit' && $oldStatus !== 'In Transit') {
+            // Update all cargo items to 'In Transit' when shipment starts moving
+            $transportationShipmentTracking->cargoItems()->update(['status' => 'In Transit']);
+        } elseif ($request->status === 'Delivered' && $oldStatus !== 'Delivered') {
+            // Update all cargo items to 'Delivered' when shipment is delivered
+            $transportationShipmentTracking->cargoItems()->update(['status' => 'Delivered']);
+        }
+
         return response()->json($transportationShipmentTracking);
     }
 
@@ -308,6 +317,15 @@ class TransportationShipmentTrackingController extends Controller
             } elseif ($validated['status'] === 'In Transit' && $oldStatus !== 'In Transit') {
                 $truck->update(['status' => 'In Transit']);
             }
+        }
+
+        // Update cargo items status based on shipment status
+        if ($validated['status'] === 'In Transit' && $oldStatus !== 'In Transit') {
+            // Update all cargo items to 'In Transit' when shipment starts moving
+            $transportationShipmentTracking->cargoItems()->update(['status' => 'In Transit']);
+        } elseif ($validated['status'] === 'Delivered' && $oldStatus !== 'Delivered') {
+            // Update all cargo items to 'Delivered' when shipment is delivered
+            $transportationShipmentTracking->cargoItems()->update(['status' => 'Delivered']);
         }
 
         return response()->json(['message' => 'Status updated successfully']);
