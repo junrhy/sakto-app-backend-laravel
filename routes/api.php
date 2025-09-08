@@ -53,6 +53,7 @@ use App\Http\Controllers\Api\TransportationShipmentTrackingController;
 use App\Http\Controllers\Api\TransportationCargoMonitoringController;
 use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
+use App\Http\Controllers\Api\UserDataController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -661,6 +662,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [TransportationPricingConfigController::class, 'show']);
         Route::put('/{id}', [TransportationPricingConfigController::class, 'update']);
         Route::delete('/{id}', [TransportationPricingConfigController::class, 'destroy']);
+    });
+
+    // User Data Management Routes
+    Route::prefix('user-data')->group(function () {
+        Route::delete('/all', [UserDataController::class, 'deleteAllUserData']);
     });
 
     // Future authenticated routes will go here...
