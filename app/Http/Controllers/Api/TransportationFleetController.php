@@ -380,4 +380,177 @@ class TransportationFleetController extends Controller
 
         return response()->json($stats);
     }
+
+    /**
+     * Update GPS location for a truck
+     */
+    public function updateLocation(Request $request, $id): JsonResponse
+    {
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        $validator = Validator::make($request->all(), [
+            'client_identifier' => 'required|string|max:255',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'address' => 'nullable|string|max:500',
+            'speed' => 'nullable|numeric|min:0|max:300', // km/h
+            'heading' => 'nullable|numeric|min:0|max:360', // degrees
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $validated = $validator->validated();
+        
+        // Check if client_identifier matches the resource
+        if ($transportationFleet->client_identifier !== $validated['client_identifier']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        // Update truck location
+        $transportationFleet->update([
+            'current_latitude' => $validated['latitude'],
+            'current_longitude' => $validated['longitude'],
+            'last_location_update' => now(),
+            'current_address' => $validated['address'] ?? null,
+            'speed' => $validated['speed'] ?? null,
+            'heading' => $validated['heading'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Location updated successfully',
+            'truck' => $transportationFleet->fresh()
+        ]);
+    }
+
+    /**
+     * Get trucks with GPS locations for map display
+     */
+    public function getTrucksWithLocations(Request $request): JsonResponse
+    {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $trucks = TransportationFleet::where('client_identifier', $clientIdentifier)
+            ->withLocation()
+            ->select([
+                'id',
+                'plate_number',
+                'model',
+                'status',
+                'driver',
+                'current_latitude',
+                'current_longitude',
+                'last_location_update',
+                'current_address',
+                'speed',
+                'heading'
+            ])
+            ->get();
+
+        return response()->json($trucks);
+    }
+
+    /**
+     * Get real-time truck locations (for live tracking)
+     */
+    public function getRealTimeLocations(Request $request): JsonResponse
+    {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $trucks = TransportationFleet::where('client_identifier', $clientIdentifier)
+            ->withRecentLocation(60) // Only trucks with location updates in last hour
+            ->select([
+                'id',
+                'plate_number',
+                'model',
+                'status',
+                'driver',
+                'current_latitude',
+                'current_longitude',
+                'last_location_update',
+                'current_address',
+                'speed',
+                'heading'
+            ])
+            ->get()
+            ->map(function ($truck) {
+                return [
+                    'id' => $truck->id,
+                    'plate_number' => $truck->plate_number,
+                    'model' => $truck->model,
+                    'status' => $truck->status,
+                    'driver' => $truck->driver,
+                    'location' => [
+                        'latitude' => $truck->current_latitude,
+                        'longitude' => $truck->current_longitude,
+                        'address' => $truck->current_address,
+                        'last_update' => $truck->last_location_update,
+                    ],
+                    'movement' => [
+                        'speed' => $truck->speed,
+                        'heading' => $truck->heading,
+                    ],
+                    'is_online' => $truck->hasRecentLocation(30), // Online if updated within 30 minutes
+                ];
+            });
+
+        return response()->json($trucks);
+    }
+
+    /**
+     * Get truck location history (if needed for tracking routes)
+     */
+    public function getLocationHistory(Request $request, $id): JsonResponse
+    {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+        
+        $transportationFleet = TransportationFleet::findOrFail($id);
+        
+        if ($transportationFleet->client_identifier !== $clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        // For now, return current location. In a full implementation,
+        // you might want to create a separate location_history table
+        $locationHistory = [
+            [
+                'latitude' => $transportationFleet->current_latitude,
+                'longitude' => $transportationFleet->current_longitude,
+                'address' => $transportationFleet->current_address,
+                'timestamp' => $transportationFleet->last_location_update,
+                'speed' => $transportationFleet->speed,
+                'heading' => $transportationFleet->heading,
+            ]
+        ];
+
+        return response()->json($locationHistory);
+    }
 }

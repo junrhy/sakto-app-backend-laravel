@@ -606,13 +606,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [TransportationFleetController::class, 'index']);
         Route::post('/', [TransportationFleetController::class, 'store']);
         Route::get('/stats', [TransportationFleetController::class, 'dashboardStats']);
+        Route::get('/locations', [TransportationFleetController::class, 'getTrucksWithLocations']);
+        Route::get('/real-time-locations', [TransportationFleetController::class, 'getRealTimeLocations']);
         Route::get('/{id}', [TransportationFleetController::class, 'show']);
         Route::put('/{id}', [TransportationFleetController::class, 'update']);
         Route::delete('/{id}', [TransportationFleetController::class, 'destroy']);
         Route::post('/{id}/fuel', [TransportationFleetController::class, 'updateFuel']);
         Route::post('/{id}/maintenance', [TransportationFleetController::class, 'scheduleMaintenance']);
+        Route::post('/{id}/location', [TransportationFleetController::class, 'updateLocation']);
         Route::get('/{id}/fuel-history', [TransportationFleetController::class, 'fuelHistory']);
         Route::get('/{id}/maintenance-history', [TransportationFleetController::class, 'maintenanceHistory']);
+        Route::get('/{id}/location-history', [TransportationFleetController::class, 'getLocationHistory']);
     });
 
     // Transportation Shipment Routes
