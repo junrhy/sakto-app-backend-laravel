@@ -553,4 +553,101 @@ class TransportationFleetController extends Controller
 
         return response()->json($locationHistory);
     }
+
+    /**
+     * Get public list of trucks (for driver location update)
+     */
+    public function getPublicTrucks(Request $request): JsonResponse
+    {
+        $clientIdentifier = $request->input('client_identifier');
+        
+        if (!$clientIdentifier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client identifier is required'
+            ], 400);
+        }
+
+        $trucks = TransportationFleet::where('client_identifier', $clientIdentifier)
+            ->select([
+                'id',
+                'plate_number',
+                'model',
+                'status',
+                'driver',
+                'current_latitude',
+                'current_longitude',
+                'last_location_update',
+                'current_address',
+                'speed',
+                'heading'
+            ])
+            ->whereNotNull('driver') // Only show trucks with assigned drivers
+            ->get()
+            ->map(function ($truck) {
+                return [
+                    'id' => $truck->id,
+                    'plate_number' => $truck->plate_number,
+                    'model' => $truck->model,
+                    'status' => $truck->status,
+                    'driver' => $truck->driver,
+                    'current_latitude' => $truck->current_latitude,
+                    'current_longitude' => $truck->current_longitude,
+                    'last_location_update' => $truck->last_location_update,
+                    'current_address' => $truck->current_address,
+                    'speed' => $truck->speed,
+                    'heading' => $truck->heading,
+                ];
+            });
+
+        return response()->json($trucks);
+    }
+
+    /**
+     * Update truck location (public endpoint for drivers)
+     */
+    public function updateTruckLocationPublic(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'address' => 'nullable|string|max:500',
+            'speed' => 'nullable|numeric|min:0|max:200',
+            'heading' => 'nullable|numeric|min:0|max:360',
+            'client_identifier' => 'required|string',
+        ]);
+
+        $clientIdentifier = $request->input('client_identifier');
+        $truck = TransportationFleet::where('id', $id)
+            ->where('client_identifier', $clientIdentifier)
+            ->firstOrFail();
+
+        $truck->update([
+            'current_latitude' => $request->latitude,
+            'current_longitude' => $request->longitude,
+            'current_address' => $request->address,
+            'speed' => $request->speed,
+            'heading' => $request->heading,
+            'last_location_update' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Location updated successfully',
+            'data' => [
+                'id' => $truck->id,
+                'plate_number' => $truck->plate_number,
+                'location' => [
+                    'latitude' => $truck->current_latitude,
+                    'longitude' => $truck->current_longitude,
+                    'address' => $truck->current_address,
+                    'last_update' => $truck->last_location_update,
+                ],
+                'movement' => [
+                    'speed' => $truck->speed,
+                    'heading' => $truck->heading,
+                ],
+            ]
+        ]);
+    }
 }

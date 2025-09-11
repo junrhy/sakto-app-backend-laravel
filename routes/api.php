@@ -55,6 +55,12 @@ use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
 use App\Http\Controllers\Api\UserDataController;
 
+// Public driver routes (no authentication required)
+Route::prefix('driver')->group(function () {
+    Route::get('/trucks', [App\Http\Controllers\Api\TransportationFleetController::class, 'getPublicTrucks']);
+    Route::post('/trucks/{id}/location', [App\Http\Controllers\Api\TransportationFleetController::class, 'updateTruckLocationPublic']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
