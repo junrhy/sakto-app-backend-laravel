@@ -477,6 +477,11 @@ class TransportationFleetController extends Controller
 
         $trucks = TransportationFleet::where('client_identifier', $clientIdentifier)
             ->withRecentLocation(60) // Only trucks with location updates in last hour
+            ->with(['shipments' => function ($query) {
+                $query->whereIn('status', ['Scheduled', 'In Transit'])
+                      ->orderBy('created_at', 'desc')
+                      ->limit(1);
+            }])
             ->select([
                 'id',
                 'plate_number',
@@ -492,6 +497,8 @@ class TransportationFleetController extends Controller
             ])
             ->get()
             ->map(function ($truck) {
+                $currentShipment = $truck->shipments->first();
+                
                 return [
                     'id' => $truck->id,
                     'plate_number' => $truck->plate_number,
@@ -509,6 +516,16 @@ class TransportationFleetController extends Controller
                         'heading' => $truck->heading,
                     ],
                     'is_online' => $truck->hasRecentLocation(30), // Online if updated within 30 minutes
+                    'current_shipment' => $currentShipment ? [
+                        'id' => $currentShipment->id,
+                        'origin' => $currentShipment->origin,
+                        'destination' => $currentShipment->destination,
+                        'status' => $currentShipment->status,
+                        'cargo' => $currentShipment->cargo,
+                        'weight' => $currentShipment->weight,
+                        'departure_date' => $currentShipment->departure_date,
+                        'arrival_date' => $currentShipment->arrival_date,
+                    ] : null,
                 ];
             });
 
