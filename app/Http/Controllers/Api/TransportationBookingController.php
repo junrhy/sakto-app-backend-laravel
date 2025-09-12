@@ -309,7 +309,8 @@ class TransportationBookingController extends Controller
             ], 400);
         }
 
-        $stats = [
+        // Current stats
+        $currentStats = [
             'total_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)->count(),
             'pending_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)->pending()->count(),
             'confirmed_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)->confirmed()->count(),
@@ -321,7 +322,49 @@ class TransportationBookingController extends Controller
             'upcoming_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
                 ->where('pickup_date', '>', now()->format('Y-m-d'))
                 ->count(),
+            'total_revenue' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('status', 'completed')
+                ->sum('estimated_cost'),
         ];
+
+        // Previous month stats (30 days ago)
+        $previousMonth = now()->subDays(30);
+        $previousStats = [
+            'total_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('created_at', '<=', $previousMonth)->count(),
+            'pending_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->pending()->where('created_at', '<=', $previousMonth)->count(),
+            'confirmed_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->confirmed()->where('created_at', '<=', $previousMonth)->count(),
+            'completed_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->completed()->where('created_at', '<=', $previousMonth)->count(),
+            'cancelled_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->cancelled()->where('created_at', '<=', $previousMonth)->count(),
+            'today_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('pickup_date', $previousMonth->format('Y-m-d'))
+                ->where('created_at', '<=', $previousMonth)->count(),
+            'upcoming_bookings' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('pickup_date', '>', $previousMonth->format('Y-m-d'))
+                ->where('created_at', '<=', $previousMonth)->count(),
+            'total_revenue' => TransportationBooking::where('client_identifier', $clientIdentifier)
+                ->where('status', 'completed')
+                ->where('created_at', '<=', $previousMonth)
+                ->sum('estimated_cost'),
+        ];
+
+        // Calculate trends
+        $trends = [];
+        foreach ($currentStats as $key => $currentValue) {
+            $previousValue = $previousStats[$key];
+            if ($previousValue > 0) {
+                $trend = (($currentValue - $previousValue) / $previousValue) * 100;
+                $trends[$key . '_trend'] = round($trend, 1);
+            } else {
+                $trends[$key . '_trend'] = $currentValue > 0 ? 100 : 0;
+            }
+        }
+
+        $stats = array_merge($currentStats, $trends);
 
         return response()->json($stats);
     }

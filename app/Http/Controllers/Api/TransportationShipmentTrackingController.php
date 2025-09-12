@@ -375,13 +375,43 @@ class TransportationShipmentTrackingController extends Controller
             ], 400);
         }
 
-        $stats = [
+        // Current stats
+        $currentStats = [
             'total_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)->count(),
             'scheduled_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)->scheduled()->count(),
             'in_transit_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)->inTransit()->count(),
             'delivered_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)->delivered()->count(),
             'delayed_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)->delayed()->count(),
         ];
+
+        // Previous month stats (30 days ago)
+        $previousMonth = now()->subDays(30);
+        $previousStats = [
+            'total_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)
+                ->where('created_at', '<=', $previousMonth)->count(),
+            'scheduled_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)
+                ->scheduled()->where('created_at', '<=', $previousMonth)->count(),
+            'in_transit_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)
+                ->inTransit()->where('created_at', '<=', $previousMonth)->count(),
+            'delivered_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)
+                ->delivered()->where('created_at', '<=', $previousMonth)->count(),
+            'delayed_shipments' => TransportationShipmentTracking::where('client_identifier', $clientIdentifier)
+                ->delayed()->where('created_at', '<=', $previousMonth)->count(),
+        ];
+
+        // Calculate trends
+        $trends = [];
+        foreach ($currentStats as $key => $currentValue) {
+            $previousValue = $previousStats[$key];
+            if ($previousValue > 0) {
+                $trend = (($currentValue - $previousValue) / $previousValue) * 100;
+                $trends[$key . '_trend'] = round($trend, 1);
+            } else {
+                $trends[$key . '_trend'] = $currentValue > 0 ? 100 : 0;
+            }
+        }
+
+        $stats = array_merge($currentStats, $trends);
 
         return response()->json($stats);
     }

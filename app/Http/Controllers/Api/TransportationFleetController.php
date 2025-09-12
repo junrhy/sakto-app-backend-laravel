@@ -370,13 +370,43 @@ class TransportationFleetController extends Controller
             ], 400);
         }
 
-        $stats = [
+        // Current stats
+        $currentStats = [
             'total_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->count(),
             'available_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->available()->count(),
             'in_transit_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->inTransit()->count(),
             'maintenance_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->inMaintenance()->count(),
             'low_fuel_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)->where('fuel_level', '<', 20)->count(),
         ];
+
+        // Previous month stats (30 days ago)
+        $previousMonth = now()->subDays(30);
+        $previousStats = [
+            'total_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)
+                ->where('created_at', '<=', $previousMonth)->count(),
+            'available_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)
+                ->available()->where('created_at', '<=', $previousMonth)->count(),
+            'in_transit_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)
+                ->inTransit()->where('created_at', '<=', $previousMonth)->count(),
+            'maintenance_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)
+                ->inMaintenance()->where('created_at', '<=', $previousMonth)->count(),
+            'low_fuel_trucks' => TransportationFleet::where('client_identifier', $clientIdentifier)
+                ->where('fuel_level', '<', 20)->where('created_at', '<=', $previousMonth)->count(),
+        ];
+
+        // Calculate trends
+        $trends = [];
+        foreach ($currentStats as $key => $currentValue) {
+            $previousValue = $previousStats[$key];
+            if ($previousValue > 0) {
+                $trend = (($currentValue - $previousValue) / $previousValue) * 100;
+                $trends[$key . '_trend'] = round($trend, 1);
+            } else {
+                $trends[$key . '_trend'] = $currentValue > 0 ? 100 : 0;
+            }
+        }
+
+        $stats = array_merge($currentStats, $trends);
 
         return response()->json($stats);
     }
