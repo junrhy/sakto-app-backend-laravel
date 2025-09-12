@@ -51,6 +51,7 @@ use App\Models\User;
 use App\Http\Controllers\Api\TransportationFleetController;
 use App\Http\Controllers\Api\TransportationShipmentTrackingController;
 use App\Http\Controllers\Api\TransportationCargoMonitoringController;
+use App\Http\Controllers\Api\CargoUnloadingController;
 use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
 use App\Http\Controllers\Api\UserDataController;
@@ -647,6 +648,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [TransportationCargoMonitoringController::class, 'destroy']);
         Route::post('/{id}/status', [TransportationCargoMonitoringController::class, 'updateStatus']);
         Route::get('/shipment/{shipmentId}', [TransportationCargoMonitoringController::class, 'byShipment']);
+        
+        // Cargo Unloading Routes
+        Route::prefix('{cargoItemId}/unloadings')->group(function () {
+            Route::get('/', [CargoUnloadingController::class, 'index']);
+            Route::post('/', [CargoUnloadingController::class, 'store']);
+            Route::get('/summary', [CargoUnloadingController::class, 'summary']);
+            Route::get('/{unloadingId}', [CargoUnloadingController::class, 'show']);
+            Route::put('/{unloadingId}', [CargoUnloadingController::class, 'update']);
+            Route::delete('/{unloadingId}', [CargoUnloadingController::class, 'destroy']);
+        });
     });
 
     // Transportation Booking Routes (Public - No authentication required)

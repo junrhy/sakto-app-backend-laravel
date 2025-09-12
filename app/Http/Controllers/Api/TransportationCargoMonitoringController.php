@@ -60,6 +60,9 @@ class TransportationCargoMonitoringController extends Controller
         $query->orderBy($sortBy, $sortOrder);
 
         $cargoItems = $query->with(['shipment.truck'])->get();
+        
+        // Load unloadings separately to avoid serialization issues
+        $cargoItems->load('unloadings');
 
         return response()->json($cargoItems);
     }
@@ -131,7 +134,7 @@ class TransportationCargoMonitoringController extends Controller
             ], 403);
         }
 
-        $cargoItem = $transportationCargoMonitoring->load(['shipment.truck']);
+        $cargoItem = $transportationCargoMonitoring->load(['shipment.truck', 'unloadings']);
         return response()->json($cargoItem);
     }
 

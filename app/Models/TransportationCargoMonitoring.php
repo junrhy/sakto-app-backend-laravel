@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransportationCargoMonitoring extends Model
 {
@@ -26,12 +27,27 @@ class TransportationCargoMonitoring extends Model
         'humidity' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'total_unloaded_quantity',
+        'remaining_quantity',
+        'is_fully_unloaded',
+        'is_partially_unloaded',
+    ];
+
     /**
      * Get the shipment that owns the cargo item.
      */
     public function shipment(): BelongsTo
     {
         return $this->belongsTo(TransportationShipmentTracking::class, 'shipment_id');
+    }
+
+    /**
+     * Get the unloading records for this cargo item.
+     */
+    public function unloadings(): HasMany
+    {
+        return $this->hasMany(\App\Models\CargoUnloading::class, 'cargo_item_id');
     }
 
     /**
@@ -88,5 +104,40 @@ class TransportationCargoMonitoring extends Model
     public function scopeBySpecialHandling($query, $specialHandling)
     {
         return $query->where('special_handling', 'like', "%{$specialHandling}%");
+    }
+
+    /**
+     * Get the total quantity unloaded for this cargo item.
+     */
+    public function getTotalUnloadedQuantityAttribute()
+    {
+        if ($this->relationLoaded('unloadings')) {
+            return $this->unloadings->sum('quantity_unloaded');
+        }
+        return $this->unloadings()->sum('quantity_unloaded');
+    }
+
+    /**
+     * Get the remaining quantity for this cargo item.
+     */
+    public function getRemainingQuantityAttribute()
+    {
+        return max(0, $this->quantity - $this->total_unloaded_quantity);
+    }
+
+    /**
+     * Check if this cargo item is fully unloaded.
+     */
+    public function getIsFullyUnloadedAttribute()
+    {
+        return $this->remaining_quantity === 0;
+    }
+
+    /**
+     * Check if this cargo item is partially unloaded.
+     */
+    public function getIsPartiallyUnloadedAttribute()
+    {
+        return $this->total_unloaded_quantity > 0 && !$this->is_fully_unloaded;
     }
 }
