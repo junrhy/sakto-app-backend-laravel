@@ -37,17 +37,11 @@ class FnbReservationController extends Controller
             'notes' => 'nullable',
         ]);
 
-        // Check if the date/time is blocked
+        // Check if the date/time slot is blocked
         $isBlocked = FnbBlockedDate::where('client_identifier', $validated['client_identifier'])
             ->where('blocked_date', $validated['date'])
-            ->where(function($q) use ($validated) {
-                $q->where('is_full_day', true) // Full day blocks
-                  ->orWhere(function($subQ) use ($validated) {
-                      $subQ->where('is_full_day', false)
-                           ->where('start_time', '<=', $validated['time'])
-                           ->where('end_time', '>', $validated['time']);
-                  });
-            })->exists();
+            ->whereJsonContains('timeslots', $validated['time'])
+            ->exists();
 
         if ($isBlocked) {
             return response()->json([
