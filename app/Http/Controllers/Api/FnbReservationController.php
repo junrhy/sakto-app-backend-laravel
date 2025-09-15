@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\FnbReservation;
+use App\Models\FnbBlockedDate;
 use Illuminate\Http\Request;
 
 class FnbReservationController extends Controller
@@ -35,6 +36,25 @@ class FnbReservationController extends Controller
             'contact' => 'nullable',
             'notes' => 'nullable',
         ]);
+
+        // Check if the date/time is blocked
+        $isBlocked = FnbBlockedDate::where('client_identifier', $validated['client_identifier'])
+            ->where('blocked_date', $validated['date'])
+            ->where(function($q) use ($validated) {
+                $q->where('is_full_day', true) // Full day blocks
+                  ->orWhere(function($subQ) use ($validated) {
+                      $subQ->where('is_full_day', false)
+                           ->where('start_time', '<=', $validated['time'])
+                           ->where('end_time', '>', $validated['time']);
+                  });
+            })->exists();
+
+        if ($isBlocked) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Reservations are not available at this time. The time period has been blocked.'
+            ], 400);
+        }
 
         $reservation = FnbReservation::create($validated);
         return response()->json($reservation, 201);

@@ -15,19 +15,29 @@ class FnbMenuItemController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
-
-        $fnbMenuItems = FnbMenuItem::where('client_identifier', $clientIdentifier)->get()->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'name' => $item->name,
-                'price' => $item->price,
-                'category' => $item->category,
-                'image' => $item->image,
-                'is_available_personal' => $item->is_available_personal,
-                'is_available_online' => $item->is_available_online,
-                'delivery_fee' => $item->delivery_fee,
-                'client_identifier' => $item->client_identifier
-            ];
+        
+        // Use caching for frequently accessed menu items
+        $cacheKey = "fnb_menu_items_{$clientIdentifier}";
+        
+        $fnbMenuItems = cache()->remember($cacheKey, 600, function () use ($clientIdentifier) { // Cache for 10 minutes
+            return FnbMenuItem::where('client_identifier', $clientIdentifier)
+                ->select('id', 'name', 'price', 'category', 'image', 'is_available_personal', 'is_available_online', 'delivery_fee', 'client_identifier')
+                ->orderBy('category')
+                ->orderBy('name')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->name,
+                        'price' => $item->price,
+                        'category' => $item->category,
+                        'image' => $item->image,
+                        'is_available_personal' => $item->is_available_personal,
+                        'is_available_online' => $item->is_available_online,
+                        'delivery_fee' => $item->delivery_fee,
+                        'client_identifier' => $item->client_identifier
+                    ];
+                });
         });
 
         return response()->json([
@@ -65,7 +75,15 @@ class FnbMenuItemController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0'
         ]);
     
-        return FnbMenuItem::create($validated);
+        $menuItem = FnbMenuItem::create($validated);
+        
+        // Clear cache when menu items are modified
+        if ($validated['client_identifier']) {
+            cache()->forget("fnb_menu_items_{$validated['client_identifier']}");
+            cache()->forget('fnb_restaurants_' . md5('all_restaurants'));
+        }
+        
+        return $menuItem;
     }
 
     /**
@@ -85,6 +103,13 @@ class FnbMenuItemController extends Controller
         $fnbMenuItem = FnbMenuItem::find($request->id);
 
         $fnbMenuItem->update($validated);
+        
+        // Clear cache when menu items are modified
+        if ($fnbMenuItem->client_identifier) {
+            cache()->forget("fnb_menu_items_{$fnbMenuItem->client_identifier}");
+            cache()->forget('fnb_restaurants_' . md5('all_restaurants'));
+        }
+        
         return response()->json(['status' => 'success', 'message' => 'Menu item updated successfully']);
     }
 
@@ -94,7 +119,15 @@ class FnbMenuItemController extends Controller
     public function destroy(Request $request)
     {
         $fnbMenuItem = FnbMenuItem::find($request->id);
+        $clientIdentifier = $fnbMenuItem->client_identifier;
         $fnbMenuItem->delete();
+        
+        // Clear cache when menu items are deleted
+        if ($clientIdentifier) {
+            cache()->forget("fnb_menu_items_{$clientIdentifier}");
+            cache()->forget('fnb_restaurants_' . md5('all_restaurants'));
+        }
+        
         return response()->noContent();
     }
 

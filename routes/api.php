@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\FnbMenuItemController;
 use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
 use App\Http\Controllers\Api\FnbReservationController;
+use App\Http\Controllers\Api\FnbBlockedDateController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
@@ -202,6 +203,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [FnbReservationController::class, 'index']);
         Route::post('/', [FnbReservationController::class, 'store']);
         Route::delete('/{id}', [FnbReservationController::class, 'destroy']);
+    });
+
+    // F & B Blocked Dates Routes
+    Route::prefix('fnb-blocked-dates')->group(function () {
+        Route::get('/', [FnbBlockedDateController::class, 'index']);
+        Route::post('/', [FnbBlockedDateController::class, 'store']);
+        Route::get('/{id}', [FnbBlockedDateController::class, 'show']);
+        Route::put('/{id}', [FnbBlockedDateController::class, 'update']);
+        Route::delete('/{id}', [FnbBlockedDateController::class, 'destroy']);
+        Route::post('/check-date', [FnbBlockedDateController::class, 'checkDate']);
     });
 
     // F & B Settings Routes

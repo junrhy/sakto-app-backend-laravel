@@ -11,7 +11,16 @@ class FnbTableController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
-        $tables = FnbTable::where('client_identifier', $clientIdentifier)->get();
+        
+        // Use caching for frequently accessed tables
+        $cacheKey = "fnb_tables_{$clientIdentifier}";
+        
+        $tables = cache()->remember($cacheKey, 300, function () use ($clientIdentifier) { // Cache for 5 minutes
+            return FnbTable::where('client_identifier', $clientIdentifier)
+                ->orderBy('name')
+                ->get();
+        });
+        
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -91,15 +100,18 @@ class FnbTableController extends Controller
             ], 400);
         }
 
-        // Join all tables by updating their status and joined_with field
+        // Join all tables using a single update query for better performance
         $joinedTableIds = implode(',', $tables->pluck('id')->toArray());
+        $clientIdentifier = $tables->first()->client_identifier;
         
-        foreach ($tables as $table) {
-            $table->update([
+        FnbTable::whereIn('id', $validated['table_ids'])
+            ->update([
                 'status' => 'joined',
                 'joined_with' => $joinedTableIds
             ]);
-        }
+
+        // Clear cache when tables are modified
+        cache()->forget("fnb_tables_{$clientIdentifier}");
 
         return response()->json([
             'status' => 'success',
