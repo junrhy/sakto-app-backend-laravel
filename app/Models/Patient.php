@@ -7,6 +7,7 @@ use App\Models\PatientBill;
 use App\Models\PatientDentalChart;
 use App\Models\PatientPayment;
 use App\Models\PatientCheckup;
+use App\Models\Appointment;
 
 class Patient extends Model
 {
@@ -30,5 +31,10 @@ class Patient extends Model
     public function checkups()
     {
         return $this->hasMany(PatientCheckup::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
     }
 }

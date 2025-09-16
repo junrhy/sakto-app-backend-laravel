@@ -56,6 +56,7 @@ use App\Http\Controllers\Api\CargoUnloadingController;
 use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
 use App\Http\Controllers\Api\UserDataController;
+use App\Http\Controllers\Api\AppointmentController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -328,6 +329,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('patient-dental-charts')->group(function () {
         Route::put('/', [App\Http\Controllers\Api\PatientDentalChartController::class, 'update']);
         Route::get('/{patientId}', [App\Http\Controllers\Api\PatientDentalChartController::class, 'show']);
+    });
+
+    // Appointment Routes
+    Route::prefix('appointments')->group(function () {
+        Route::get('/', [AppointmentController::class, 'index']);
+        Route::post('/', [AppointmentController::class, 'store']);
+        Route::get('/today', [AppointmentController::class, 'today']);
+        Route::get('/upcoming', [AppointmentController::class, 'upcoming']);
+        Route::get('/date-range', [AppointmentController::class, 'byDateRange']);
+        Route::get('/{id}', [AppointmentController::class, 'show']);
+        Route::put('/{id}', [AppointmentController::class, 'update']);
+        Route::delete('/{id}', [AppointmentController::class, 'destroy']);
+        Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
+        Route::patch('/{id}/payment-status', [AppointmentController::class, 'updatePaymentStatus']);
     });
 
     // Contact Routes
