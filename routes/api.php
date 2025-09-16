@@ -57,6 +57,7 @@ use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
 use App\Http\Controllers\Api\UserDataController;
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\ClinicInventoryController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -343,6 +344,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [AppointmentController::class, 'destroy']);
         Route::patch('/{id}/status', [AppointmentController::class, 'updateStatus']);
         Route::patch('/{id}/payment-status', [AppointmentController::class, 'updatePaymentStatus']);
+    });
+
+    // Clinic Inventory Routes
+    Route::prefix('clinic-inventory')->group(function () {
+        Route::get('/', [ClinicInventoryController::class, 'index']);
+        Route::post('/', [ClinicInventoryController::class, 'store']);
+        Route::get('/categories', [ClinicInventoryController::class, 'getCategories']);
+        Route::get('/low-stock-alerts', [ClinicInventoryController::class, 'getLowStockAlerts']);
+        Route::get('/expiring-alerts', [ClinicInventoryController::class, 'getExpiringAlerts']);
+        Route::get('/expired-items', [ClinicInventoryController::class, 'getExpiredItems']);
+        Route::get('/{id}', [ClinicInventoryController::class, 'show']);
+        Route::put('/{id}', [ClinicInventoryController::class, 'update']);
+        Route::delete('/{id}', [ClinicInventoryController::class, 'destroy']);
+        Route::post('/{id}/add-stock', [ClinicInventoryController::class, 'addStock']);
+        Route::post('/{id}/remove-stock', [ClinicInventoryController::class, 'removeStock']);
+        Route::post('/{id}/adjust-stock', [ClinicInventoryController::class, 'adjustStock']);
+        Route::get('/{id}/transactions', [ClinicInventoryController::class, 'getTransactions']);
     });
 
     // Contact Routes
