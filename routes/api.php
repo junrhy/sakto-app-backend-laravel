@@ -324,6 +324,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{patientId}', [PatientCheckupController::class, 'getCheckups']);
     });
 
+    // Patient Dental Chart Routes
+    Route::prefix('patient-dental-charts')->group(function () {
+        Route::put('/', [App\Http\Controllers\Api\PatientDentalChartController::class, 'update']);
+        Route::get('/{patientId}', [App\Http\Controllers\Api\PatientDentalChartController::class, 'show']);
+    });
+
     // Contact Routes
     Route::prefix('contacts')->group(function () {
         Route::get('/', [ContactController::class, 'index']);

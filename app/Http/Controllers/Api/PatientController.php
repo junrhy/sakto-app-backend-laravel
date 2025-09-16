@@ -15,6 +15,37 @@ class PatientController extends Controller
     {
         $clientIdentifier = $request->input('client_identifier');
         $patients = Patient::where('client_identifier', $clientIdentifier)->with('bills', 'payments', 'checkups', 'dentalChart')->get();
+        
+        // Transform dental chart data for frontend
+        $patients = $patients->map(function ($patient) {
+            // If patient has no dental chart records, create them
+            if ($patient->dentalChart->isEmpty()) {
+                $this->createDefaultDentalChart($patient->id);
+                // Reload the relationship
+                $patient->load('dentalChart');
+            }
+            
+            $dentalChart = $patient->dentalChart->map(function ($tooth) {
+                return [
+                    'id' => (int) $tooth->tooth_id,
+                    'status' => $tooth->status
+                ];
+            })->toArray();
+            
+            // Ensure we have exactly 32 teeth (1-32)
+            $fullDentalChart = [];
+            for ($i = 1; $i <= 32; $i++) {
+                $existingTooth = collect($dentalChart)->firstWhere('id', $i);
+                $fullDentalChart[] = $existingTooth ?: [
+                    'id' => $i,
+                    'status' => 'healthy'
+                ];
+            }
+            
+            $patient->dental_chart = $fullDentalChart;
+            return $patient;
+        });
+        
         return response()->json([
             'success' => true,
             'patients' => $patients,
@@ -29,7 +60,25 @@ class PatientController extends Controller
     {
         $patient = Patient::create($request->all());
         
+        // Create default dental chart records for the new patient
+        $this->createDefaultDentalChart($patient->id);
+        
         return response()->json(['data' => $patient], 201);
+    }
+
+    /**
+     * Create default dental chart records for a patient
+     */
+    private function createDefaultDentalChart($patientId)
+    {
+        for ($i = 1; $i <= 32; $i++) {
+            \App\Models\PatientDentalChart::create([
+                'patient_id' => $patientId,
+                'tooth_id' => $i,
+                'status' => 'healthy',
+                'notes' => null
+            ]);
+        }
     }
 
     /**
