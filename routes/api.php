@@ -58,6 +58,8 @@ use App\Http\Controllers\Api\TransportationPricingConfigController;
 use App\Http\Controllers\Api\UserDataController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\ClinicInventoryController;
+use App\Http\Controllers\Api\QueueTypeController;
+use App\Http\Controllers\Api\QueueNumberController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -738,6 +740,27 @@ Route::middleware('auth:sanctum')->group(function () {
     // User Data Management Routes
     Route::prefix('user-data')->group(function () {
         Route::delete('/all', [UserDataController::class, 'deleteAllUserData']);
+    });
+
+    // Queue System Routes
+    Route::prefix('queue-types')->group(function () {
+        Route::get('/', [QueueTypeController::class, 'index']);
+        Route::post('/', [QueueTypeController::class, 'store']);
+        Route::get('/{id}', [QueueTypeController::class, 'show']);
+        Route::put('/{id}', [QueueTypeController::class, 'update']);
+        Route::delete('/{id}', [QueueTypeController::class, 'destroy']);
+    });
+
+    Route::prefix('queue-numbers')->group(function () {
+        Route::get('/', [QueueNumberController::class, 'index']);
+        Route::post('/', [QueueNumberController::class, 'store']);
+        Route::get('/{id}', [QueueNumberController::class, 'show']);
+        Route::put('/{id}', [QueueNumberController::class, 'update']);
+        Route::post('/call-next', [QueueNumberController::class, 'callNext']);
+        Route::post('/{id}/start-serving', [QueueNumberController::class, 'startServing']);
+        Route::post('/{id}/complete', [QueueNumberController::class, 'complete']);
+        Route::post('/{id}/cancel', [QueueNumberController::class, 'cancel']);
+        Route::get('/status/overview', [QueueNumberController::class, 'getStatus']);
     });
 
     // Future authenticated routes will go here...
