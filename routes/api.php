@@ -309,14 +309,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Patient Bill Routes
     Route::prefix('patient-bills')->group(function () {
-        Route::post('/{id}', [PatientBillController::class, 'store']);
+        Route::post('/', [PatientBillController::class, 'store']);
+        Route::post('/account-bill', [PatientBillController::class, 'storeAccountBill']);
+        Route::put('/{billId}/status', [PatientBillController::class, 'updateStatus']);
         Route::delete('/{patientId}/{id}', [PatientBillController::class, 'destroy']);
         Route::get('/{id}', [PatientBillController::class, 'getBills']);
     });
 
     // Patient Payment Routes
     Route::prefix('patient-payments')->group(function () {
-        Route::post('/{id}', [PatientPaymentController::class, 'store']);
+        Route::post('/', [PatientPaymentController::class, 'store']);
+        Route::post('/account-payment', [PatientPaymentController::class, 'storeAccountPayment']);
+        Route::get('/account/{accountId}', [PatientPaymentController::class, 'getAccountPayments']);
         Route::delete('/{patientId}/{id}', [PatientPaymentController::class, 'destroy']);
         Route::get('/{id}', [PatientPaymentController::class, 'getPayments']);
     });
@@ -332,6 +336,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('patient-dental-charts')->group(function () {
         Route::put('/', [App\Http\Controllers\Api\PatientDentalChartController::class, 'update']);
         Route::get('/{patientId}', [App\Http\Controllers\Api\PatientDentalChartController::class, 'show']);
+    });
+
+    // Clinic Payment Account Routes
+    Route::prefix('clinic-payment-accounts')->group(function () {
+        Route::get('/', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'store']);
+        Route::get('/{id}', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'show']);
+        Route::put('/{id}', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'destroy']);
+        Route::post('/{id}/assign-patients', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'assignPatients']);
+        Route::post('/{id}/remove-patients', [App\Http\Controllers\Api\ClinicPaymentAccountController::class, 'removePatients']);
     });
 
     // Appointment Routes
