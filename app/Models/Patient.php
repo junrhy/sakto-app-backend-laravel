@@ -11,7 +11,7 @@ use App\Models\Appointment;
 
 class Patient extends Model
 {
-    protected $fillable = ['name', 'birthdate', 'phone', 'email', 'client_identifier'];
+    protected $fillable = ['arn', 'name', 'birthdate', 'phone', 'email', 'client_identifier'];
 
     public function bills()
     {

@@ -58,12 +58,45 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        $patient = Patient::create($request->all());
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'arn' => 'nullable|string|max:255|unique:patients,arn',
+            'birthdate' => 'nullable|string',
+            'phone' => 'nullable|string',
+            'email' => 'nullable|email',
+            'client_identifier' => 'required|string'
+        ]);
+
+        // Generate ARN if not provided
+        if (empty($validated['arn'])) {
+            $validated['arn'] = $this->generateArn($validated['client_identifier']);
+        }
+
+        $patient = Patient::create($validated);
         
         // Create default dental chart records for the new patient
         $this->createDefaultDentalChart($patient->id);
         
         return response()->json(['data' => $patient], 201);
+    }
+
+    /**
+     * Generate a unique ARN for a patient
+     */
+    private function generateArn($clientIdentifier)
+    {
+        $date = now()->format('Ymd');
+        $prefix = strtoupper(substr($clientIdentifier, 0, 3));
+        
+        // Get the count of patients for this client today
+        $count = Patient::where('client_identifier', $clientIdentifier)
+            ->whereDate('created_at', now()->toDateString())
+            ->count() + 1;
+        
+        $sequence = str_pad($count, 4, '0', STR_PAD_LEFT);
+        
+        return "{$prefix}-{$date}-{$sequence}";
     }
 
     /**
@@ -95,7 +128,17 @@ class PatientController extends Controller
     public function update(Request $request)
     {
         $patient = Patient::find($request->id);
-        $patient->update($request->all());
+        
+        // Validate the request
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'arn' => 'sometimes|nullable|string|max:255|unique:patients,arn,' . $patient->id,
+            'birthdate' => 'sometimes|nullable|string',
+            'phone' => 'sometimes|nullable|string',
+            'email' => 'sometimes|nullable|email'
+        ]);
+
+        $patient->update($validated);
         return response()->json(['data' => $patient]);
     }
 
