@@ -60,6 +60,12 @@ use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\ClinicInventoryController;
 use App\Http\Controllers\Api\QueueTypeController;
 use App\Http\Controllers\Api\QueueNumberController;
+use App\Http\Controllers\Api\PatientEncounterController;
+use App\Http\Controllers\Api\PatientVitalSignsController;
+use App\Http\Controllers\Api\PatientDiagnosisController;
+use App\Http\Controllers\Api\PatientAllergyController;
+use App\Http\Controllers\Api\PatientMedicationController;
+use App\Http\Controllers\Api\PatientMedicalHistoryController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -776,6 +782,64 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/complete', [QueueNumberController::class, 'complete']);
         Route::post('/{id}/cancel', [QueueNumberController::class, 'cancel']);
         Route::get('/status/overview', [QueueNumberController::class, 'getStatus']);
+    });
+
+    // Universal Medical Record System Routes
+    Route::prefix('patient-encounters')->group(function () {
+        Route::get('/', [PatientEncounterController::class, 'index']);
+        Route::post('/', [PatientEncounterController::class, 'store']);
+        Route::get('/statistics', [PatientEncounterController::class, 'statistics']);
+        Route::get('/{id}', [PatientEncounterController::class, 'show']);
+        Route::put('/{id}', [PatientEncounterController::class, 'update']);
+        Route::delete('/{id}', [PatientEncounterController::class, 'destroy']);
+    });
+
+    Route::prefix('patient-vital-signs')->group(function () {
+        Route::get('/', [PatientVitalSignsController::class, 'index']);
+        Route::post('/', [PatientVitalSignsController::class, 'store']);
+        Route::get('/trends', [PatientVitalSignsController::class, 'trends']);
+        Route::get('/abnormal', [PatientVitalSignsController::class, 'abnormal']);
+        Route::get('/{id}', [PatientVitalSignsController::class, 'show']);
+        Route::put('/{id}', [PatientVitalSignsController::class, 'update']);
+        Route::delete('/{id}', [PatientVitalSignsController::class, 'destroy']);
+    });
+
+    Route::prefix('patient-diagnoses')->group(function () {
+        Route::get('/', [PatientDiagnosisController::class, 'index']);
+        Route::post('/', [PatientDiagnosisController::class, 'store']);
+        Route::get('/active', [PatientDiagnosisController::class, 'active']);
+        Route::get('/chronic', [PatientDiagnosisController::class, 'chronic']);
+        Route::get('/{id}', [PatientDiagnosisController::class, 'show']);
+        Route::put('/{id}', [PatientDiagnosisController::class, 'update']);
+        Route::delete('/{id}', [PatientDiagnosisController::class, 'destroy']);
+    });
+
+    Route::prefix('patient-allergies')->group(function () {
+        Route::get('/', [PatientAllergyController::class, 'index']);
+        Route::post('/', [PatientAllergyController::class, 'store']);
+        Route::get('/life-threatening', [PatientAllergyController::class, 'lifeThreatening']);
+        Route::get('/{id}', [PatientAllergyController::class, 'show']);
+        Route::put('/{id}', [PatientAllergyController::class, 'update']);
+        Route::delete('/{id}', [PatientAllergyController::class, 'destroy']);
+    });
+
+    Route::prefix('patient-medications')->group(function () {
+        Route::get('/', [PatientMedicationController::class, 'index']);
+        Route::post('/', [PatientMedicationController::class, 'store']);
+        Route::get('/current', [PatientMedicationController::class, 'current']);
+        Route::get('/{id}', [PatientMedicationController::class, 'show']);
+        Route::put('/{id}', [PatientMedicationController::class, 'update']);
+        Route::delete('/{id}', [PatientMedicationController::class, 'destroy']);
+    });
+
+    Route::prefix('patient-medical-history')->group(function () {
+        Route::get('/', [PatientMedicalHistoryController::class, 'index']);
+        Route::post('/', [PatientMedicalHistoryController::class, 'store']);
+        Route::get('/family-history', [PatientMedicalHistoryController::class, 'familyHistory']);
+        Route::get('/surgeries', [PatientMedicalHistoryController::class, 'surgeries']);
+        Route::get('/{id}', [PatientMedicalHistoryController::class, 'show']);
+        Route::put('/{id}', [PatientMedicalHistoryController::class, 'update']);
+        Route::delete('/{id}', [PatientMedicalHistoryController::class, 'destroy']);
     });
 
     // Future authenticated routes will go here...
