@@ -81,7 +81,36 @@ class PatientEncounterController extends Controller
             'status' => 'required|in:scheduled,arrived,in_progress,completed,cancelled,no_show',
             'priority' => 'nullable|in:routine,urgent,emergent,stat',
             'location' => 'nullable|string',
-            'room_number' => 'nullable|string'
+            'room_number' => 'nullable|string',
+            
+            // Vital signs validation
+            'vital_signs' => 'nullable|array',
+            'vital_signs.systolic_bp' => 'nullable|numeric|min:0|max:300',
+            'vital_signs.diastolic_bp' => 'nullable|numeric|min:0|max:200',
+            'vital_signs.heart_rate' => 'nullable|numeric|min:0|max:300',
+            'vital_signs.respiratory_rate' => 'nullable|numeric|min:0|max:100',
+            'vital_signs.temperature' => 'nullable|numeric|min:30|max:45',
+            'vital_signs.oxygen_saturation' => 'nullable|numeric|min:0|max:100',
+            'vital_signs.weight' => 'nullable|numeric|min:0',
+            'vital_signs.height' => 'nullable|numeric|min:0',
+            'vital_signs.pain_score' => 'nullable|integer|min:0|max:10',
+            'vital_signs.measured_at' => 'nullable|date',
+            'vital_signs.bp_position' => 'nullable|string',
+            'vital_signs.heart_rhythm' => 'nullable|string',
+            'vital_signs.temperature_unit' => 'nullable|in:celsius,fahrenheit',
+            'vital_signs.temperature_route' => 'nullable|string',
+            'vital_signs.on_oxygen' => 'nullable|boolean',
+            'vital_signs.pain_location' => 'nullable|string',
+            'vital_signs.pain_quality' => 'nullable|string',
+            
+            // Diagnoses validation
+            'diagnoses' => 'nullable|array',
+            'diagnoses.*.diagnosis_name' => 'required_with:diagnoses|string',
+            'diagnoses.*.diagnosis_code' => 'nullable|string',
+            'diagnoses.*.diagnosis_date' => 'nullable|date',
+            'diagnoses.*.severity' => 'nullable|in:mild,moderate,severe,critical,unknown',
+            'diagnoses.*.status' => 'nullable|in:active,resolved,in_remission,recurrent,inactive',
+            'diagnoses.*.clinical_notes' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -103,6 +132,44 @@ class PatientEncounterController extends Controller
         $validated['documentation_complete'] = true;
 
         $encounter = PatientEncounter::create($validated);
+
+        // Handle vital signs if provided
+        if ($request->has('vital_signs') && is_array($request->input('vital_signs'))) {
+            $vitalSignsData = $request->input('vital_signs');
+            
+            // Add required fields for vital signs
+            $vitalSignsData['client_identifier'] = $validated['client_identifier'];
+            $vitalSignsData['patient_id'] = $validated['patient_id'];
+            $vitalSignsData['encounter_id'] = $encounter->id;
+            
+            // Set default measured_at if not provided
+            if (!isset($vitalSignsData['measured_at'])) {
+                $vitalSignsData['measured_at'] = $validated['encounter_datetime'];
+            }
+            
+            // Create the vital signs record
+            $encounter->vitalSigns()->create($vitalSignsData);
+        }
+
+        // Handle diagnoses if provided
+        if ($request->has('diagnoses') && is_array($request->input('diagnoses'))) {
+            $diagnosesData = $request->input('diagnoses');
+            
+            foreach ($diagnosesData as $diagnosisData) {
+                // Add required fields for each diagnosis
+                $diagnosisData['client_identifier'] = $validated['client_identifier'];
+                $diagnosisData['patient_id'] = $validated['patient_id'];
+                $diagnosisData['encounter_id'] = $encounter->id;
+                
+                // Set default diagnosis_date if not provided
+                if (!isset($diagnosisData['diagnosis_date'])) {
+                    $diagnosisData['diagnosis_date'] = date('Y-m-d', strtotime($validated['encounter_datetime']));
+                }
+                
+                // Create the diagnosis record
+                $encounter->diagnoses()->create($diagnosisData);
+            }
+        }
 
         // Load relationships
         $encounter->load(['patient', 'vitalSigns', 'diagnoses']);
