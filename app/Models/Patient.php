@@ -58,7 +58,17 @@ class Patient extends Model
         'last_visit_date',
         'client_identifier',
         'clinic_payment_account_id',
-        'billing_type'
+        'billing_type',
+        // VIP fields
+        'is_vip',
+        'vip_tier',
+        'vip_since',
+        'vip_discount_percentage',
+        'vip_notes',
+        'priority_scheduling',
+        'extended_consultation_time',
+        'dedicated_staff_assignment',
+        'complimentary_services'
     ];
 
     /**
@@ -66,6 +76,67 @@ class Patient extends Model
      */
     public const BILLING_INDIVIDUAL = 'individual';
     public const BILLING_ACCOUNT = 'account';
+
+    /**
+     * VIP tier constants
+     */
+    public const VIP_TIER_STANDARD = 'standard';
+    public const VIP_TIER_GOLD = 'gold';
+    public const VIP_TIER_PLATINUM = 'platinum';
+    public const VIP_TIER_DIAMOND = 'diamond';
+
+    /**
+     * VIP tier benefits configuration
+     */
+    public static function getVipTierBenefits(): array
+    {
+        return [
+            self::VIP_TIER_STANDARD => [
+                'name' => 'Standard',
+                'discount_percentage' => 0.00,
+                'priority_scheduling' => false,
+                'extended_consultation_time' => false,
+                'dedicated_staff_assignment' => false,
+                'complimentary_services' => false,
+                'color' => 'gray',
+                'icon' => '⭐',
+                'description' => 'Regular patient status'
+            ],
+            self::VIP_TIER_GOLD => [
+                'name' => 'Gold VIP',
+                'discount_percentage' => 5.00,
+                'priority_scheduling' => true,
+                'extended_consultation_time' => false,
+                'dedicated_staff_assignment' => false,
+                'complimentary_services' => false,
+                'color' => 'yellow',
+                'icon' => '🥇',
+                'description' => 'Priority scheduling + 5% discount'
+            ],
+            self::VIP_TIER_PLATINUM => [
+                'name' => 'Platinum VIP',
+                'discount_percentage' => 10.00,
+                'priority_scheduling' => true,
+                'extended_consultation_time' => true,
+                'dedicated_staff_assignment' => false,
+                'complimentary_services' => true,
+                'color' => 'blue',
+                'icon' => '💎',
+                'description' => 'Extended consultation + 10% discount + complimentary services'
+            ],
+            self::VIP_TIER_DIAMOND => [
+                'name' => 'Diamond VIP',
+                'discount_percentage' => 15.00,
+                'priority_scheduling' => true,
+                'extended_consultation_time' => true,
+                'dedicated_staff_assignment' => true,
+                'complimentary_services' => true,
+                'color' => 'purple',
+                'icon' => '👑',
+                'description' => 'Full VIP experience + 15% discount + dedicated staff'
+            ]
+        ];
+    }
 
     public function bills(): HasMany
     {
@@ -202,5 +273,142 @@ class Patient extends Model
         }
         
         return $this->name;
+    }
+
+    /**
+     * Check if patient is VIP
+     */
+    public function isVip(): bool
+    {
+        return $this->is_vip === true;
+    }
+
+    /**
+     * Get VIP tier benefits
+     */
+    public function getVipBenefits(): array
+    {
+        $benefits = self::getVipTierBenefits();
+        return $benefits[$this->vip_tier] ?? $benefits[self::VIP_TIER_STANDARD];
+    }
+
+    /**
+     * Get VIP tier display information
+     */
+    public function getVipTierDisplayAttribute(): array
+    {
+        $benefits = $this->getVipBenefits();
+        return [
+            'name' => $benefits['name'],
+            'icon' => $benefits['icon'],
+            'color' => $benefits['color'],
+            'description' => $benefits['description']
+        ];
+    }
+
+    /**
+     * Calculate discount amount for a given bill amount
+     */
+    public function calculateVipDiscount(float $amount): float
+    {
+        if (!$this->isVip()) {
+            return 0.00;
+        }
+
+        $discountPercentage = $this->vip_discount_percentage > 0 
+            ? $this->vip_discount_percentage 
+            : $this->getVipBenefits()['discount_percentage'];
+
+        return ($amount * $discountPercentage) / 100;
+    }
+
+    /**
+     * Get final amount after VIP discount
+     */
+    public function applyVipDiscount(float $amount): float
+    {
+        $discount = $this->calculateVipDiscount($amount);
+        return $amount - $discount;
+    }
+
+    /**
+     * Check if patient has priority scheduling privilege
+     */
+    public function hasPriorityScheduling(): bool
+    {
+        return $this->isVip() && ($this->priority_scheduling || $this->getVipBenefits()['priority_scheduling']);
+    }
+
+    /**
+     * Check if patient has extended consultation time privilege
+     */
+    public function hasExtendedConsultationTime(): bool
+    {
+        return $this->isVip() && ($this->extended_consultation_time || $this->getVipBenefits()['extended_consultation_time']);
+    }
+
+    /**
+     * Check if patient has dedicated staff assignment privilege
+     */
+    public function hasDedicatedStaffAssignment(): bool
+    {
+        return $this->isVip() && ($this->dedicated_staff_assignment || $this->getVipBenefits()['dedicated_staff_assignment']);
+    }
+
+    /**
+     * Check if patient has complimentary services privilege
+     */
+    public function hasComplimentaryServices(): bool
+    {
+        return $this->isVip() && ($this->complimentary_services || $this->getVipBenefits()['complimentary_services']);
+    }
+
+    /**
+     * Promote patient to VIP status
+     */
+    public function promoteToVip(string $tier = self::VIP_TIER_GOLD, array $customBenefits = []): void
+    {
+        $this->is_vip = true;
+        $this->vip_tier = $tier;
+        $this->vip_since = now();
+        
+        // Apply tier benefits or custom benefits
+        $benefits = $customBenefits ?: $this->getVipTierBenefits()[$tier];
+        
+        if (isset($benefits['discount_percentage'])) {
+            $this->vip_discount_percentage = $benefits['discount_percentage'];
+        }
+        if (isset($benefits['priority_scheduling'])) {
+            $this->priority_scheduling = $benefits['priority_scheduling'];
+        }
+        if (isset($benefits['extended_consultation_time'])) {
+            $this->extended_consultation_time = $benefits['extended_consultation_time'];
+        }
+        if (isset($benefits['dedicated_staff_assignment'])) {
+            $this->dedicated_staff_assignment = $benefits['dedicated_staff_assignment'];
+        }
+        if (isset($benefits['complimentary_services'])) {
+            $this->complimentary_services = $benefits['complimentary_services'];
+        }
+        
+        $this->save();
+    }
+
+    /**
+     * Remove VIP status
+     */
+    public function removeVipStatus(): void
+    {
+        $this->is_vip = false;
+        $this->vip_tier = self::VIP_TIER_STANDARD;
+        $this->vip_since = null;
+        $this->vip_discount_percentage = 0.00;
+        $this->vip_notes = null;
+        $this->priority_scheduling = false;
+        $this->extended_consultation_time = false;
+        $this->dedicated_staff_assignment = false;
+        $this->complimentary_services = false;
+        
+        $this->save();
     }
 }

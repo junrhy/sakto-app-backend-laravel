@@ -159,4 +159,65 @@ class PatientController extends Controller
         $patient->save();
         return response()->json(['data' => $patient]);
     }
+
+    /**
+     * Update patient VIP status
+     */
+    public function updateVipStatus(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'is_vip' => 'required|boolean',
+                'vip_tier' => 'nullable|in:standard,gold,platinum,diamond',
+                'vip_discount_percentage' => 'nullable|numeric|min:0|max:100',
+                'vip_notes' => 'nullable|string',
+                'priority_scheduling' => 'nullable|boolean',
+                'extended_consultation_time' => 'nullable|boolean',
+                'dedicated_staff_assignment' => 'nullable|boolean',
+                'complimentary_services' => 'nullable|boolean',
+                'client_identifier' => 'required|string'
+            ]);
+
+            $patient = Patient::where('id', $id)
+                ->where('client_identifier', $validated['client_identifier'])
+                ->firstOrFail();
+
+            // If removing VIP status, clear all VIP fields
+            if (!$validated['is_vip']) {
+                $patient->removeVipStatus();
+            } else {
+                // Update VIP status
+                $patient->is_vip = $validated['is_vip'];
+                $patient->vip_tier = $validated['vip_tier'] ?? 'gold';
+                $patient->vip_discount_percentage = $validated['vip_discount_percentage'] ?? 0;
+                $patient->vip_notes = $validated['vip_notes'] ?? null;
+                $patient->priority_scheduling = $validated['priority_scheduling'] ?? false;
+                $patient->extended_consultation_time = $validated['extended_consultation_time'] ?? false;
+                $patient->dedicated_staff_assignment = $validated['dedicated_staff_assignment'] ?? false;
+                $patient->complimentary_services = $validated['complimentary_services'] ?? false;
+                
+                // Set VIP since date if this is the first time being set as VIP
+                if (!$patient->vip_since) {
+                    $patient->vip_since = now();
+                }
+                
+                $patient->save();
+            }
+
+            // Load fresh patient data with VIP tier display information
+            $patient->refresh();
+            $patient->vip_tier_display = $patient->vip_tier_display;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'VIP status updated successfully',
+                'patient' => $patient
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to update VIP status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
