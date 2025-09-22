@@ -34,7 +34,7 @@ class AppointmentController extends Controller
             $query->where('patient_id', $patientId);
         }
 
-        $appointments = $query->orderBy('appointment_date', 'asc')->get();
+        $appointments = $query->orderByPriority()->get();
 
         return response()->json([
             'success' => true,
@@ -68,7 +68,7 @@ class AppointmentController extends Controller
         // Get patient details
         $patient = Patient::find($request->patient_id);
         
-        $appointment = Appointment::create([
+        $appointment = new Appointment([
             'client_identifier' => $request->client_identifier,
             'patient_id' => $request->patient_id,
             'patient_name' => $patient->name,
@@ -83,6 +83,10 @@ class AppointmentController extends Controller
             'status' => 'scheduled',
             'payment_status' => 'pending'
         ]);
+
+        // Set VIP priority based on patient
+        $appointment->setPriorityFromPatient($patient);
+        $appointment->save();
 
         return response()->json([
             'success' => true,
@@ -188,7 +192,7 @@ class AppointmentController extends Controller
         $appointments = Appointment::byClient($clientIdentifier)
             ->today()
             ->with('patient')
-            ->orderBy('appointment_time', 'asc')
+            ->orderByPriority()
             ->get();
 
         return response()->json([
@@ -208,7 +212,7 @@ class AppointmentController extends Controller
         $appointments = Appointment::byClient($clientIdentifier)
             ->upcoming()
             ->with('patient')
-            ->orderBy('appointment_date', 'asc')
+            ->orderByPriority()
             ->limit($limit)
             ->get();
 
@@ -242,7 +246,7 @@ class AppointmentController extends Controller
         $appointments = Appointment::byClient($clientIdentifier)
             ->byDateRange($startDate, $endDate)
             ->with('patient')
-            ->orderBy('appointment_date', 'asc')
+            ->orderByPriority()
             ->get();
 
         return response()->json([

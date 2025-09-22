@@ -72,6 +72,23 @@ class Patient extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'birthdate' => 'date',
+        'insurance_expiration_date' => 'date',
+        'has_advance_directive' => 'boolean',
+        'last_visit_date' => 'date',
+        'is_vip' => 'boolean',
+        'vip_since' => 'datetime',
+        'vip_discount_percentage' => 'decimal:2',
+        'priority_scheduling' => 'boolean',
+        'extended_consultation_time' => 'boolean',
+        'dedicated_staff_assignment' => 'boolean',
+        'complimentary_services' => 'boolean',
+    ];
+
+    /**
      * Billing type constants
      */
     public const BILLING_INDIVIDUAL = 'individual';
