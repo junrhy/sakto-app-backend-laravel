@@ -14,7 +14,22 @@ class PatientController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->input('client_identifier');
-        $patients = Patient::where('client_identifier', $clientIdentifier)->with('bills', 'payments', 'checkups', 'dentalChart')->get();
+        $query = Patient::where('client_identifier', $clientIdentifier)->with('bills', 'payments', 'checkups', 'dentalChart');
+        
+        // Add search filters if provided
+        if ($request->has('email') && !empty($request->input('email'))) {
+            $query->where('email', $request->input('email'));
+        }
+        
+        if ($request->has('phone') && !empty($request->input('phone'))) {
+            $query->where('phone', $request->input('phone'));
+        }
+        
+        if ($request->has('name') && !empty($request->input('name'))) {
+            $query->where('name', 'LIKE', '%' . $request->input('name') . '%');
+        }
+        
+        $patients = $query->get();
         
         // Transform dental chart data for frontend
         $patients = $patients->map(function ($patient) {
