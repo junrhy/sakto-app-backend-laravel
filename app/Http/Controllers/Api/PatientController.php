@@ -58,13 +58,32 @@ class PatientController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request
+        // Validate the request with comprehensive field validation
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'arn' => 'nullable|string|max:255|unique:patients,arn',
-            'birthdate' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email',
+            'birthdate' => 'nullable|date',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'address' => 'nullable|string|max:500',
+            'gender' => 'nullable|string|in:male,female,other,prefer_not_to_say',
+            'blood_type' => 'nullable|string|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
+            'preferred_language' => 'nullable|string|max:100',
+            'smoking_status' => 'nullable|string|in:never,former,current,unknown',
+            'alcohol_use' => 'nullable|string|in:never,occasional,moderate,heavy,unknown',
+            'occupation' => 'nullable|string|max:255',
+            'status' => 'nullable|string|in:active,inactive,deceased',
+            'medical_history' => 'nullable|string',
+            'allergies' => 'nullable|string',
+            'medications' => 'nullable|string',
+            'emergency_contact_name' => 'nullable|string|max:255',
+            'emergency_contact_relationship' => 'nullable|string|max:100',
+            'emergency_contact_phone' => 'nullable|string|max:20',
+            'emergency_contact_email' => 'nullable|email|max:255',
+            'emergency_contact_address' => 'nullable|string|max:500',
+            'insurance_provider' => 'nullable|string|max:255',
+            'insurance_policy_number' => 'nullable|string|max:100',
+            'insurance_expiration_date' => 'nullable|date',
             'client_identifier' => 'required|string'
         ]);
 
