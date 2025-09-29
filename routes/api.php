@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\InboxController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\FnbSettingsController;
+use App\Http\Controllers\Api\ClinicSettingsController;
 use App\Http\Controllers\Api\FnbRestaurantController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\FoodDeliveryOrderController;
@@ -385,6 +386,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/remove-stock', [ClinicInventoryController::class, 'removeStock']);
         Route::post('/{id}/adjust-stock', [ClinicInventoryController::class, 'adjustStock']);
         Route::get('/{id}/transactions', [ClinicInventoryController::class, 'getTransactions']);
+    });
+
+    // Clinic Settings Routes
+    Route::prefix('clinic')->group(function () {
+        Route::get('/settings', [ClinicSettingsController::class, 'index']);
+        Route::post('/settings', [ClinicSettingsController::class, 'store']);
     });
 
     // Contact Routes
