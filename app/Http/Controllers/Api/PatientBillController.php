@@ -219,4 +219,61 @@ class PatientBillController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get outstanding bills for dashboard widget
+     */
+    public function getOutstandingBills(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            $limit = $request->input('limit', 5);
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            // Get outstanding bills (pending, partial, overdue status)
+            $outstandingBills = PatientBill::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })
+            ->whereIn('bill_status', ['pending', 'partial', 'overdue'])
+            ->with(['patient'])
+            ->orderBy('bill_date', 'asc')
+            ->limit($limit)
+            ->get();
+
+            // Format the bills for the frontend
+            $formattedBills = $outstandingBills->map(function ($bill) {
+                $daysOverdue = 0;
+                if ($bill->bill_status === 'overdue' || 
+                    ($bill->bill_status === 'pending' && $bill->bill_date < today())) {
+                    $daysOverdue = today()->diffInDays($bill->bill_date);
+                }
+
+                return [
+                    'id' => $bill->id,
+                    'patient_name' => $bill->patient->name,
+                    'amount' => $bill->bill_amount,
+                    'due_date' => $bill->bill_date->format('Y-m-d'),
+                    'status' => $bill->bill_status,
+                    'days_overdue' => $daysOverdue,
+                    'treatment' => $bill->bill_details ?: 'General Consultation',
+                    'bill_number' => $bill->bill_number
+                ];
+            });
+
+            return response()->json([
+                'bills' => $formattedBills
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch outstanding bills', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch outstanding bills'], 500);
+        }
+    }
 }

@@ -1,8 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/core';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import {
     Table,
@@ -12,14 +9,17 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { toast } from 'sonner';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/Components/ui/tooltip";
+} from '@/Components/ui/tooltip';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { router } from '@inertiajs/core';
+import { Head } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface ClientDetail {
     id: number;
@@ -46,14 +46,15 @@ export default function Index({ clientDetails }: Props) {
     // Filter client details based on search term
     const filteredDetails = useMemo(() => {
         if (!searchTerm) return clientDetails;
-        
+
         const searchLower = searchTerm.toLowerCase();
-        return clientDetails.filter(detail => 
-            detail.client?.name.toLowerCase().includes(searchLower) ||
-            detail.app_name.toLowerCase().includes(searchLower) ||
-            detail.name.toLowerCase().includes(searchLower) ||
-            detail.value.toLowerCase().includes(searchLower) ||
-            detail.client_identifier.toLowerCase().includes(searchLower)
+        return clientDetails.filter(
+            (detail) =>
+                detail.client?.name.toLowerCase().includes(searchLower) ||
+                detail.app_name.toLowerCase().includes(searchLower) ||
+                detail.name.toLowerCase().includes(searchLower) ||
+                detail.value.toLowerCase().includes(searchLower) ||
+                detail.client_identifier.toLowerCase().includes(searchLower),
         );
     }, [clientDetails, searchTerm]);
 
@@ -85,7 +86,11 @@ export default function Index({ clientDetails }: Props) {
             return;
         }
 
-        if (confirm('Are you sure you want to delete the selected client details?')) {
+        if (
+            confirm(
+                'Are you sure you want to delete the selected client details?',
+            )
+        ) {
             router.post(
                 route('clientdetails.bulk-destroy'),
                 { ids: selectedDetails },
@@ -94,7 +99,7 @@ export default function Index({ clientDetails }: Props) {
                         setSelectedDetails([]);
                         toast.success('Client details deleted successfully');
                     },
-                }
+                },
             );
         }
     };
@@ -103,13 +108,15 @@ export default function Index({ clientDetails }: Props) {
         if (selectedDetails.length === paginatedDetails.length) {
             setSelectedDetails([]);
         } else {
-            setSelectedDetails(paginatedDetails.map(detail => detail.id));
+            setSelectedDetails(paginatedDetails.map((detail) => detail.id));
         }
     };
 
     const toggleSelect = (id: number) => {
         if (selectedDetails.includes(id)) {
-            setSelectedDetails(selectedDetails.filter(detailId => detailId !== id));
+            setSelectedDetails(
+                selectedDetails.filter((detailId) => detailId !== id),
+            );
         } else {
             setSelectedDetails([...selectedDetails, id]);
         }
@@ -123,12 +130,12 @@ export default function Index({ clientDetails }: Props) {
     // Generate pagination links
     const paginationLinks = useMemo(() => {
         const links = [];
-        
+
         // Previous page
         links.push({
             url: currentPage > 1 ? '#' : null,
             label: '&laquo; Previous',
-            active: false
+            active: false,
         });
 
         // Page numbers
@@ -136,7 +143,7 @@ export default function Index({ clientDetails }: Props) {
             links.push({
                 url: '#',
                 label: i.toString(),
-                active: i === currentPage
+                active: i === currentPage,
             });
         }
 
@@ -144,7 +151,7 @@ export default function Index({ clientDetails }: Props) {
         links.push({
             url: currentPage < totalPages ? '#' : null,
             label: 'Next &raquo;',
-            active: false
+            active: false,
         });
 
         return links;
@@ -152,50 +159,74 @@ export default function Index({ clientDetails }: Props) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manage Client Details</h2>}
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Manage Client Details
+                </h2>
+            }
         >
             <Head title="Client Details" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                         <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-semibold">Client Details</h2>
-                                <Button onClick={() => router.visit(route('clientdetails.create'))}>
+                            <div className="mb-6 flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">
+                                    Client Details
+                                </h2>
+                                <Button
+                                    onClick={() =>
+                                        router.visit(
+                                            route('clientdetails.create'),
+                                        )
+                                    }
+                                >
                                     New Client Detail
                                 </Button>
                             </div>
 
-                            <div className="flex gap-4 mb-6">
+                            <div className="mb-6 flex gap-4">
                                 <Input
                                     placeholder="Search client details..."
                                     value={searchTerm}
-                                    onChange={(e) => handleSearch(e.target.value)}
+                                    onChange={(e) =>
+                                        handleSearch(e.target.value)
+                                    }
                                     className="max-w-sm"
                                 />
                                 {selectedDetails.length > 0 && (
-                                    <Button variant="destructive" onClick={handleBulkDelete}>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleBulkDelete}
+                                    >
                                         Delete Selected
                                     </Button>
                                 )}
                             </div>
 
-                            <div className="border rounded-md">
+                            <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead className="w-[50px]">
                                                 <Checkbox
-                                                    checked={selectedDetails.length === paginatedDetails.length}
-                                                    onCheckedChange={toggleSelectAll}
+                                                    checked={
+                                                        selectedDetails.length ===
+                                                        paginatedDetails.length
+                                                    }
+                                                    onCheckedChange={
+                                                        toggleSelectAll
+                                                    }
                                                 />
                                             </TableHead>
                                             <TableHead>Client</TableHead>
                                             <TableHead>App Name</TableHead>
                                             <TableHead>Name</TableHead>
                                             <TableHead>Value</TableHead>
-                                            <TableHead className="w-[200px] whitespace-nowrap">Client Identifier</TableHead>
+                                            <TableHead className="w-[200px] whitespace-nowrap">
+                                                Client Identifier
+                                            </TableHead>
                                             <TableHead>Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -204,23 +235,44 @@ export default function Index({ clientDetails }: Props) {
                                             <TableRow key={detail.id}>
                                                 <TableCell>
                                                     <Checkbox
-                                                        checked={selectedDetails.includes(detail.id)}
-                                                        onCheckedChange={() => toggleSelect(detail.id)}
+                                                        checked={selectedDetails.includes(
+                                                            detail.id,
+                                                        )}
+                                                        onCheckedChange={() =>
+                                                            toggleSelect(
+                                                                detail.id,
+                                                            )
+                                                        }
                                                     />
                                                 </TableCell>
-                                                <TableCell>{detail.client?.name}</TableCell>
-                                                <TableCell>{detail.app_name}</TableCell>
-                                                <TableCell>{detail.name}</TableCell>
-                                                <TableCell>{detail.value}</TableCell>
+                                                <TableCell>
+                                                    {detail.client?.name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {detail.app_name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {detail.name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {detail.value}
+                                                </TableCell>
                                                 <TableCell>
                                                     <TooltipProvider>
                                                         <Tooltip>
-                                                            <TooltipTrigger asChild>
+                                                            <TooltipTrigger
+                                                                asChild
+                                                            >
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                                                                        {truncateText(detail.client_identifier)}
+                                                                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                                                                        {truncateText(
+                                                                            detail.client_identifier,
+                                                                        )}
                                                                     </span>
-                                                                    {detail.client_identifier.length > 12 && (
+                                                                    {detail
+                                                                        .client_identifier
+                                                                        .length >
+                                                                        12 && (
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="sm"
@@ -235,13 +287,17 @@ export default function Index({ clientDetails }: Props) {
                                                                                 <path
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    strokeWidth={2}
+                                                                                    strokeWidth={
+                                                                                        2
+                                                                                    }
                                                                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                                                                                 />
                                                                                 <path
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    strokeWidth={2}
+                                                                                    strokeWidth={
+                                                                                        2
+                                                                                    }
                                                                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                                                                 />
                                                                             </svg>
@@ -250,7 +306,11 @@ export default function Index({ clientDetails }: Props) {
                                                                 </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p className="max-w-xs break-all">{detail.client_identifier}</p>
+                                                                <p className="max-w-xs break-all">
+                                                                    {
+                                                                        detail.client_identifier
+                                                                    }
+                                                                </p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
@@ -260,14 +320,25 @@ export default function Index({ clientDetails }: Props) {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => router.visit(route('clientdetails.edit', detail.id))}
+                                                            onClick={() =>
+                                                                router.visit(
+                                                                    route(
+                                                                        'clientdetails.edit',
+                                                                        detail.id,
+                                                                    ),
+                                                                )
+                                                            }
                                                         >
                                                             Edit
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
-                                                            onClick={() => handleDelete(detail.id)}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    detail.id,
+                                                                )
+                                                            }
                                                         >
                                                             Delete
                                                         </Button>
@@ -282,25 +353,47 @@ export default function Index({ clientDetails }: Props) {
                             {/* Pagination */}
                             <div className="mt-4 flex items-center justify-between">
                                 <div className="text-sm text-gray-700">
-                                    Showing {paginatedDetails.length} of {filteredDetails.length} results
+                                    Showing {paginatedDetails.length} of{' '}
+                                    {filteredDetails.length} results
                                 </div>
                                 <div className="flex gap-2">
                                     {paginationLinks.map((link, i) => (
                                         <Button
                                             key={i}
-                                            variant={link.active ? "default" : "outline"}
+                                            variant={
+                                                link.active
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
                                             size="sm"
                                             disabled={!link.url}
                                             onClick={() => {
-                                                if (link.label.includes('Previous')) {
-                                                    setCurrentPage(prev => Math.max(1, prev - 1));
-                                                } else if (link.label.includes('Next')) {
-                                                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                                                if (
+                                                    link.label.includes(
+                                                        'Previous',
+                                                    )
+                                                ) {
+                                                    setCurrentPage((prev) =>
+                                                        Math.max(1, prev - 1),
+                                                    );
+                                                } else if (
+                                                    link.label.includes('Next')
+                                                ) {
+                                                    setCurrentPage((prev) =>
+                                                        Math.min(
+                                                            totalPages,
+                                                            prev + 1,
+                                                        ),
+                                                    );
                                                 } else {
-                                                    setCurrentPage(parseInt(link.label));
+                                                    setCurrentPage(
+                                                        parseInt(link.label),
+                                                    );
                                                 }
                                             }}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
                                         />
                                     ))}
                                 </div>
@@ -311,4 +404,4 @@ export default function Index({ clientDetails }: Props) {
             </div>
         </AuthenticatedLayout>
     );
-} 
+}

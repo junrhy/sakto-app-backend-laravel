@@ -254,4 +254,162 @@ class PatientController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get patient statistics for dashboard widget
+     */
+    public function getStats(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            // Get patient statistics
+            $totalPatients = Patient::where('client_identifier', $clientIdentifier)->count();
+            
+            $newPatientsThisMonth = Patient::where('client_identifier', $clientIdentifier)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->count();
+            
+            $vipPatients = Patient::where('client_identifier', $clientIdentifier)
+                ->where('is_vip', true)
+                ->count();
+            
+            $patientsWithOutstandingBills = Patient::where('client_identifier', $clientIdentifier)
+                ->whereHas('bills', function($query) {
+                    $query->whereIn('bill_status', ['pending', 'partial', 'overdue']);
+                })
+                ->count();
+            
+            return response()->json([
+                'total_patients' => $totalPatients,
+                'new_patients_this_month' => $newPatientsThisMonth,
+                'vip_patients' => $vipPatients,
+                'patients_with_outstanding_bills' => $patientsWithOutstandingBills
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch patient statistics', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch patient statistics'], 500);
+        }
+    }
+
+    /**
+     * Get recent patients for dashboard widget
+     */
+    public function getRecent(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            $limit = $request->input('limit', 5);
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            $patients = Patient::where('client_identifier', $clientIdentifier)
+                ->select([
+                    'id',
+                    'name',
+                    'email',
+                    'phone as contact_number',
+                    'status',
+                    'is_vip',
+                    'created_at'
+                ])
+                ->orderBy('created_at', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($patient) {
+                    return [
+                        'id' => $patient->id,
+                        'name' => $patient->name,
+                        'email' => $patient->email,
+                        'contact_number' => $patient->contact_number,
+                        'status' => $patient->status ?? 'active',
+                        'is_vip' => (bool) $patient->is_vip,
+                        'created_at' => $patient->created_at
+                    ];
+                });
+            
+            return response()->json([
+                'patients' => $patients
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch recent patients', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch recent patients'], 500);
+        }
+    }
+
+    /**
+     * Get VIP patients for dashboard widget
+     */
+    public function getVip(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            $limit = $request->input('limit', 5);
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            $patients = Patient::where('client_identifier', $clientIdentifier)
+                ->where('is_vip', true)
+                ->select([
+                    'id',
+                    'name',
+                    'email',
+                    'phone as contact_number',
+                    'status',
+                    'is_vip',
+                    'vip_tier as vip_level',
+                    'total_visits',
+                    'last_visit_date as last_visit',
+                    'created_at'
+                ])
+                ->orderBy('total_visits', 'desc')
+                ->limit($limit)
+                ->get()
+                ->map(function ($patient) {
+                    return [
+                        'id' => $patient->id,
+                        'name' => $patient->name,
+                        'email' => $patient->email,
+                        'contact_number' => $patient->contact_number,
+                        'status' => $patient->status ?? 'active',
+                        'is_vip' => (bool) $patient->is_vip,
+                        'vip_level' => $patient->vip_level ?? 'silver',
+                        'total_visits' => $patient->total_visits ?? 0,
+                        'last_visit' => $patient->last_visit,
+                        'created_at' => $patient->created_at
+                    ];
+                });
+            
+            return response()->json([
+                'patients' => $patients
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch VIP patients', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch VIP patients'], 500);
+        }
+    }
 }

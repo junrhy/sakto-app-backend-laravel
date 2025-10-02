@@ -233,4 +233,163 @@ class PatientPaymentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get revenue statistics for dashboard widget
+     */
+    public function getStats(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            // Get total revenue (all time)
+            $totalRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->sum('payment_amount');
+            
+            // Get today's revenue
+            $todayRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->whereDate('payment_date', today())->sum('payment_amount');
+            
+            // Get this month's revenue
+            $monthlyRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->whereMonth('payment_date', now()->month)
+              ->whereYear('payment_date', now()->year)
+              ->sum('payment_amount');
+            
+            // Get last month's revenue for growth calculation
+            $lastMonthRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->whereMonth('payment_date', now()->subMonth()->month)
+              ->whereYear('payment_date', now()->subMonth()->year)
+              ->sum('payment_amount');
+            
+            // Calculate revenue growth percentage
+            $revenueGrowth = 0;
+            if ($lastMonthRevenue > 0) {
+                $revenueGrowth = (($monthlyRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100;
+            } elseif ($monthlyRevenue > 0) {
+                $revenueGrowth = 100; // 100% growth if no previous revenue
+            }
+            
+            // Get outstanding amount (from appointments with pending payments)
+            $outstandingAmount = \App\Models\Appointment::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'pending')
+                ->sum('fee');
+            
+            // Get payment methods breakdown
+            $paymentMethods = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->whereMonth('payment_date', now()->month)
+              ->whereYear('payment_date', now()->year)
+              ->selectRaw('payment_method, SUM(payment_amount) as total')
+              ->groupBy('payment_method')
+              ->pluck('total', 'payment_method')
+              ->toArray();
+            
+            // Ensure all payment methods are represented
+            $defaultPaymentMethods = [
+                'cash' => 0,
+                'card' => 0,
+                'insurance' => 0,
+                'online' => 0,
+                'other' => 0
+            ];
+            
+            $paymentMethods = array_merge($defaultPaymentMethods, $paymentMethods);
+            
+            return response()->json([
+                'total_revenue' => $totalRevenue,
+                'today_revenue' => $todayRevenue,
+                'monthly_revenue' => $monthlyRevenue,
+                'outstanding_amount' => $outstandingAmount,
+                'revenue_growth' => round($revenueGrowth, 2),
+                'payment_methods' => $paymentMethods
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch revenue statistics', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch revenue statistics'], 500);
+        }
+    }
+
+    /**
+     * Get payment statistics for dashboard widget
+     */
+    public function getPaymentStats(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            // Get total payments count
+            $totalPayments = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->count();
+            
+            // Get pending payments (from appointments with pending payment status)
+            $pendingPayments = \App\Models\Appointment::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'pending')
+                ->count();
+            
+            // Get overdue payments (appointments with pending status that are past due)
+            $overduePayments = \App\Models\Appointment::where('client_identifier', $clientIdentifier)
+                ->where('payment_status', 'pending')
+                ->where('appointment_date', '<', today())
+                ->count();
+            
+            // Get payment methods breakdown for current month
+            $paymentMethods = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
+                $query->where('client_identifier', $clientIdentifier);
+            })->whereMonth('payment_date', now()->month)
+              ->whereYear('payment_date', now()->year)
+              ->selectRaw('payment_method, COUNT(*) as count')
+              ->groupBy('payment_method')
+              ->pluck('count', 'payment_method')
+              ->toArray();
+            
+            // Ensure all payment methods are represented
+            $defaultPaymentMethods = [
+                'cash' => 0,
+                'card' => 0,
+                'insurance' => 0,
+                'online' => 0,
+                'other' => 0
+            ];
+            
+            $paymentMethods = array_merge($defaultPaymentMethods, $paymentMethods);
+            
+            // Calculate average payment time (simplified - just return a default value for now)
+            $averagePaymentTime = 2.5; // Default value
+            
+            return response()->json([
+                'total_payments' => $totalPayments,
+                'pending_payments' => $pendingPayments,
+                'overdue_payments' => $overduePayments,
+                'payment_methods' => $paymentMethods,
+                'average_payment_time' => $averagePaymentTime
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch payment statistics', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch payment statistics'], 500);
+        }
+    }
 }

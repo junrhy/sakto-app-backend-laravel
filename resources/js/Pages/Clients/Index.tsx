@@ -1,8 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
-import { router } from '@inertiajs/core';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import {
     Table,
@@ -12,14 +9,17 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table';
-import { Checkbox } from '@/Components/ui/checkbox';
-import { toast } from 'sonner';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/Components/ui/tooltip";
+} from '@/Components/ui/tooltip';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { router } from '@inertiajs/core';
+import { Head } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Client {
     id: number;
@@ -44,14 +44,15 @@ export default function Index({ clients }: Props) {
     // Filter clients based on search term
     const filteredClients = useMemo(() => {
         if (!searchTerm) return clients;
-        
+
         const searchLower = searchTerm.toLowerCase();
-        return clients.filter(client => 
-            client.name.toLowerCase().includes(searchLower) ||
-            client.email.toLowerCase().includes(searchLower) ||
-            client.client_identifier.toLowerCase().includes(searchLower) ||
-            client.contact_number?.toLowerCase().includes(searchLower) ||
-            client.referrer.toLowerCase().includes(searchLower)
+        return clients.filter(
+            (client) =>
+                client.name.toLowerCase().includes(searchLower) ||
+                client.email.toLowerCase().includes(searchLower) ||
+                client.client_identifier.toLowerCase().includes(searchLower) ||
+                client.contact_number?.toLowerCase().includes(searchLower) ||
+                client.referrer.toLowerCase().includes(searchLower),
         );
     }, [clients, searchTerm]);
 
@@ -92,7 +93,7 @@ export default function Index({ clients }: Props) {
                         setSelectedClients([]);
                         toast.success('Clients deleted successfully');
                     },
-                }
+                },
             );
         }
     };
@@ -101,13 +102,15 @@ export default function Index({ clients }: Props) {
         if (selectedClients.length === paginatedClients.length) {
             setSelectedClients([]);
         } else {
-            setSelectedClients(paginatedClients.map(client => client.id));
+            setSelectedClients(paginatedClients.map((client) => client.id));
         }
     };
 
     const toggleSelect = (id: number) => {
         if (selectedClients.includes(id)) {
-            setSelectedClients(selectedClients.filter(clientId => clientId !== id));
+            setSelectedClients(
+                selectedClients.filter((clientId) => clientId !== id),
+            );
         } else {
             setSelectedClients([...selectedClients, id]);
         }
@@ -121,12 +124,12 @@ export default function Index({ clients }: Props) {
     // Generate pagination links
     const paginationLinks = useMemo(() => {
         const links = [];
-        
+
         // Previous page
         links.push({
             url: currentPage > 1 ? '#' : null,
             label: '&laquo; Previous',
-            active: false
+            active: false,
         });
 
         // Page numbers
@@ -134,7 +137,7 @@ export default function Index({ clients }: Props) {
             links.push({
                 url: '#',
                 label: i.toString(),
-                active: i === currentPage
+                active: i === currentPage,
             });
         }
 
@@ -142,7 +145,7 @@ export default function Index({ clients }: Props) {
         links.push({
             url: currentPage < totalPages ? '#' : null,
             label: 'Next &raquo;',
-            active: false
+            active: false,
         });
 
         return links;
@@ -150,49 +153,73 @@ export default function Index({ clients }: Props) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manage Clients</h2>}
+            header={
+                <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    Manage Clients
+                </h2>
+            }
         >
             <Head title="Clients" />
 
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                         <div className="p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-semibold">Clients</h2>
-                                <Button onClick={() => router.visit(route('clients.create'))}>
+                            <div className="mb-6 flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold">
+                                    Clients
+                                </h2>
+                                <Button
+                                    onClick={() =>
+                                        router.visit(route('clients.create'))
+                                    }
+                                >
                                     New Client
                                 </Button>
                             </div>
 
-                            <div className="flex gap-4 mb-6">
+                            <div className="mb-6 flex gap-4">
                                 <Input
                                     placeholder="Search clients..."
                                     value={searchTerm}
-                                    onChange={(e) => handleSearch(e.target.value)}
+                                    onChange={(e) =>
+                                        handleSearch(e.target.value)
+                                    }
                                     className="max-w-sm"
                                 />
                                 {selectedClients.length > 0 && (
-                                    <Button variant="destructive" onClick={handleBulkDelete}>
+                                    <Button
+                                        variant="destructive"
+                                        onClick={handleBulkDelete}
+                                    >
                                         Delete Selected
                                     </Button>
                                 )}
                             </div>
 
-                            <div className="border rounded-md">
+                            <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead className="w-[50px]">
                                                 <Checkbox
-                                                    checked={selectedClients.length === paginatedClients.length}
-                                                    onCheckedChange={toggleSelectAll}
+                                                    checked={
+                                                        selectedClients.length ===
+                                                        paginatedClients.length
+                                                    }
+                                                    onCheckedChange={
+                                                        toggleSelectAll
+                                                    }
                                                 />
                                             </TableHead>
                                             <TableHead>Name</TableHead>
                                             <TableHead>Email</TableHead>
-                                            <TableHead>Contact Number</TableHead>
-                                            <TableHead className="w-[200px] whitespace-nowrap">Client Identifier</TableHead>
+                                            <TableHead>
+                                                Contact Number
+                                            </TableHead>
+                                            <TableHead className="w-[200px] whitespace-nowrap">
+                                                Client Identifier
+                                            </TableHead>
                                             <TableHead>Referrer</TableHead>
                                             <TableHead>Status</TableHead>
                                             <TableHead>Actions</TableHead>
@@ -203,22 +230,41 @@ export default function Index({ clients }: Props) {
                                             <TableRow key={client.id}>
                                                 <TableCell>
                                                     <Checkbox
-                                                        checked={selectedClients.includes(client.id)}
-                                                        onCheckedChange={() => toggleSelect(client.id)}
+                                                        checked={selectedClients.includes(
+                                                            client.id,
+                                                        )}
+                                                        onCheckedChange={() =>
+                                                            toggleSelect(
+                                                                client.id,
+                                                            )
+                                                        }
                                                     />
                                                 </TableCell>
-                                                <TableCell>{client.name}</TableCell>
-                                                <TableCell>{client.email}</TableCell>
-                                                <TableCell>{client.contact_number}</TableCell>
+                                                <TableCell>
+                                                    {client.name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {client.email}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {client.contact_number}
+                                                </TableCell>
                                                 <TableCell>
                                                     <TooltipProvider>
                                                         <Tooltip>
-                                                            <TooltipTrigger asChild>
+                                                            <TooltipTrigger
+                                                                asChild
+                                                            >
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">
-                                                                        {truncateText(client.client_identifier)}
+                                                                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                                                                        {truncateText(
+                                                                            client.client_identifier,
+                                                                        )}
                                                                     </span>
-                                                                    {client.client_identifier.length > 12 && (
+                                                                    {client
+                                                                        .client_identifier
+                                                                        .length >
+                                                                        12 && (
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="sm"
@@ -233,13 +279,17 @@ export default function Index({ clients }: Props) {
                                                                                 <path
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    strokeWidth={2}
+                                                                                    strokeWidth={
+                                                                                        2
+                                                                                    }
                                                                                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                                                                                 />
                                                                                 <path
                                                                                     strokeLinecap="round"
                                                                                     strokeLinejoin="round"
-                                                                                    strokeWidth={2}
+                                                                                    strokeWidth={
+                                                                                        2
+                                                                                    }
                                                                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                                                                                 />
                                                                             </svg>
@@ -248,19 +298,29 @@ export default function Index({ clients }: Props) {
                                                                 </div>
                                                             </TooltipTrigger>
                                                             <TooltipContent>
-                                                                <p className="max-w-xs break-all">{client.client_identifier}</p>
+                                                                <p className="max-w-xs break-all">
+                                                                    {
+                                                                        client.client_identifier
+                                                                    }
+                                                                </p>
                                                             </TooltipContent>
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                 </TableCell>
-                                                <TableCell>{client.referrer}</TableCell>
                                                 <TableCell>
-                                                    <span className={`capitalize px-2 py-1 rounded-full text-sm ${
-                                                        client.active 
-                                                            ? 'bg-green-100 text-green-800'
-                                                            : 'bg-red-100 text-red-800'
-                                                    }`}>
-                                                        {client.active ? 'Active' : 'Inactive'}
+                                                    {client.referrer}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span
+                                                        className={`rounded-full px-2 py-1 text-sm capitalize ${
+                                                            client.active
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-red-100 text-red-800'
+                                                        }`}
+                                                    >
+                                                        {client.active
+                                                            ? 'Active'
+                                                            : 'Inactive'}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
@@ -268,14 +328,25 @@ export default function Index({ clients }: Props) {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            onClick={() => router.visit(route('clients.edit', client.id))}
+                                                            onClick={() =>
+                                                                router.visit(
+                                                                    route(
+                                                                        'clients.edit',
+                                                                        client.id,
+                                                                    ),
+                                                                )
+                                                            }
                                                         >
                                                             Edit
                                                         </Button>
                                                         <Button
                                                             variant="destructive"
                                                             size="sm"
-                                                            onClick={() => handleDelete(client.id)}
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    client.id,
+                                                                )
+                                                            }
                                                         >
                                                             Delete
                                                         </Button>
@@ -290,25 +361,47 @@ export default function Index({ clients }: Props) {
                             {/* Pagination */}
                             <div className="mt-4 flex items-center justify-between">
                                 <div className="text-sm text-gray-700">
-                                    Showing {paginatedClients.length} of {filteredClients.length} results
+                                    Showing {paginatedClients.length} of{' '}
+                                    {filteredClients.length} results
                                 </div>
                                 <div className="flex gap-2">
                                     {paginationLinks.map((link, i) => (
                                         <Button
                                             key={i}
-                                            variant={link.active ? "default" : "outline"}
+                                            variant={
+                                                link.active
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
                                             size="sm"
                                             disabled={!link.url}
                                             onClick={() => {
-                                                if (link.label.includes('Previous')) {
-                                                    setCurrentPage(prev => Math.max(1, prev - 1));
-                                                } else if (link.label.includes('Next')) {
-                                                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                                                if (
+                                                    link.label.includes(
+                                                        'Previous',
+                                                    )
+                                                ) {
+                                                    setCurrentPage((prev) =>
+                                                        Math.max(1, prev - 1),
+                                                    );
+                                                } else if (
+                                                    link.label.includes('Next')
+                                                ) {
+                                                    setCurrentPage((prev) =>
+                                                        Math.min(
+                                                            totalPages,
+                                                            prev + 1,
+                                                        ),
+                                                    );
                                                 } else {
-                                                    setCurrentPage(parseInt(link.label));
+                                                    setCurrentPage(
+                                                        parseInt(link.label),
+                                                    );
                                                 }
                                             }}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
                                         />
                                     ))}
                                 </div>
@@ -319,4 +412,4 @@ export default function Index({ clients }: Props) {
             </div>
         </AuthenticatedLayout>
     );
-} 
+}

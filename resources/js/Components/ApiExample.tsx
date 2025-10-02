@@ -1,6 +1,11 @@
-import { useState } from 'react';
-
-type Endpoint = 'list-sales' | 'create-sale' | 'get-sale' | 'list-items' | 'create-item' | 'update-item' | 'delete-item';
+type Endpoint =
+    | 'list-sales'
+    | 'create-sale'
+    | 'get-sale'
+    | 'list-items'
+    | 'create-item'
+    | 'update-item'
+    | 'delete-item';
 
 // Add base URL constant
 const BASE_URL = 'http://api.sakto.app/api';
@@ -48,7 +53,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "per_page": 10,
         "total": 50
     }
-}`
+}`,
         },
         'create-sale': {
             request: `curl -X POST \\
@@ -83,7 +88,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "total_amount": 39.98,
         "created_at": "2024-03-19T08:30:00Z"
     }
-}`
+}`,
         },
         'get-sale': {
             request: `curl -X GET \\
@@ -106,7 +111,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "total_amount": 39.98,
         "created_at": "2024-03-19T08:30:00Z"
     }
-}`
+}`,
         },
         'list-items': {
             request: `curl -X GET \\
@@ -130,7 +135,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "per_page": 10,
         "total": 50
     }
-}`
+}`,
         },
         'create-item': {
             request: `curl -X POST \\
@@ -154,7 +159,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "created_at": "2024-03-19T08:30:00Z",
         "updated_at": "2024-03-19T08:30:00Z"
     }
-}`
+}`,
         },
         'update-item': {
             request: `curl -X PUT \\
@@ -178,7 +183,7 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
         "created_at": "2024-03-19T08:30:00Z",
         "updated_at": "2024-03-19T09:15:00Z"
     }
-}`
+}`,
         },
         'delete-item': {
             request: `curl -X DELETE \\
@@ -187,66 +192,82 @@ export const ApiExample = ({ endpoint }: ApiExampleProps) => {
             response: `{
     "status": "success",
     "message": "Item deleted successfully"
-}`
-        }
+}`,
+        },
     };
 
     return (
         <div className="space-y-6">
             {/* Sample Request */}
-            <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                <div className="px-4 py-2 bg-gray-200 dark:bg-zinc-700">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Sample Request</h4>
+            <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800">
+                <div className="bg-gray-200 px-4 py-2 dark:bg-zinc-700">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Sample Request
+                    </h4>
                 </div>
                 <div className="p-4">
-                    <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
+                    <pre className="overflow-x-auto text-sm text-gray-800 dark:text-gray-200">
                         {examples[endpoint]?.request || 'Select an endpoint'}
                     </pre>
                 </div>
             </div>
 
             {/* Sample Response */}
-            <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                <div className="px-4 py-2 bg-gray-200 dark:bg-zinc-700">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Sample Response</h4>
+            <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800">
+                <div className="bg-gray-200 px-4 py-2 dark:bg-zinc-700">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Sample Response
+                    </h4>
                 </div>
                 <div className="p-4">
-                    <pre className="text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
+                    <pre className="overflow-x-auto text-sm text-gray-800 dark:text-gray-200">
                         {examples[endpoint]?.response || '{}'}
                     </pre>
                 </div>
             </div>
 
             {/* Status Codes */}
-            <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
-                <div className="px-4 py-2 bg-gray-200 dark:bg-zinc-700">
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">Status Codes</h4>
+            <div className="overflow-hidden rounded-lg bg-gray-100 dark:bg-zinc-800">
+                <div className="bg-gray-200 px-4 py-2 dark:bg-zinc-700">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Status Codes
+                    </h4>
                 </div>
                 <div className="p-4">
                     <div className="space-y-2">
                         <div className="flex justify-between">
                             <code className="text-green-600">200</code>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Success</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                Success
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <code className="text-red-600">400</code>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Bad Request</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                Bad Request
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <code className="text-red-600">401</code>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Unauthorized</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                Unauthorized
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <code className="text-red-600">404</code>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Not Found</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                Not Found
+                            </span>
                         </div>
                         <div className="flex justify-between">
                             <code className="text-red-600">500</code>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">Server Error</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                                Server Error
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     );
-}; 
+};

@@ -5,4 +5,4 @@ declare module 'sonner' {
         warning: (message: string) => void;
         info: (message: string) => void;
     };
-} 
+}

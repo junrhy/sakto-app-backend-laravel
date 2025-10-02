@@ -330,4 +330,56 @@ class AppointmentController extends Controller
             'data' => $appointment->load('patient')
         ]);
     }
+
+    /**
+     * Get appointment statistics for dashboard widget
+     */
+    public function getStats(Request $request)
+    {
+        try {
+            $clientIdentifier = $request->input('client_identifier');
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+
+            // Get today's appointments
+            $todayAppointments = Appointment::byClient($clientIdentifier)
+                ->whereDate('appointment_date', today())
+                ->count();
+            
+            // Get upcoming appointments (next 7 days)
+            $upcomingAppointments = Appointment::byClient($clientIdentifier)
+                ->whereDate('appointment_date', '>', today())
+                ->whereDate('appointment_date', '<=', today()->addDays(7))
+                ->count();
+            
+            // Get completed appointments today
+            $completedToday = Appointment::byClient($clientIdentifier)
+                ->whereDate('appointment_date', today())
+                ->where('status', 'completed')
+                ->count();
+            
+            // Get cancelled appointments today
+            $cancelledToday = Appointment::byClient($clientIdentifier)
+                ->whereDate('appointment_date', today())
+                ->where('status', 'cancelled')
+                ->count();
+            
+            return response()->json([
+                'today_appointments' => $todayAppointments,
+                'upcoming_appointments' => $upcomingAppointments,
+                'completed_today' => $completedToday,
+                'cancelled_today' => $cancelledToday
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to fetch appointment statistics', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->input('client_identifier')
+            ]);
+            
+            return response()->json(['error' => 'Failed to fetch appointment statistics'], 500);
+        }
+    }
 }

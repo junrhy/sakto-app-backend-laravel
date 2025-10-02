@@ -309,6 +309,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('patients')->group(function () {
         Route::get('/', [PatientController::class, 'index']);
         Route::post('/', [PatientController::class, 'store']);
+        Route::get('/stats', [PatientController::class, 'getStats']);
+        Route::get('/recent', [PatientController::class, 'getRecent']);
+        Route::get('/vip', [PatientController::class, 'getVip']);
         Route::get('/{id}', [PatientController::class, 'show']);
         Route::put('/{id}', [PatientController::class, 'update']);
         Route::delete('/{id}', [PatientController::class, 'destroy']);
@@ -320,6 +323,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('patient-bills')->group(function () {
         Route::post('/', [PatientBillController::class, 'store']);
         Route::post('/account-bill', [PatientBillController::class, 'storeAccountBill']);
+        Route::get('/outstanding', [PatientBillController::class, 'getOutstandingBills']);
         Route::put('/{billId}/status', [PatientBillController::class, 'updateStatus']);
         Route::delete('/{patientId}/{id}', [PatientBillController::class, 'destroy']);
         Route::get('/{id}', [PatientBillController::class, 'getBills']);
@@ -329,6 +333,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('patient-payments')->group(function () {
         Route::post('/', [PatientPaymentController::class, 'store']);
         Route::post('/account-payment', [PatientPaymentController::class, 'storeAccountPayment']);
+        Route::get('/stats', [PatientPaymentController::class, 'getStats']);
+        Route::get('/payment-stats', [PatientPaymentController::class, 'getPaymentStats']);
         Route::get('/account/{accountId}', [PatientPaymentController::class, 'getAccountPayments']);
         Route::delete('/{patientId}/{id}', [PatientPaymentController::class, 'destroy']);
         Route::get('/{id}', [PatientPaymentController::class, 'getPayments']);
@@ -362,6 +368,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('appointments')->group(function () {
         Route::get('/', [AppointmentController::class, 'index']);
         Route::post('/', [AppointmentController::class, 'store']);
+        Route::get('/stats', [AppointmentController::class, 'getStats']);
         Route::get('/today', [AppointmentController::class, 'today']);
         Route::get('/upcoming', [AppointmentController::class, 'upcoming']);
         Route::get('/date-range', [AppointmentController::class, 'byDateRange']);
