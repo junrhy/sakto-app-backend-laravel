@@ -247,29 +247,30 @@ class PatientPaymentController extends Controller
                 return response()->json(['error' => 'Client identifier is required'], 400);
             }
 
-            // Get total revenue (all time)
+            // Get total revenue (all time) - cast payment_amount to decimal for PostgreSQL
             $totalRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->sum('payment_amount');
+            })->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
             // Get today's revenue
             $todayRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereDate('payment_date', today())->sum('payment_amount');
+            })->whereDate('payment_date', today())
+              ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
             // Get this month's revenue
             $monthlyRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
             })->whereMonth('payment_date', now()->month)
               ->whereYear('payment_date', now()->year)
-              ->sum('payment_amount');
+              ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
             // Get last month's revenue for growth calculation
             $lastMonthRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
             })->whereMonth('payment_date', now()->subMonth()->month)
               ->whereYear('payment_date', now()->subMonth()->year)
-              ->sum('payment_amount');
+              ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
             // Calculate revenue growth percentage
             $revenueGrowth = 0;
@@ -279,17 +280,17 @@ class PatientPaymentController extends Controller
                 $revenueGrowth = 100; // 100% growth if no previous revenue
             }
             
-            // Get outstanding amount (from appointments with pending payments)
+            // Get outstanding amount (from appointments with pending payments) - cast fee to decimal
             $outstandingAmount = \App\Models\Appointment::where('client_identifier', $clientIdentifier)
                 ->where('payment_status', 'pending')
-                ->sum('fee');
+                ->selectRaw('SUM(CAST(fee AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
-            // Get payment methods breakdown
+            // Get payment methods breakdown - cast payment_amount to decimal
             $paymentMethods = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
             })->whereMonth('payment_date', now()->month)
               ->whereYear('payment_date', now()->year)
-              ->selectRaw('payment_method, SUM(payment_amount) as total')
+              ->selectRaw('payment_method, SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')
               ->groupBy('payment_method')
               ->pluck('total', 'payment_method')
               ->toArray();
