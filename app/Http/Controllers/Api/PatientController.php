@@ -271,8 +271,8 @@ class PatientController extends Controller
             $totalPatients = Patient::where('client_identifier', $clientIdentifier)->count();
             
             $newPatientsThisMonth = Patient::where('client_identifier', $clientIdentifier)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
+                ->whereRaw('EXTRACT(MONTH FROM CAST(created_at AS DATE)) = ?', [now()->month])
+                ->whereRaw('EXTRACT(YEAR FROM CAST(created_at AS DATE)) = ?', [now()->year])
                 ->count();
             
             $vipPatients = Patient::where('client_identifier', $clientIdentifier)

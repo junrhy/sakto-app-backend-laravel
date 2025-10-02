@@ -343,26 +343,26 @@ class AppointmentController extends Controller
                 return response()->json(['error' => 'Client identifier is required'], 400);
             }
 
-            // Get today's appointments
+            // Get today's appointments - cast appointment_date to date for PostgreSQL
             $todayAppointments = Appointment::byClient($clientIdentifier)
-                ->whereDate('appointment_date', today())
+                ->whereRaw('CAST(appointment_date AS DATE) = ?', [today()])
                 ->count();
             
-            // Get upcoming appointments (next 7 days)
+            // Get upcoming appointments (next 7 days) - cast appointment_date to date for PostgreSQL
             $upcomingAppointments = Appointment::byClient($clientIdentifier)
-                ->whereDate('appointment_date', '>', today())
-                ->whereDate('appointment_date', '<=', today()->addDays(7))
+                ->whereRaw('CAST(appointment_date AS DATE) > ?', [today()])
+                ->whereRaw('CAST(appointment_date AS DATE) <= ?', [today()->addDays(7)])
                 ->count();
             
-            // Get completed appointments today
+            // Get completed appointments today - cast appointment_date to date for PostgreSQL
             $completedToday = Appointment::byClient($clientIdentifier)
-                ->whereDate('appointment_date', today())
+                ->whereRaw('CAST(appointment_date AS DATE) = ?', [today()])
                 ->where('status', 'completed')
                 ->count();
             
-            // Get cancelled appointments today
+            // Get cancelled appointments today - cast appointment_date to date for PostgreSQL
             $cancelledToday = Appointment::byClient($clientIdentifier)
-                ->whereDate('appointment_date', today())
+                ->whereRaw('CAST(appointment_date AS DATE) = ?', [today()])
                 ->where('status', 'cancelled')
                 ->count();
             

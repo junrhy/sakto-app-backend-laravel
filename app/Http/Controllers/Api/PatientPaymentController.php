@@ -252,24 +252,24 @@ class PatientPaymentController extends Controller
                 $query->where('client_identifier', $clientIdentifier);
             })->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
-            // Get today's revenue
+            // Get today's revenue - cast payment_date to date for PostgreSQL
             $todayRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereDate('payment_date', today())
+            })->whereRaw('CAST(payment_date AS DATE) = ?', [today()])
               ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
-            // Get this month's revenue
+            // Get this month's revenue - cast payment_date to date for PostgreSQL
             $monthlyRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereMonth('payment_date', now()->month)
-              ->whereYear('payment_date', now()->year)
+            })->whereRaw('EXTRACT(MONTH FROM CAST(payment_date AS DATE)) = ?', [now()->month])
+              ->whereRaw('EXTRACT(YEAR FROM CAST(payment_date AS DATE)) = ?', [now()->year])
               ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
-            // Get last month's revenue for growth calculation
+            // Get last month's revenue for growth calculation - cast payment_date to date for PostgreSQL
             $lastMonthRevenue = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereMonth('payment_date', now()->subMonth()->month)
-              ->whereYear('payment_date', now()->subMonth()->year)
+            })->whereRaw('EXTRACT(MONTH FROM CAST(payment_date AS DATE)) = ?', [now()->subMonth()->month])
+              ->whereRaw('EXTRACT(YEAR FROM CAST(payment_date AS DATE)) = ?', [now()->subMonth()->year])
               ->selectRaw('SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
             // Calculate revenue growth percentage
@@ -285,11 +285,11 @@ class PatientPaymentController extends Controller
                 ->where('payment_status', 'pending')
                 ->selectRaw('SUM(CAST(fee AS DECIMAL(10,2))) as total')->value('total') ?? 0;
             
-            // Get payment methods breakdown - cast payment_amount to decimal
+            // Get payment methods breakdown - cast payment_amount to decimal and payment_date to date for PostgreSQL
             $paymentMethods = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereMonth('payment_date', now()->month)
-              ->whereYear('payment_date', now()->year)
+            })->whereRaw('EXTRACT(MONTH FROM CAST(payment_date AS DATE)) = ?', [now()->month])
+              ->whereRaw('EXTRACT(YEAR FROM CAST(payment_date AS DATE)) = ?', [now()->year])
               ->selectRaw('payment_method, SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')
               ->groupBy('payment_method')
               ->pluck('total', 'payment_method')
@@ -347,17 +347,17 @@ class PatientPaymentController extends Controller
                 ->where('payment_status', 'pending')
                 ->count();
             
-            // Get overdue payments (appointments with pending status that are past due)
+            // Get overdue payments (appointments with pending status that are past due) - cast appointment_date to date for PostgreSQL
             $overduePayments = \App\Models\Appointment::where('client_identifier', $clientIdentifier)
                 ->where('payment_status', 'pending')
-                ->where('appointment_date', '<', today())
+                ->whereRaw('CAST(appointment_date AS DATE) < ?', [today()])
                 ->count();
             
-            // Get payment methods breakdown for current month
+            // Get payment methods breakdown for current month - cast payment_date to date for PostgreSQL
             $paymentMethods = PatientPayment::whereHas('patient', function($query) use ($clientIdentifier) {
                 $query->where('client_identifier', $clientIdentifier);
-            })->whereMonth('payment_date', now()->month)
-              ->whereYear('payment_date', now()->year)
+            })->whereRaw('EXTRACT(MONTH FROM CAST(payment_date AS DATE)) = ?', [now()->month])
+              ->whereRaw('EXTRACT(YEAR FROM CAST(payment_date AS DATE)) = ?', [now()->year])
               ->selectRaw('payment_method, COUNT(*) as count')
               ->groupBy('payment_method')
               ->pluck('count', 'payment_method')
