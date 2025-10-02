@@ -280,6 +280,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [PayrollController::class, 'destroy']);
         Route::delete('/bulk', [PayrollController::class, 'bulkDestroy']);
         Route::get('/overview', [PayrollController::class, 'getPayrollOverview']);
+        
+        // Salary History Routes
+        Route::get('/salary-history', [PayrollController::class, 'getSalaryHistory']);
+        Route::post('/salary-history', [PayrollController::class, 'storeSalaryHistory']);
+        
+        // Payroll Periods Routes
+        Route::get('/periods', [PayrollController::class, 'getPayrollPeriods']);
+        Route::post('/periods', [PayrollController::class, 'storePayrollPeriod']);
+        
+        // Time Tracking Routes
+        Route::get('/time-tracking', [PayrollController::class, 'getTimeTracking']);
+        Route::post('/time-tracking', [PayrollController::class, 'storeTimeTracking']);
     });
 
     // Rental Property Routes
