@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class PayrollPeriod extends Model
 {
+    protected $table = 'payroll_periods';
+    
     protected $fillable = [
         'client_identifier',
         'period_name',

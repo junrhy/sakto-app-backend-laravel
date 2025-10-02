@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SalaryHistory extends Model
 {
+    protected $table = 'salary_history';
+    
     protected $fillable = [
         'client_identifier',
         'employee_id',
@@ -29,6 +31,6 @@ class SalaryHistory extends Model
 
     public function payroll()
     {
-        return $this->belongsTo(Payroll::class, 'employee_id', 'id');
+        return $this->belongsTo(Payroll::class, 'employee_id', 'employee_id');
     }
 }

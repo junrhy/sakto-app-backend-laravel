@@ -27,10 +27,14 @@ class PayrollController extends Controller
             'salary' => 'required|numeric|min:0',
             'startDate' => 'required|date',
             'status' => 'required|in:active,inactive',
+            'client_identifier' => 'required|string',
         ]);
 
         try {
-            $payroll = Payroll::create($request->all());
+            $payrollData = $request->all();
+            $payrollData['client_identifier'] = $request->input('client_identifier');
+            
+            $payroll = Payroll::create($payrollData);
             return response()->json($payroll, 201);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -106,7 +110,7 @@ class PayrollController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'client_identifier' => 'required|string',
-            'employee_id' => 'required|integer',
+            'employee_id' => 'required|string',
             'previous_salary' => 'required|numeric|min:0',
             'new_salary' => 'required|numeric|min:0',
             'change_reason' => 'required|string|max:255',
@@ -119,14 +123,22 @@ class PayrollController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->all();
-        $data['salary_change'] = $data['new_salary'] - $data['previous_salary'];
-        $data['percentage_change'] = $data['previous_salary'] > 0 
-            ? (($data['salary_change'] / $data['previous_salary']) * 100) 
-            : 0;
+        try {
+            $data = $request->all();
+            $data['salary_change'] = $data['new_salary'] - $data['previous_salary'];
+            $data['percentage_change'] = $data['previous_salary'] > 0 
+                ? (($data['salary_change'] / $data['previous_salary']) * 100) 
+                : 0;
 
-        $salaryHistory = SalaryHistory::create($data);
-        return response()->json($salaryHistory, 201);
+            $salaryHistory = SalaryHistory::create($data);
+            return response()->json($salaryHistory, 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to create salary history record',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
 
     // Payroll Periods endpoints
@@ -174,7 +186,7 @@ class PayrollController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'client_identifier' => 'required|string',
-            'employee_id' => 'required|integer',
+            'employee_id' => 'required|string',
             'work_date' => 'required|date',
             'clock_in' => 'nullable|date_format:H:i:s',
             'clock_out' => 'nullable|date_format:H:i:s',
@@ -187,18 +199,26 @@ class PayrollController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->all();
-        
-        // Calculate hours if both clock_in and clock_out are provided
-        if ($data['clock_in'] && $data['clock_out']) {
-            $clockIn = \Carbon\Carbon::createFromFormat('H:i:s', $data['clock_in']);
-            $clockOut = \Carbon\Carbon::createFromFormat('H:i:s', $data['clock_out']);
-            $data['hours_worked'] = $clockOut->diffInHours($clockIn);
-            $data['regular_hours'] = min($data['hours_worked'], 8); // Assuming 8 hours is regular
-            $data['overtime_hours'] = max(0, $data['hours_worked'] - 8);
-        }
+        try {
+            $data = $request->all();
+            
+            // Calculate hours if both clock_in and clock_out are provided
+            if ($data['clock_in'] && $data['clock_out']) {
+                $clockIn = \Carbon\Carbon::createFromFormat('H:i:s', $data['clock_in']);
+                $clockOut = \Carbon\Carbon::createFromFormat('H:i:s', $data['clock_out']);
+                $data['hours_worked'] = $clockOut->diffInHours($clockIn);
+                $data['regular_hours'] = min($data['hours_worked'], 8); // Assuming 8 hours is regular
+                $data['overtime_hours'] = max(0, $data['hours_worked'] - 8);
+            }
 
-        $timeTracking = TimeTracking::create($data);
-        return response()->json($timeTracking, 201);
+            $timeTracking = TimeTracking::create($data);
+            return response()->json($timeTracking, 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to create time tracking record',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
 }

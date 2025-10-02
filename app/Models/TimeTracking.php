@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TimeTracking extends Model
 {
+    protected $table = 'time_tracking';
+    
     protected $fillable = [
         'client_identifier',
         'employee_id',
@@ -31,6 +33,6 @@ class TimeTracking extends Model
 
     public function payroll()
     {
-        return $this->belongsTo(Payroll::class, 'employee_id', 'id');
+        return $this->belongsTo(Payroll::class, 'employee_id', 'employee_id');
     }
 }
