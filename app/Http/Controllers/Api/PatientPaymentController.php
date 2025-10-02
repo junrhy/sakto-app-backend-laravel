@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PatientPayment;
 use App\Models\Patient;
 use App\Models\ClinicPaymentAccount;
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -319,7 +320,7 @@ class PatientPaymentController extends Controller
                 'client_identifier' => $request->input('client_identifier')
             ]);
             
-            return response()->json(['error' => 'Failed to fetch revenue statistics'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
@@ -389,7 +390,7 @@ class PatientPaymentController extends Controller
                 'client_identifier' => $request->input('client_identifier')
             ]);
             
-            return response()->json(['error' => 'Failed to fetch payment statistics'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }
