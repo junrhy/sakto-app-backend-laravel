@@ -20,6 +20,7 @@ class Contact extends Model
         'call_number',
         'sms_number',
         'whatsapp',
+        'viber',
         'facebook',
         'instagram',
         'twitter',
