@@ -68,6 +68,9 @@ use App\Http\Controllers\Api\PatientDiagnosisController;
 use App\Http\Controllers\Api\PatientAllergyController;
 use App\Http\Controllers\Api\PatientMedicationController;
 use App\Http\Controllers\Api\PatientMedicalHistoryController;
+use App\Http\Controllers\Api\ChatConversationController;
+use App\Http\Controllers\Api\ChatMessageController;
+use App\Http\Controllers\Api\ChatAuthController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -876,7 +879,43 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [PatientMedicalHistoryController::class, 'destroy']);
     });
 
+    // Chat Conversation Routes (Protected)
+    Route::prefix('chat-conversations')->middleware(['auth:sanctum', 'chat.auth'])->group(function () {
+        Route::get('/', [ChatConversationController::class, 'index']);
+        Route::post('/', [ChatConversationController::class, 'store']);
+        Route::get('/{id}', [ChatConversationController::class, 'show']);
+        Route::put('/{id}', [ChatConversationController::class, 'update']);
+        Route::delete('/{id}', [ChatConversationController::class, 'destroy']);
+        Route::post('/{id}/add-participant', [ChatConversationController::class, 'addParticipant']);
+        Route::post('/{id}/remove-participant', [ChatConversationController::class, 'removeParticipant']);
+    });
+
+    // Chat Message Routes (Protected)
+    Route::prefix('chat-messages')->middleware(['auth:sanctum', 'chat.auth'])->group(function () {
+        Route::get('/', [ChatMessageController::class, 'index']);
+        Route::post('/', [ChatMessageController::class, 'store']);
+        Route::get('/{id}', [ChatMessageController::class, 'show']);
+        Route::put('/{id}', [ChatMessageController::class, 'update']);
+        Route::delete('/{id}', [ChatMessageController::class, 'destroy']);
+        Route::post('/mark-as-read', [ChatMessageController::class, 'markAsRead']);
+    });
+
+
     // Future authenticated routes will go here...
+});
+
+// Chat Authentication Routes (Public)
+Route::prefix('chat-auth')->group(function () {
+    Route::post('/register', [ChatAuthController::class, 'register']);
+    Route::post('/login', [ChatAuthController::class, 'login']);
+    Route::get('/online-users', [ChatAuthController::class, 'getOnlineUsers']);
+    
+    // Protected routes (authentication handled within controller using chat tokens)
+    Route::post('/logout', [ChatAuthController::class, 'logout']);
+    Route::get('/profile', [ChatAuthController::class, 'profile']);
+    Route::put('/profile', [ChatAuthController::class, 'updateProfile']);
+    Route::post('/change-password', [ChatAuthController::class, 'changePassword']);
+    Route::post('/update-online-status', [ChatAuthController::class, 'updateOnlineStatus']);
 });
 
 Route::post('/tokens/create', function (Request $request) {
