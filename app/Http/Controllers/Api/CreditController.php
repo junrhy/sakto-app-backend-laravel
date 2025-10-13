@@ -251,7 +251,8 @@ class CreditController extends Controller
             'amount' => 'required|integer|min:1',
             'source' => 'required|string',
             'reference_id' => 'required|string',
-            'note' => 'nullable|string'
+            'note' => 'nullable|string',
+            'package_amount' => 'nullable|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
@@ -259,6 +260,19 @@ class CreditController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $validator->errors()
             ], 422);
+        }
+
+        // Check if this reference_id was already processed (prevent duplicates)
+        $existingHistory = CreditHistory::where('client_identifier', $request->client_identifier)
+            ->where('transaction_id', $request->reference_id)
+            ->first();
+        
+        if ($existingHistory) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Credits already added for this transaction',
+                'credit_history' => $existingHistory
+            ]);
         }
 
         $credit = Credit::firstOrCreate(
@@ -279,7 +293,7 @@ class CreditController extends Controller
             'client_identifier' => $request->client_identifier,
             'package_name' => $request->source,
             'package_credit' => $request->amount,
-            'package_amount' => 0, // No payment amount for direct additions
+            'package_amount' => $request->package_amount ?? 0, // Use provided amount or 0 for direct additions
             'payment_method' => 'direct_addition',
             'payment_method_details' => $request->note ?? 'Direct credit addition',
             'transaction_id' => $request->reference_id,
