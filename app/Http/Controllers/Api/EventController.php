@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\EventParticipant;
+use App\Services\LemonSqueezyService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class EventController extends Controller
@@ -40,9 +42,20 @@ class EventController extends Controller
                 'image' => 'nullable:string',
                 'status' => 'nullable|in:draft,published,archived',
                 'client_identifier' => 'required|string',
+                'lemon_squeezy_product_id' => 'nullable|string',
+                'lemon_squeezy_variant_id' => 'nullable|string',
             ]);
 
             $event = Event::create($validated);
+
+            // Log Lemon Squeezy IDs if present
+            if (isset($validated['lemon_squeezy_product_id'])) {
+                \Log::info('Event created with Lemon Squeezy product', [
+                    'event_id' => $event->id,
+                    'lemon_squeezy_product_id' => $event->lemon_squeezy_product_id,
+                    'lemon_squeezy_variant_id' => $event->lemon_squeezy_variant_id,
+                ]);
+            }
 
             return response()->json([
                 'message' => 'Event created successfully',
@@ -85,7 +98,30 @@ class EventController extends Controller
             'currency' => 'nullable|string|size:3',
             'payment_instructions' => 'nullable|string',
             'status' => 'nullable|in:draft,published,archived',
+            // Lemon Squeezy IDs - only allowed if not already set
+            'lemon_squeezy_product_id' => 'nullable|string',
+            'lemon_squeezy_variant_id' => 'nullable|string',
         ]);
+
+        // Prevent overwriting existing Lemon Squeezy IDs (immutable once set)
+        if ($event->lemon_squeezy_product_id) {
+            unset($validated['lemon_squeezy_product_id']);
+            unset($validated['lemon_squeezy_variant_id']);
+            
+            \Log::info('Prevented update of existing Lemon Squeezy IDs', [
+                'event_id' => $event->id,
+                'existing_product_id' => $event->lemon_squeezy_product_id,
+            ]);
+        } else {
+            // Only log if we're setting IDs for the first time
+            if (isset($validated['lemon_squeezy_product_id'])) {
+                \Log::info('Setting Lemon Squeezy IDs for existing event', [
+                    'event_id' => $event->id,
+                    'lemon_squeezy_product_id' => $validated['lemon_squeezy_product_id'],
+                    'lemon_squeezy_variant_id' => $validated['lemon_squeezy_variant_id'] ?? null,
+                ]);
+            }
+        }
 
         $event->update($validated);
 

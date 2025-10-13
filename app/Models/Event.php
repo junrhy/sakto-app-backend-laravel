@@ -22,7 +22,9 @@ class Event extends Model
         'category',
         'image',
         'status',
-        'client_identifier'
+        'client_identifier',
+        'lemon_squeezy_product_id',
+        'lemon_squeezy_variant_id'
     ];
 
     protected $casts = [
