@@ -40,6 +40,10 @@ class FnbTableController extends Controller
 
         $table = FnbTable::create($validated);
         
+        // Clear cache when table is created
+        $clientIdentifier = $validated['client_identifier'] ?? $request->client_identifier;
+        cache()->forget("fnb_tables_{$clientIdentifier}");
+        
         return response()->json([
             'status' => 'success',
             'message' => 'Table created successfully',
@@ -60,6 +64,10 @@ class FnbTableController extends Controller
 
         $fnbTable->update($validated);
         
+        // Clear cache when table is updated
+        $clientIdentifier = $fnbTable->client_identifier;
+        cache()->forget("fnb_tables_{$clientIdentifier}");
+        
         return response()->json([
             'status' => 'success',
             'message' => 'Table updated successfully',
@@ -71,7 +79,13 @@ class FnbTableController extends Controller
 
     public function destroy(FnbTable $fnbTable)
     {
+        // Store client_identifier before deleting
+        $clientIdentifier = $fnbTable->client_identifier;
+        
         $fnbTable->delete();
+        
+        // Clear cache when table is deleted
+        cache()->forget("fnb_tables_{$clientIdentifier}");
         
         return response()->json([
             'status' => 'success',
@@ -128,12 +142,18 @@ class FnbTableController extends Controller
         ]);
 
         $tables = FnbTable::whereIn('id', $validated['table_ids'])->get();
+        $clientIdentifier = $tables->first()->client_identifier ?? null;
 
         foreach ($tables as $table) {
             $table->update([
                 'status' => 'available',
                 'joined_with' => null
             ]);
+        }
+
+        // Clear cache when tables are unjoined
+        if ($clientIdentifier) {
+            cache()->forget("fnb_tables_{$clientIdentifier}");
         }
 
         return response()->json([

@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
 use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\FnbBlockedDateController;
+use App\Http\Controllers\Api\FnbTableScheduleController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
@@ -217,6 +218,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('fnb-reservations')->group(function () {
         Route::get('/', [FnbReservationController::class, 'index']);
         Route::post('/', [FnbReservationController::class, 'store']);
+        Route::put('/{id}', [FnbReservationController::class, 'update']);
         Route::delete('/{id}', [FnbReservationController::class, 'destroy']);
     });
 
@@ -228,6 +230,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [FnbBlockedDateController::class, 'update']);
         Route::delete('/{id}', [FnbBlockedDateController::class, 'destroy']);
         Route::post('/check-date', [FnbBlockedDateController::class, 'checkDate']);
+    });
+
+    // F & B Table Schedules Routes
+    Route::prefix('fnb-table-schedules')->group(function () {
+        Route::get('/', [FnbTableScheduleController::class, 'index']);
+        Route::post('/', [FnbTableScheduleController::class, 'store']);
+        Route::put('/{id}', [FnbTableScheduleController::class, 'update']);
+        Route::delete('/{id}', [FnbTableScheduleController::class, 'destroy']);
+        Route::post('/check-availability', [FnbTableScheduleController::class, 'checkAvailability']);
+        Route::post('/bulk-set-availability', [FnbTableScheduleController::class, 'bulkSetAvailability']);
     });
 
     // F & B Settings Routes
