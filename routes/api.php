@@ -208,11 +208,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // F & B Order Routes
     Route::prefix('fnb-orders')->group(function () {
-        Route::get('/client/{clientIdentifier}/table/{tableNumber}', [FnbOrderController::class, 'index']);
-        Route::post('/add-item', [FnbOrderController::class, 'addItemToOrder']);
-        Route::delete('/{tableNumber}/item/{id}', [FnbOrderController::class, 'destroy']);
+        Route::post('/get-table-order', [FnbOrderController::class, 'getTableOrder']);
+        Route::post('/save-table-order', [FnbOrderController::class, 'saveTableOrder']);
         Route::post('/complete', [FnbOrderController::class, 'completeOrder']);
+        Route::post('/all-active', [FnbOrderController::class, 'getAllActiveOrders']);
         Route::post('/kitchen-order', [FnbOrderController::class, 'storeKitchenOrder']);
+        Route::post('/kitchen-orders', [FnbOrderController::class, 'getKitchenOrdersOverview']);
     });
 
     // F & B Reservation Routes

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\FnbTable;
-use App\Models\FnbMenuItem;
 use App\Models\FnbOrder;
 use App\Models\FnbSale;
 use App\Models\FnbKitchenOrder;
@@ -13,101 +12,155 @@ use Illuminate\Http\Request;
 class FnbOrderController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get the active order for a specific table
      */
-    public function index($clientIdentifier, $tableNumber)
+    public function getTableOrder(Request $request)
     {
-        $fnbTable = FnbTable::where('name', $tableNumber)->first();
-        $fnbOrders = FnbOrder::where('client_identifier', $clientIdentifier)->where('table_number', $fnbTable->name)->get();
+        $validated = $request->validate([
+            'client_identifier' => 'required|string',
+            'table_name' => 'required|string'
+        ]);
 
-        $items = $fnbOrders->map(function ($order) {
-            return [
-                'id' => $order->id,
-                'table_number' => $order->table_number,
-                'item' => $order->item,
-                'quantity' => $order->quantity,
-                'price' => $order->price,
-                'total' => $order->total
-            ];
-        });
+        $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
+            ->where('table_name', $validated['table_name'])
+            ->where('status', 'active')
+            ->first();
 
+        if (!$order) {
+            return response()->json([
+                'order' => null,
+                'items' => [],
+                'discount' => 0,
+                'discount_type' => 'percentage'
+            ]);
+        }
 
-
-        return response()->json(['order' => ['items' => $items]]);
+        return response()->json([
+            'order' => $order,
+            'items' => $order->items ?? [],
+            'discount' => $order->discount,
+            'discount_type' => $order->discount_type
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Save or update the order for a table
      */
-    public function addItemToOrder(Request $request)
+    public function saveTableOrder(Request $request)
     {
+        $validated = $request->validate([
+            'client_identifier' => 'required|string',
+            'table_name' => 'required|string',
+            'items' => 'required|array',
+            'discount' => 'required|numeric',
+            'discount_type' => 'required|in:percentage,fixed',
+            'subtotal' => 'required|numeric',
+            'total_amount' => 'required|numeric'
+        ]);
 
-        $fnbTable = FnbTable::where('name', $request->table_number)->first();
-        if ($fnbTable->status === 'available') {
-            $fnbTable->update(['status' => 'occupied']);
-        }
-        
-        $fnbMenuItem = FnbMenuItem::where('id', $request->item_id)->first();
+        $order = FnbOrder::updateOrCreate(
+            [
+                'client_identifier' => $validated['client_identifier'],
+                'table_name' => $validated['table_name'],
+                'status' => 'active'
+            ],
+            [
+                'items' => $validated['items'],
+                'discount' => $validated['discount'],
+                'discount_type' => $validated['discount_type'],
+                'subtotal' => $validated['subtotal'],
+                'total_amount' => $validated['total_amount']
+            ]
+        );
 
-        $fnbOrder = FnbOrder::where('table_number', $request->table_number)->where('item', $fnbMenuItem->name)->first();
-        if ($fnbOrder) {
-            $fnbOrder->update([
-                'quantity' => $fnbOrder->quantity + $request->quantity,
-                'total' => ($fnbOrder->quantity + $request->quantity) * $request->price
-            ]);
-            return response()->json($fnbOrder, 200);
+        // Update table status to occupied if it has items
+        if (count($validated['items']) > 0) {
+            FnbTable::where('name', $validated['table_name'])
+                ->where('client_identifier', $validated['client_identifier'])
+                ->update(['status' => 'occupied']);
         } else {
-            $fnbOrder = FnbOrder::create([
-                'table_number' => $request->table_number,
-                'item' => $fnbMenuItem->name,
-                'quantity' => $request->quantity,
-                'price' => $request->price,
-                'total' => $request->total,
-                'client_identifier' => $request->client_identifier
-            ]);
-            $fnbOrder->id = $fnbOrder->id;
-            return response()->json($fnbOrder, 201);
+            // Set to available if no items
+            FnbTable::where('name', $validated['table_name'])
+                ->where('client_identifier', $validated['client_identifier'])
+                ->update(['status' => 'available']);
         }
+
+        return response()->json([
+            'message' => 'Order saved successfully',
+            'order' => $order
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Complete the order (checkout)
      */
-    public function destroy(string $tableNumber, int $id)
-    {
-        $fnbOrder = FnbOrder::where('id', $id)->first();
-        $fnbOrder->delete();
-        return response()->json(['message' => 'Order deleted successfully']);
-    }
-
     public function completeOrder(Request $request)
     {
         $validated = $request->validate([
-            'table_number' => 'required',
-            'items' => 'required',
-            'subtotal' => 'required',
-            'discount' => 'required',
-            'discount_type' => 'required',
-            'total' => 'required',
-            'client_identifier' => 'required'
+            'client_identifier' => 'required|string',
+            'table_name' => 'required|string'
         ]);
 
-        FnbOrder::where('table_number', $request->table_number)->update(['status' => 'completed']);
-        FnbTable::where('name', $request->table_number)->update(['status' => 'available']);
+        $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
+            ->where('table_name', $validated['table_name'])
+            ->where('status', 'active')
+            ->first();
 
-        $fnbSale = FnbSale::create([
-            'table_number' => $request->table_number,
-            'items' => $request->items,
-            'subtotal' => $request->subtotal,
-            'discount' => $request->discount,
-            'discount_type' => $request->discount_type,
-            'total' => $request->total,
-            'client_identifier' => $request->client_identifier
+        if (!$order) {
+            return response()->json(['message' => 'No active order found'], 404);
+        }
+
+        // Update order status to completed
+        $order->update(['status' => 'completed']);
+
+        // Create sale record
+        $sale = FnbSale::create([
+            'table_number' => $order->table_name,
+            'items' => json_encode($order->items),
+            'subtotal' => $order->subtotal,
+            'discount' => $order->discount,
+            'discount_type' => $order->discount_type,
+            'total' => $order->total_amount,
+            'client_identifier' => $order->client_identifier
         ]);
 
-        return response()->json($fnbSale);
+        // Update table status to available
+        FnbTable::where('name', $order->table_name)
+            ->where('client_identifier', $order->client_identifier)
+            ->update(['status' => 'available']);
+
+        return response()->json([
+            'message' => 'Order completed successfully',
+            'sale' => $sale
+        ]);
     }
 
+    /**
+     * Get all active orders (for showing totals on all tables)
+     */
+    public function getAllActiveOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'client_identifier' => 'required|string'
+        ]);
+
+        $orders = FnbOrder::where('client_identifier', $validated['client_identifier'])
+            ->where('status', 'active')
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'table_name' => $order->table_name,
+                    'total_amount' => $order->total_amount,
+                    'item_count' => count($order->items)
+                ];
+            });
+
+        return response()->json(['orders' => $orders]);
+    }
+
+    /**
+     * Send to kitchen
+     */
     public function storeKitchenOrder(Request $request)
     {
         $validated = $request->validate([
@@ -117,18 +170,28 @@ class FnbOrderController extends Controller
         ]);
 
         FnbKitchenOrder::create([
-            'table_number' => $request->table_number,
-            'items' => json_encode($request->items),
+            'table_number' => $validated['table_number'],
+            'items' => json_encode($validated['items']),
             'status' => 'pending',
-            'client_identifier' => $request->client_identifier
+            'client_identifier' => $validated['client_identifier']
         ]);
 
         return response()->json(['message' => 'Kitchen order created successfully']);
     }
 
-    public function getKitchenOrdersOverview()
+    /**
+     * Get kitchen orders overview
+     */
+    public function getKitchenOrdersOverview(Request $request)
     {
-        $kitchenOrders = FnbKitchenOrder::all();
+        $validated = $request->validate([
+            'client_identifier' => 'required|string'
+        ]);
+
+        $kitchenOrders = FnbKitchenOrder::where('client_identifier', $validated['client_identifier'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json($kitchenOrders);
     }
 }
