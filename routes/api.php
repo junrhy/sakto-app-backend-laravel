@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
 use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\FnbBlockedDateController;
+use App\Http\Controllers\Api\FnbOpenedDateController;
 use App\Http\Controllers\Api\FnbTableScheduleController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
@@ -230,6 +231,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [FnbBlockedDateController::class, 'update']);
         Route::delete('/{id}', [FnbBlockedDateController::class, 'destroy']);
         Route::post('/check-date', [FnbBlockedDateController::class, 'checkDate']);
+    });
+
+    // F & B Opened Dates Routes
+    Route::prefix('fnb-opened-dates')->group(function () {
+        Route::get('/', [FnbOpenedDateController::class, 'index']);
+        Route::post('/', [FnbOpenedDateController::class, 'store']);
+        Route::put('/{id}', [FnbOpenedDateController::class, 'update']);
+        Route::delete('/{id}', [FnbOpenedDateController::class, 'destroy']);
     });
 
     // F & B Table Schedules Routes
