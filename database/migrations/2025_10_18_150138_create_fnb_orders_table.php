@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Drop the table if it exists (safe since no data)
+        Schema::dropIfExists('fnb_orders');
+        
         Schema::create('fnb_orders', function (Blueprint $table) {
             $table->id();
             $table->string('client_identifier')->index();
