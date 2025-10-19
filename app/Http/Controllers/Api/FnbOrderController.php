@@ -98,7 +98,10 @@ class FnbOrderController extends Controller
     {
         $validated = $request->validate([
             'client_identifier' => 'required|string',
-            'table_name' => 'required|string'
+            'table_name' => 'required|string',
+            'payment_amount' => 'required|numeric|min:0',
+            'payment_method' => 'required|string|in:cash,card',
+            'change' => 'nullable|numeric|min:0'
         ]);
 
         $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
@@ -110,10 +113,19 @@ class FnbOrderController extends Controller
             return response()->json(['message' => 'No active order found'], 404);
         }
 
+        // Validate payment amount is sufficient
+        if ($validated['payment_amount'] < $order->total_amount) {
+            return response()->json([
+                'message' => 'Payment amount is insufficient',
+                'required' => $order->total_amount,
+                'received' => $validated['payment_amount']
+            ], 400);
+        }
+
         // Update order status to completed
         $order->update(['status' => 'completed']);
 
-        // Create sale record
+        // Create sale record with payment information
         $sale = FnbSale::create([
             'table_number' => $order->table_name,
             'items' => json_encode($order->items),
@@ -121,6 +133,9 @@ class FnbOrderController extends Controller
             'discount' => $order->discount,
             'discount_type' => $order->discount_type,
             'total' => $order->total_amount,
+            'payment_amount' => $validated['payment_amount'],
+            'payment_method' => $validated['payment_method'],
+            'change_amount' => $validated['change'] ?? 0,
             'client_identifier' => $order->client_identifier
         ]);
 
@@ -131,7 +146,8 @@ class FnbOrderController extends Controller
 
         return response()->json([
             'message' => 'Order completed successfully',
-            'sale' => $sale
+            'sale' => $sale,
+            'change' => $validated['change'] ?? 0
         ]);
     }
 
