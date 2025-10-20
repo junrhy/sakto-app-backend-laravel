@@ -51,7 +51,7 @@ class FnbOrderController extends Controller
         $validated = $request->validate([
             'client_identifier' => 'required|string',
             'table_name' => 'required|string',
-            'items' => 'required|array',
+            'items' => 'array',
             'discount' => 'required|numeric',
             'discount_type' => 'required|in:percentage,fixed',
             'subtotal' => 'required|numeric',
@@ -73,21 +73,32 @@ class FnbOrderController extends Controller
             ]
         );
 
-        // Update table status to occupied if it has items
+        // Update table status and handle empty orders
         if (count($validated['items']) > 0) {
+            // Update table status to occupied if it has items
             FnbTable::where('name', $validated['table_name'])
                 ->where('client_identifier', $validated['client_identifier'])
                 ->update(['status' => 'occupied']);
         } else {
-            // Set to available if no items
+            // Delete the order record if no items
+            FnbOrder::where('client_identifier', $validated['client_identifier'])
+                ->where('table_name', $validated['table_name'])
+                ->where('status', 'active')
+                ->delete();
+            
+            // Set table to available if no items
             FnbTable::where('name', $validated['table_name'])
                 ->where('client_identifier', $validated['client_identifier'])
                 ->update(['status' => 'available']);
         }
 
+        $message = count($validated['items']) > 0 
+            ? 'Order saved successfully' 
+            : 'Order cleared successfully';
+            
         return response()->json([
-            'message' => 'Order saved successfully',
-            'order' => $order
+            'message' => $message,
+            'order' => count($validated['items']) > 0 ? $order : null
         ]);
     }
 

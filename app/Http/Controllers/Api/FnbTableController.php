@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\FnbTable;
+use App\Models\FnbTableSchedule;
 use Illuminate\Http\Request;
 
 class FnbTableController extends Controller
@@ -34,9 +35,12 @@ class FnbTableController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'seats' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,reserved,joined',
+            'status' => 'nullable|in:available,occupied,reserved,joined',
             'client_identifier' => 'nullable|string'
         ]);
+
+        // Set default status to 'available' if not provided
+        $validated['status'] = $validated['status'] ?? 'available';
 
         $table = FnbTable::create($validated);
         
@@ -81,7 +85,14 @@ class FnbTableController extends Controller
     {
         // Store client_identifier before deleting
         $clientIdentifier = $fnbTable->client_identifier;
+        $tableId = $fnbTable->id;
         
+        // Delete all table schedules associated with this table
+        FnbTableSchedule::where('table_id', $tableId)
+            ->where('client_identifier', $clientIdentifier)
+            ->delete();
+        
+        // Delete the table
         $fnbTable->delete();
         
         // Clear cache when table is deleted
@@ -89,7 +100,7 @@ class FnbTableController extends Controller
         
         return response()->json([
             'status' => 'success',
-            'message' => 'Table deleted successfully'
+            'message' => 'Table and associated schedules deleted successfully'
         ]);
     }
 
