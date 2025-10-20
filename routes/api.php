@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RetailSaleController;
 use App\Http\Controllers\Api\FnbMenuItemController;
 use App\Http\Controllers\Api\FnbTableController;
 use App\Http\Controllers\Api\FnbOrderController;
+use App\Http\Controllers\Api\FnbSaleController;
 use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\FnbBlockedDateController;
 use App\Http\Controllers\Api\FnbOpenedDateController;
@@ -214,6 +215,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/all-active', [FnbOrderController::class, 'getAllActiveOrders']);
         Route::post('/kitchen-order', [FnbOrderController::class, 'storeKitchenOrder']);
         Route::post('/kitchen-orders', [FnbOrderController::class, 'getKitchenOrdersOverview']);
+    });
+
+    // F & B Sales Routes
+    Route::prefix('fnb-sales')->group(function () {
+        Route::get('/', [FnbSaleController::class, 'index']);
     });
 
     // F & B Reservation Routes

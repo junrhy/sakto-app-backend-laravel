@@ -107,59 +107,94 @@ class FnbOrderController extends Controller
      */
     public function completeOrder(Request $request)
     {
-        $validated = $request->validate([
-            'client_identifier' => 'required|string',
-            'table_name' => 'required|string',
-            'payment_amount' => 'required|numeric|min:0',
-            'payment_method' => 'required|string|in:cash,card',
-            'change' => 'nullable|numeric|min:0'
-        ]);
+        try {
+            \Log::info('Complete Order Request:', $request->all());
+            
+            $validated = $request->validate([
+                'client_identifier' => 'required|string',
+                'table_name' => 'required|string',
+                'payment_amount' => 'required|numeric|min:0',
+                'payment_method' => 'required|string|in:cash,card',
+                'change' => 'nullable|numeric|min:0'
+            ]);
 
-        $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
-            ->where('table_name', $validated['table_name'])
-            ->where('status', 'active')
-            ->first();
+            \Log::info('Validated data:', $validated);
 
-        if (!$order) {
-            return response()->json(['message' => 'No active order found'], 404);
-        }
+            $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
+                ->where('table_name', $validated['table_name'])
+                ->where('status', 'active')
+                ->first();
 
-        // Validate payment amount is sufficient
-        if ($validated['payment_amount'] < $order->total_amount) {
+            if (!$order) {
+                \Log::warning('No active order found', [
+                    'client_identifier' => $validated['client_identifier'],
+                    'table_name' => $validated['table_name']
+                ]);
+                return response()->json(['message' => 'No active order found'], 404);
+            }
+
+            \Log::info('Found order:', ['order_id' => $order->id, 'total' => $order->total_amount]);
+
+            // Validate payment amount is sufficient
+            if ($validated['payment_amount'] < $order->total_amount) {
+                \Log::warning('Insufficient payment', [
+                    'required' => $order->total_amount,
+                    'received' => $validated['payment_amount']
+                ]);
+                return response()->json([
+                    'message' => 'Payment amount is insufficient',
+                    'required' => $order->total_amount,
+                    'received' => $validated['payment_amount']
+                ], 400);
+            }
+
+            // Update order status to completed
+            $order->update(['status' => 'completed']);
+            \Log::info('Order marked as completed', ['order_id' => $order->id]);
+
+            // Create sale record with payment information
+            $saleData = [
+                'table_number' => $order->table_name,
+                'items' => json_encode($order->items),
+                'subtotal' => $order->subtotal,
+                'discount' => $order->discount,
+                'discount_type' => $order->discount_type,
+                'total' => $order->total_amount,
+                'payment_amount' => $validated['payment_amount'],
+                'payment_method' => $validated['payment_method'],
+                'change_amount' => $validated['change'] ?? 0,
+                'client_identifier' => $order->client_identifier
+            ];
+            
+            \Log::info('Creating sale record:', $saleData);
+            
+            $sale = FnbSale::create($saleData);
+            
+            \Log::info('Sale record created successfully', ['sale_id' => $sale->id]);
+
+            // Update table status to available
+            FnbTable::where('name', $order->table_name)
+                ->where('client_identifier', $order->client_identifier)
+                ->update(['status' => 'available']);
+                
+            \Log::info('Table status updated to available', ['table_name' => $order->table_name]);
+
             return response()->json([
-                'message' => 'Payment amount is insufficient',
-                'required' => $order->total_amount,
-                'received' => $validated['payment_amount']
-            ], 400);
+                'message' => 'Order completed successfully',
+                'sale' => $sale,
+                'change' => $validated['change'] ?? 0
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error completing order:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to complete order: ' . $e->getMessage(),
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        // Update order status to completed
-        $order->update(['status' => 'completed']);
-
-        // Create sale record with payment information
-        $sale = FnbSale::create([
-            'table_number' => $order->table_name,
-            'items' => json_encode($order->items),
-            'subtotal' => $order->subtotal,
-            'discount' => $order->discount,
-            'discount_type' => $order->discount_type,
-            'total' => $order->total_amount,
-            'payment_amount' => $validated['payment_amount'],
-            'payment_method' => $validated['payment_method'],
-            'change_amount' => $validated['change'] ?? 0,
-            'client_identifier' => $order->client_identifier
-        ]);
-
-        // Update table status to available
-        FnbTable::where('name', $order->table_name)
-            ->where('client_identifier', $order->client_identifier)
-            ->update(['status' => 'available']);
-
-        return response()->json([
-            'message' => 'Order completed successfully',
-            'sale' => $sale,
-            'change' => $validated['change'] ?? 0
-        ]);
     }
 
     /**
