@@ -51,6 +51,7 @@ class FnbReservationController extends Controller
         }
 
         $reservation = FnbReservation::create($validated);
+
         return response()->json($reservation, 201);
     }
 
