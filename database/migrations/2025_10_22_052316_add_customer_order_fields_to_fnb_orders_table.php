@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fnb_orders', function (Blueprint $table) {
-            $table->enum('order_source', ['staff', 'customer'])->default('staff')->after('client_identifier');
-            $table->string('customer_name')->nullable()->after('table_name');
-            $table->text('customer_notes')->nullable()->after('items');
+            if (!Schema::hasColumn('fnb_orders', 'order_source')) {
+                $table->enum('order_source', ['staff', 'customer'])->default('staff');
+            }
+            if (!Schema::hasColumn('fnb_orders', 'customer_name')) {
+                $table->string('customer_name')->nullable();
+            }
+            if (!Schema::hasColumn('fnb_orders', 'customer_notes')) {
+                $table->text('customer_notes')->nullable();
+            }
         });
     }
 

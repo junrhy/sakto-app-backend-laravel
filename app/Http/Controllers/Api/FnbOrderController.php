@@ -84,7 +84,7 @@ class FnbOrderController extends Controller
                 'service_charge_type' => $validated['service_charge_type'],
                 'customer_name' => $validated['customer_name'] ?? null,
                 'customer_notes' => $validated['customer_notes'] ?? null,
-                'order_source' => $validated['customer_name'] ? 'customer' : 'staff', // Automatically set order_source
+                'order_source' => !empty($validated['customer_name']) ? 'customer' : 'staff', // Automatically set order_source
                 'subtotal' => $validated['subtotal'],
                 'total_amount' => $validated['total_amount']
             ]

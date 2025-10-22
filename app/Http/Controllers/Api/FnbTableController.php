@@ -11,23 +11,53 @@ class FnbTableController extends Controller
 {
     public function index(Request $request)
     {
-        $clientIdentifier = $request->client_identifier;
-        
-        // Use caching for frequently accessed tables
-        $cacheKey = "fnb_tables_{$clientIdentifier}";
-        
-        $tables = cache()->remember($cacheKey, 300, function () use ($clientIdentifier) { // Cache for 5 minutes
-            return FnbTable::where('client_identifier', $clientIdentifier)
-                ->orderBy('name')
-                ->get();
-        });
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'fnb_tables' => $tables
-            ]
-        ]);
+        try {
+            $clientIdentifier = $request->client_identifier;
+            
+            if (empty($clientIdentifier)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'client_identifier is required',
+                    'data' => [
+                        'fnb_tables' => []
+                    ]
+                ], 400);
+            }
+            
+            // Use caching for frequently accessed tables
+            $cacheKey = "fnb_tables_{$clientIdentifier}";
+            
+            $tables = cache()->remember($cacheKey, 300, function () use ($clientIdentifier) { // Cache for 5 minutes
+                return FnbTable::where('client_identifier', $clientIdentifier)
+                    ->orderBy('name')
+                    ->get();
+            });
+            
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'fnb_tables' => $tables
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching FNB tables', [
+                'error' => $e->getMessage(),
+                'client_identifier' => $request->client_identifier ?? 'N/A'
+            ]);
+            
+            // Clear cache on error to prevent caching error responses
+            if (!empty($request->client_identifier)) {
+                cache()->forget("fnb_tables_{$request->client_identifier}");
+            }
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch tables',
+                'data' => [
+                    'fnb_tables' => []
+                ]
+            ], 500);
+        }
     }
 
     public function store(Request $request)

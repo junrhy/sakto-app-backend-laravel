@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\FnbBlockedDateController;
 use App\Http\Controllers\Api\FnbOpenedDateController;
 use App\Http\Controllers\Api\FnbTableScheduleController;
 use App\Http\Controllers\Api\FnbCustomerOrderController;
+use App\Http\Controllers\Api\FnbKitchenOrderController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
@@ -272,6 +273,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/table/{table_id}', [FnbCustomerOrderController::class, 'getTableOrders']); // Get orders for specific table
         Route::put('/{id}/status', [FnbCustomerOrderController::class, 'updateStatus']); // Update order status
         Route::delete('/{id}', [FnbCustomerOrderController::class, 'destroy']); // Cancel order
+    });
+
+    // F & B Kitchen Orders Routes
+    Route::prefix('fnb-kitchen-orders')->group(function () {
+        Route::get('/', [FnbKitchenOrderController::class, 'index']); // Get all kitchen orders (with optional status filter)
+        Route::post('/send', [FnbKitchenOrderController::class, 'sendToKitchen']); // Send order to kitchen
+        Route::put('/{id}/status', [FnbKitchenOrderController::class, 'updateStatus']); // Update order status
+        Route::post('/complete', [FnbKitchenOrderController::class, 'complete']); // Complete order when payment is done
+        Route::get('/table/{tableNumber}', [FnbKitchenOrderController::class, 'getByTable']); // Get order by table
+        Route::post('/cleanup', [FnbKitchenOrderController::class, 'cleanup']); // Cleanup old orders
     });
 
     // F & B Settings Routes

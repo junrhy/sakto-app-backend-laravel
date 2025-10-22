@@ -12,12 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fnb_orders', function (Blueprint $table) {
-            if (!Schema::hasColumn('fnb_orders', 'service_charge')) {
-                $table->decimal('service_charge', 10, 2)->default(0);
-            }
-            if (!Schema::hasColumn('fnb_orders', 'service_charge_type')) {
-                $table->enum('service_charge_type', ['percentage', 'fixed'])->default('percentage');
-            }
+            $table->renameColumn('table_number', 'table_name');
         });
     }
 
@@ -27,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('fnb_orders', function (Blueprint $table) {
-            $table->dropColumn(['service_charge', 'service_charge_type']);
+            $table->renameColumn('table_name', 'table_number');
         });
     }
 };
