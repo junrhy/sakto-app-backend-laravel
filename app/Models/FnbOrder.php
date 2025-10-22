@@ -12,6 +12,7 @@ class FnbOrder extends Model
         'table_name',
         'customer_name',
         'items',
+        'item_status',
         'customer_notes',
         'discount',
         'discount_type',
@@ -24,6 +25,7 @@ class FnbOrder extends Model
 
     protected $casts = [
         'items' => 'array',
+        'item_status' => 'array',
         'discount' => 'decimal:2',
         'service_charge' => 'decimal:2',
         'subtotal' => 'decimal:2',

@@ -52,27 +52,7 @@ class FnbKitchenOrderController extends Controller
             'items.*.price' => 'required|numeric',
         ]);
 
-        // Check if there's already a pending/preparing order for this table
-        $existingOrder = FnbKitchenOrder::where('client_identifier', $validated['client_identifier'])
-            ->where('table_number', $validated['table_number'])
-            ->whereIn('status', ['pending', 'preparing'])
-            ->first();
-
-        if ($existingOrder) {
-            // Update existing order
-            $existingOrder->update([
-                'customer_name' => $validated['customer_name'] ?? null,
-                'customer_notes' => $validated['customer_notes'] ?? null,
-                'items' => $validated['items'],
-            ]);
-
-            return response()->json([
-                'message' => 'Kitchen order updated successfully',
-                'data' => $existingOrder
-            ]);
-        }
-
-        // Create new kitchen order
+        // Create new kitchen order (always create new orders, don't update existing ones)
         $orderNumber = FnbKitchenOrder::generateOrderNumber($validated['client_identifier']);
 
         $kitchenOrder = FnbKitchenOrder::create([
@@ -87,7 +67,7 @@ class FnbKitchenOrderController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Order sent to kitchen successfully',
+            'message' => 'Kitchen order created successfully',
             'data' => $kitchenOrder
         ], 201);
     }

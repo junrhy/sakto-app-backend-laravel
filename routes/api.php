@@ -224,6 +224,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/all-active', [FnbOrderController::class, 'getAllActiveOrders']);
         Route::post('/kitchen-order', [FnbOrderController::class, 'storeKitchenOrder']);
         Route::post('/kitchen-orders', [FnbOrderController::class, 'getKitchenOrdersOverview']);
+        Route::post('/update-item-status', [FnbOrderController::class, 'updateItemStatus']);
     });
 
     // F & B Sales Routes

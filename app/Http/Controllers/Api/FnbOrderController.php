@@ -56,6 +56,11 @@ class FnbOrderController extends Controller
      */
     public function saveTableOrder(Request $request)
     {
+        \Log::info('saveTableOrder called', [
+            'request_data' => $request->all(),
+            'client_identifier' => $request->input('client_identifier')
+        ]);
+
         $validated = $request->validate([
             'client_identifier' => 'required|string',
             'table_name' => 'required|string',
@@ -70,6 +75,23 @@ class FnbOrderController extends Controller
             'total_amount' => 'required|numeric'
         ]);
 
+        // Check if order exists to preserve existing item status
+        $existingOrder = FnbOrder::where('client_identifier', $validated['client_identifier'])
+            ->where('table_name', $validated['table_name'])
+            ->where('status', 'active')
+            ->first();
+
+        // Initialize item status - preserve existing status or set new items to pending
+        $itemStatus = $existingOrder ? ($existingOrder->item_status ?? []) : [];
+        foreach ($validated['items'] as $item) {
+            // Use uniqueId if available, otherwise fall back to id
+            $itemKey = $item['uniqueId'] ?? $item['id'];
+            // Only set to pending if item doesn't have a status yet
+            if (!isset($itemStatus[$itemKey])) {
+                $itemStatus[$itemKey] = 'pending';
+            }
+        }
+
         $order = FnbOrder::updateOrCreate(
             [
                 'client_identifier' => $validated['client_identifier'],
@@ -78,6 +100,7 @@ class FnbOrderController extends Controller
             ],
             [
                 'items' => $validated['items'],
+                'item_status' => $itemStatus,
                 'discount' => $validated['discount'],
                 'discount_type' => $validated['discount_type'],
                 'service_charge' => $validated['service_charge'],
@@ -89,6 +112,13 @@ class FnbOrderController extends Controller
                 'total_amount' => $validated['total_amount']
             ]
         );
+
+        \Log::info('Order saved successfully', [
+            'order_id' => $order->id,
+            'table_name' => $order->table_name,
+            'items_count' => count($validated['items']),
+            'item_status' => $itemStatus
+        ]);
 
         // Update table status and handle empty orders
         if (count($validated['items']) > 0) {
@@ -274,5 +304,44 @@ class FnbOrderController extends Controller
             ->get();
 
         return response()->json($kitchenOrders);
+    }
+
+    /**
+     * Update item status when sent to kitchen
+     */
+    public function updateItemStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'client_identifier' => 'required|string',
+            'table_name' => 'required|string',
+            'item_ids' => 'required|array',
+            'status' => 'required|in:pending,sent_to_kitchen,preparing,ready,completed'
+        ]);
+
+        $order = FnbOrder::where('client_identifier', $validated['client_identifier'])
+            ->where('table_name', $validated['table_name'])
+            ->where('status', 'active')
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Order not found'
+            ], 404);
+        }
+
+        // Update item status
+        $itemStatus = $order->item_status ?? [];
+        foreach ($validated['item_ids'] as $itemId) {
+            $itemStatus[$itemId] = $validated['status'];
+        }
+
+        $order->update(['item_status' => $itemStatus]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Item status updated successfully',
+            'data' => $order->fresh()
+        ]);
     }
 }
