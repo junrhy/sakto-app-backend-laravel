@@ -14,6 +14,12 @@ class FnbOpenedDateController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
+        
+        // Clean up past dates before fetching
+        FnbOpenedDate::where('client_identifier', $clientIdentifier)
+            ->where('opened_date', '<', now()->startOfDay())
+            ->delete();
+        
         $openedDates = FnbOpenedDate::where('client_identifier', $clientIdentifier)
             ->orderBy('opened_date')
             ->get();

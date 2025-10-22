@@ -31,7 +31,9 @@ class FnbOrderController extends Controller
                 'order' => null,
                 'items' => [],
                 'discount' => 0,
-                'discount_type' => 'percentage'
+                'discount_type' => 'percentage',
+                'service_charge' => 0,
+                'service_charge_type' => 'percentage'
             ]);
         }
 
@@ -39,7 +41,9 @@ class FnbOrderController extends Controller
             'order' => $order,
             'items' => $order->items ?? [],
             'discount' => $order->discount,
-            'discount_type' => $order->discount_type
+            'discount_type' => $order->discount_type,
+            'service_charge' => $order->service_charge ?? 0,
+            'service_charge_type' => $order->service_charge_type ?? 'percentage'
         ]);
     }
 
@@ -54,6 +58,8 @@ class FnbOrderController extends Controller
             'items' => 'array',
             'discount' => 'required|numeric',
             'discount_type' => 'required|in:percentage,fixed',
+            'service_charge' => 'required|numeric',
+            'service_charge_type' => 'required|in:percentage,fixed',
             'subtotal' => 'required|numeric',
             'total_amount' => 'required|numeric'
         ]);
@@ -68,6 +74,8 @@ class FnbOrderController extends Controller
                 'items' => $validated['items'],
                 'discount' => $validated['discount'],
                 'discount_type' => $validated['discount_type'],
+                'service_charge' => $validated['service_charge'],
+                'service_charge_type' => $validated['service_charge_type'],
                 'subtotal' => $validated['subtotal'],
                 'total_amount' => $validated['total_amount']
             ]
@@ -159,6 +167,8 @@ class FnbOrderController extends Controller
                 'subtotal' => $order->subtotal,
                 'discount' => $order->discount,
                 'discount_type' => $order->discount_type,
+                'service_charge' => $order->service_charge ?? 0,
+                'service_charge_type' => $order->service_charge_type ?? 'percentage',
                 'total' => $order->total_amount,
                 'payment_amount' => $validated['payment_amount'],
                 'payment_method' => $validated['payment_method'],

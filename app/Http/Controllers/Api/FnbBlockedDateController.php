@@ -14,6 +14,12 @@ class FnbBlockedDateController extends Controller
     public function index(Request $request)
     {
         $clientIdentifier = $request->client_identifier;
+        
+        // Clean up past dates before fetching
+        FnbBlockedDate::where('client_identifier', $clientIdentifier)
+            ->where('blocked_date', '<', now()->startOfDay())
+            ->delete();
+        
         $blockedDates = FnbBlockedDate::where('client_identifier', $clientIdentifier)
             ->orderBy('blocked_date')
             ->get();
