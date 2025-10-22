@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\FnbBlockedDateController;
 use App\Http\Controllers\Api\FnbOpenedDateController;
 use App\Http\Controllers\Api\FnbTableScheduleController;
+use App\Http\Controllers\Api\FnbCustomerOrderController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
@@ -79,6 +80,13 @@ use App\Http\Controllers\Api\ChatAuthController;
 Route::prefix('driver')->group(function () {
     Route::get('/trucks', [App\Http\Controllers\Api\TransportationFleetController::class, 'getPublicTrucks']);
     Route::post('/trucks/{id}/location', [App\Http\Controllers\Api\TransportationFleetController::class, 'updateTruckLocationPublic']);
+});
+
+// Public F & B routes (no authentication required - for QR code ordering)
+Route::prefix('fnb-public')->group(function () {
+    Route::get('/menu', [FnbCustomerOrderController::class, 'getPublicMenu']); // Get menu items for customers
+    Route::get('/table-info', [FnbCustomerOrderController::class, 'getTableInfo']); // Get table information
+    Route::post('/customer-order', [FnbCustomerOrderController::class, 'store']); // Submit customer order
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -256,6 +264,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [FnbTableScheduleController::class, 'destroy']);
         Route::post('/check-availability', [FnbTableScheduleController::class, 'checkAvailability']);
         Route::post('/bulk-set-availability', [FnbTableScheduleController::class, 'bulkSetAvailability']);
+    });
+
+    // F & B Customer Orders Routes (QR Code Ordering) - Staff endpoints
+    Route::prefix('fnb-customer-orders')->group(function () {
+        Route::get('/pending', [FnbCustomerOrderController::class, 'getPendingOrders']); // Get all pending orders for staff
+        Route::get('/table/{table_id}', [FnbCustomerOrderController::class, 'getTableOrders']); // Get orders for specific table
+        Route::put('/{id}/status', [FnbCustomerOrderController::class, 'updateStatus']); // Update order status
+        Route::delete('/{id}', [FnbCustomerOrderController::class, 'destroy']); // Cancel order
     });
 
     // F & B Settings Routes

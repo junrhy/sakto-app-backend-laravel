@@ -8,8 +8,11 @@ class FnbOrder extends Model
 {
     protected $fillable = [
         'client_identifier',
+        'order_source',
         'table_name',
+        'customer_name',
         'items',
+        'customer_notes',
         'discount',
         'discount_type',
         'service_charge',

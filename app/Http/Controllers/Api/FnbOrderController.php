@@ -33,7 +33,9 @@ class FnbOrderController extends Controller
                 'discount' => 0,
                 'discount_type' => 'percentage',
                 'service_charge' => 0,
-                'service_charge_type' => 'percentage'
+                'service_charge_type' => 'percentage',
+                'customer_name' => null,
+                'customer_notes' => null
             ]);
         }
 
@@ -43,7 +45,9 @@ class FnbOrderController extends Controller
             'discount' => $order->discount,
             'discount_type' => $order->discount_type,
             'service_charge' => $order->service_charge ?? 0,
-            'service_charge_type' => $order->service_charge_type ?? 'percentage'
+            'service_charge_type' => $order->service_charge_type ?? 'percentage',
+            'customer_name' => $order->customer_name,
+            'customer_notes' => $order->customer_notes
         ]);
     }
 
@@ -60,6 +64,8 @@ class FnbOrderController extends Controller
             'discount_type' => 'required|in:percentage,fixed',
             'service_charge' => 'required|numeric',
             'service_charge_type' => 'required|in:percentage,fixed',
+            'customer_name' => 'nullable|string',
+            'customer_notes' => 'nullable|string',
             'subtotal' => 'required|numeric',
             'total_amount' => 'required|numeric'
         ]);
@@ -76,6 +82,9 @@ class FnbOrderController extends Controller
                 'discount_type' => $validated['discount_type'],
                 'service_charge' => $validated['service_charge'],
                 'service_charge_type' => $validated['service_charge_type'],
+                'customer_name' => $validated['customer_name'] ?? null,
+                'customer_notes' => $validated['customer_notes'] ?? null,
+                'order_source' => $validated['customer_name'] ? 'customer' : 'staff', // Automatically set order_source
                 'subtotal' => $validated['subtotal'],
                 'total_amount' => $validated['total_amount']
             ]
