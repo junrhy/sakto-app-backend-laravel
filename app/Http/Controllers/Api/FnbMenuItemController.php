@@ -141,4 +141,45 @@ class FnbMenuItemController extends Controller
         FnbMenuItem::whereIn('id', $validated['ids'])->delete();
         return response()->noContent();
     }
+
+    /**
+     * Toggle menu item availability
+     */
+    public function toggleAvailability(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'field' => 'required|in:is_available_personal,is_available_online',
+            'value' => 'required|boolean',
+            'client_identifier' => 'required|string'
+        ]);
+
+        $menuItem = FnbMenuItem::where('id', $id)
+            ->where('client_identifier', $validated['client_identifier'])
+            ->first();
+
+        if (!$menuItem) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Menu item not found'
+            ], 404);
+        }
+
+        $menuItem->update([
+            $validated['field'] => $validated['value']
+        ]);
+
+        // Clear cache when menu items are modified
+        cache()->forget("fnb_menu_items_{$validated['client_identifier']}");
+        cache()->forget('fnb_restaurants_' . md5('all_restaurants'));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Menu item availability updated successfully',
+            'data' => [
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                $validated['field'] => $validated['value']
+            ]
+        ]);
+    }
 }

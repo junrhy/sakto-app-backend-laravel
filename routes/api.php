@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\FnbOpenedDateController;
 use App\Http\Controllers\Api\FnbTableScheduleController;
 use App\Http\Controllers\Api\FnbCustomerOrderController;
 use App\Http\Controllers\Api\FnbKitchenOrderController;
+use App\Http\Controllers\Api\FnbOnlineStoreController;
+use App\Http\Controllers\Api\FnbOnlineOrderController;
 use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\LoanPaymentController;
 use App\Http\Controllers\Api\LoanBillController;
@@ -201,6 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [FnbMenuItemController::class, 'store']);
         Route::get('/{id}', [FnbMenuItemController::class, 'show']);
         Route::put('/{id}', [FnbMenuItemController::class, 'update']);
+        Route::patch('/{id}/toggle-availability', [FnbMenuItemController::class, 'toggleAvailability']);
         Route::delete('/{id}', [FnbMenuItemController::class, 'destroy']);
         Route::post('/bulk-destroy', [FnbMenuItemController::class, 'bulkDestroy']);
     });
@@ -214,6 +217,41 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/join', [FnbTableController::class, 'joinTables']);
         Route::post('/unjoin', [FnbTableController::class, 'unjoinTables']);
         Route::get('/joined', [FnbTableController::class, 'getJoinedTables']);
+    });
+
+    // F & B Online Stores Routes
+    Route::prefix('fnb-online-stores')->group(function () {
+        Route::get('/', [FnbOnlineStoreController::class, 'index']);
+        Route::post('/', [FnbOnlineStoreController::class, 'store']);
+        Route::get('/{id}', [FnbOnlineStoreController::class, 'show']);
+        Route::put('/{id}', [FnbOnlineStoreController::class, 'update']);
+        Route::delete('/{id}', [FnbOnlineStoreController::class, 'destroy']);
+        Route::patch('/{id}/toggle-status', [FnbOnlineStoreController::class, 'toggleStatus']);
+        Route::patch('/{id}/menu-items', [FnbOnlineStoreController::class, 'updateMenuItems']);
+        Route::get('/{id}/menu-items', [FnbOnlineStoreController::class, 'getMenuItems']);
+    });
+
+    // F & B Online Orders Routes
+    Route::prefix('fnb-online-orders')->group(function () {
+        Route::get('/', [FnbOnlineOrderController::class, 'index']);
+        Route::post('/', [FnbOnlineOrderController::class, 'store']);
+        Route::get('/{id}', [FnbOnlineOrderController::class, 'show']);
+        Route::put('/{id}', [FnbOnlineOrderController::class, 'update']);
+        Route::patch('/{id}', [FnbOnlineOrderController::class, 'update']);
+        Route::delete('/{id}', [FnbOnlineOrderController::class, 'destroy']);
+        Route::patch('/{id}/verify', [FnbOnlineOrderController::class, 'verifyOrder']);
+        Route::patch('/{id}/negotiate-payment', [FnbOnlineOrderController::class, 'negotiatePayment']);
+        Route::patch('/{id}/status', [FnbOnlineOrderController::class, 'updateStatus']);
+        Route::get('/pending-verification', [FnbOnlineOrderController::class, 'getPendingVerification']);
+        Route::get('/pending-payment-negotiation', [FnbOnlineOrderController::class, 'getPendingPaymentNegotiation']);
+    });
+
+    // F & B Public Online Store Routes (no authentication required)
+    Route::prefix('fnb-public')->group(function () {
+        Route::get('/online-store', [FnbOnlineStoreController::class, 'getPublicStore']);
+        Route::get('/online-store/{id}/menu', [FnbOnlineStoreController::class, 'getPublicStoreMenu']);
+        Route::post('/online-order', [FnbOnlineOrderController::class, 'createPublicOrder']);
+        Route::get('/online-order/{orderNumber}', [FnbOnlineOrderController::class, 'getPublicOrder']);
     });
 
     // F & B Order Routes
