@@ -92,6 +92,10 @@ Route::prefix('fnb-public')->group(function () {
     Route::post('/customer-order', [FnbCustomerOrderController::class, 'store']); // Submit customer order
 });
 
+// Public reservation confirmation routes (no authentication required)
+Route::get('/fnb-reservations/by-token/{token}', [FnbReservationController::class, 'getReservationByToken']);
+Route::post('/fnb-reservations/confirm/{token}', [FnbReservationController::class, 'confirmReservation']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();

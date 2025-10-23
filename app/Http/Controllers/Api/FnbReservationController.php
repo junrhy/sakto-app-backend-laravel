@@ -25,34 +25,54 @@ class FnbReservationController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required',
-            'date' => 'required',
-            'time' => 'required',
-            'guests' => 'required',
-            'table_id' => 'required',
-            'client_identifier' => 'required',
-            'status' => 'required',
-            'contact' => 'nullable',
-            'notes' => 'nullable',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required',
+                'date' => 'required',
+                'time' => 'required',
+                'guests' => 'required',
+                'table_ids' => 'nullable|array',
+                'client_identifier' => 'required',
+                'status' => 'required',
+                'contact' => 'nullable',
+                'notes' => 'nullable',
+            ]);
 
-        // Check if the date/time slot is blocked
-        $isBlocked = FnbBlockedDate::where('client_identifier', $validated['client_identifier'])
-            ->where('blocked_date', $validated['date'])
-            ->whereJsonContains('timeslots', $validated['time'])
-            ->exists();
+            // Generate confirmation token
+            $validated['confirmation_token'] = \Str::random(32);
 
-        if ($isBlocked) {
+            // Check if the date/time slot is blocked
+            $isBlocked = FnbBlockedDate::where('client_identifier', $validated['client_identifier'])
+                ->where('blocked_date', $validated['date'])
+                ->whereJsonContains('timeslots', $validated['time'])
+                ->exists();
+
+            if ($isBlocked) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Reservations are not available at this time. The time period has been blocked.'
+                ], 400);
+            }
+
+            $reservation = FnbReservation::create($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Reservation created successfully',
+                'data' => $reservation
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Reservations are not available at this time. The time period has been blocked.'
-            ], 400);
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create reservation: ' . $e->getMessage()
+            ], 500);
         }
-
-        $reservation = FnbReservation::create($validated);
-
-        return response()->json($reservation, 201);
     }
 
     /**
@@ -67,7 +87,7 @@ class FnbReservationController extends Controller
             'date' => 'sometimes|date',
             'time' => 'sometimes|string',
             'guests' => 'sometimes|integer|min:1',
-            'table_id' => 'sometimes|integer',
+            'table_ids' => 'nullable|array',
             'contact' => 'nullable|string',
             'notes' => 'nullable|string',
             'status' => 'sometimes|in:pending,confirmed,cancelled',
@@ -114,5 +134,75 @@ class FnbReservationController extends Controller
     {
         $reservations = FnbReservation::all();
         return response()->json($reservations);
+    }
+
+    /**
+     * Get reservation by confirmation token
+     */
+    public function getReservationByToken($token)
+    {
+        try {
+            $reservation = FnbReservation::where('confirmation_token', $token)->first();
+
+            if (!$reservation) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Reservation not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $reservation
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch reservation: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Confirm a reservation using confirmation token
+     */
+    public function confirmReservation(Request $request, $token)
+    {
+        try {
+            $reservation = FnbReservation::where('confirmation_token', $token)->first();
+
+            if (!$reservation) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid confirmation token'
+                ], 404);
+            }
+
+            if ($reservation->confirmed_at) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Reservation already confirmed'
+                ], 400);
+            }
+
+            // Update reservation
+            $reservation->update([
+                'status' => 'confirmed',
+                'confirmed_at' => now()
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Reservation confirmed successfully',
+                'data' => $reservation
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to confirm reservation: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

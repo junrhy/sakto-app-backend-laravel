@@ -14,6 +14,7 @@ class FnbTable extends Model
     protected $fillable = [
         'name',
         'seats',
+        'location',
         'status',
         'client_identifier',
         'joined_with'
@@ -21,6 +22,7 @@ class FnbTable extends Model
 
     protected $casts = [
         'seats' => 'integer',
+        'location' => 'string',
         'status' => 'string',
         'client_identifier' => 'string',
         'joined_with' => 'string'
