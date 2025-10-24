@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\FnbReservationController;
 use App\Http\Controllers\Api\FnbBlockedDateController;
 use App\Http\Controllers\Api\FnbOpenedDateController;
 use App\Http\Controllers\Api\FnbTableScheduleController;
+use App\Http\Controllers\Api\FnbDailyNoteController;
 use App\Http\Controllers\Api\FnbCustomerOrderController;
 use App\Http\Controllers\Api\FnbKitchenOrderController;
 use App\Http\Controllers\Api\FnbOnlineStoreController;
@@ -308,6 +309,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [FnbTableScheduleController::class, 'destroy']);
         Route::post('/check-availability', [FnbTableScheduleController::class, 'checkAvailability']);
         Route::post('/bulk-set-availability', [FnbTableScheduleController::class, 'bulkSetAvailability']);
+    });
+
+    // F & B Daily Notes Routes
+    Route::prefix('fnb-daily-notes')->group(function () {
+        Route::get('/', [FnbDailyNoteController::class, 'index']);
+        Route::post('/', [FnbDailyNoteController::class, 'store']);
+        Route::delete('/{id}', [FnbDailyNoteController::class, 'destroy']);
     });
 
     // F & B Customer Orders Routes (QR Code Ordering) - Staff endpoints
