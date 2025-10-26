@@ -252,7 +252,8 @@ class CreditController extends Controller
             'source' => 'required|string',
             'reference_id' => 'required|string',
             'note' => 'nullable|string',
-            'package_amount' => 'nullable|numeric|min:0'
+            'package_amount' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -294,7 +295,7 @@ class CreditController extends Controller
             'package_name' => $request->source,
             'package_credit' => $request->amount,
             'package_amount' => $request->package_amount ?? 0, // Use provided amount or 0 for direct additions
-            'payment_method' => 'direct_addition',
+            'payment_method' => $request->payment_method ?? 'direct_addition',
             'payment_method_details' => $request->note ?? 'Direct credit addition',
             'transaction_id' => $request->reference_id,
             'proof_of_payment' => null,
