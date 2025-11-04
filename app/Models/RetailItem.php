@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RetailItem extends Model
 {
-    protected $fillable = ['name', 'sku', 'images', 'quantity', 'unit', 'price', 'category_id', 'barcode', 'client_identifier'];
+    protected $fillable = ['name', 'sku', 'images', 'quantity', 'unit', 'price', 'category_id', 'barcode', 'client_identifier', 'low_stock_threshold'];
 
     protected $casts = [
         'images' => 'array',
@@ -23,5 +23,13 @@ class RetailItem extends Model
     public function stockTransactions()
     {
         return $this->hasMany(RetailStockTransaction::class);
+    }
+
+    /**
+     * Get the variants for the retail item.
+     */
+    public function variants()
+    {
+        return $this->hasMany(RetailItemVariant::class);
     }
 }

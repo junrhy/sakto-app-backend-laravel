@@ -33,6 +33,8 @@ class RetailSaleController extends Controller
             'total_amount' => 'required|numeric',
             'payment_method' => 'required|string',
             'client_identifier' => 'required',
+            'discount_id' => 'nullable|integer|exists:retail_discounts,id',
+            'discount_amount' => 'nullable|numeric|min:0',
         ]);
     
         $retailSale = RetailSale::create($request->all());
@@ -40,10 +42,31 @@ class RetailSaleController extends Controller
         // Update the inventory
         $items = $retailSale->items;
         foreach ($items as $item) {
-            $retailItem = RetailItem::find($item['id']);
-            $retailItem->update([
-                'quantity' => $retailItem->quantity - $item['quantity']
-            ]);
+            if (isset($item['variant_id'])) {
+                // Update variant stock
+                $variant = \App\Models\RetailItemVariant::find($item['variant_id']);
+                if ($variant) {
+                    $variant->update([
+                        'quantity' => max(0, $variant->quantity - $item['quantity'])
+                    ]);
+                }
+            } else {
+                // Update base product stock
+                $retailItem = RetailItem::find($item['id']);
+                if ($retailItem) {
+                    $retailItem->update([
+                        'quantity' => max(0, $retailItem->quantity - $item['quantity'])
+                    ]);
+                }
+            }
+        }
+
+        // Update discount usage count if discount was applied
+        if ($request->discount_id) {
+            $discount = \App\Models\RetailDiscount::find($request->discount_id);
+            if ($discount) {
+                $discount->increment('usage_count');
+            }
         }
 
         return response()->json([

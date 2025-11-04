@@ -191,6 +191,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [InventoryController::class, 'update']);
         Route::delete('/{id}', [InventoryController::class, 'destroy']);
         Route::post('/bulk-destroy', [InventoryController::class, 'bulkDestroy']);
+        Route::post('/bulk-operation', [InventoryController::class, 'bulkOperation']);
         
         // Category Routes
         Route::post('/categories', [InventoryController::class, 'storeCategory']);
@@ -202,6 +203,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/stock/remove', [InventoryController::class, 'removeStock']);
         Route::post('/{id}/stock/adjust', [InventoryController::class, 'adjustStock']);
         Route::get('/{id}/stock/history', [InventoryController::class, 'getStockHistory']);
+        
+        // Low stock alerts
+        Route::get('/low-stock-alerts', [InventoryController::class, 'getLowStockAlerts']);
+        
+        // Variant management
+        Route::get('/{id}/variants', [InventoryController::class, 'getVariants']);
+        Route::post('/{id}/variants', [InventoryController::class, 'storeVariant']);
+        Route::put('/{id}/variants/{variantId}', [InventoryController::class, 'updateVariant']);
+        Route::delete('/{id}/variants/{variantId}', [InventoryController::class, 'destroyVariant']);
+        
+        // Discount management
+        Route::get('/discounts', [InventoryController::class, 'getDiscounts']);
+        Route::get('/discounts/active', [InventoryController::class, 'getActiveDiscounts']);
+        Route::post('/discounts', [InventoryController::class, 'storeDiscount']);
+        Route::put('/discounts/{id}', [InventoryController::class, 'updateDiscount']);
+        Route::delete('/discounts/{id}', [InventoryController::class, 'destroyDiscount']);
+        Route::post('/discounts/calculate', [InventoryController::class, 'calculateDiscount']);
     });
 
     // Pos Retail Routes
