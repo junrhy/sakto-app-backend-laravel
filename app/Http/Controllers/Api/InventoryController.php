@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\RetailItem;
 use App\Models\RetailCategory;
+use App\Models\RetailStockTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
@@ -241,4 +243,171 @@ class InventoryController extends Controller
             'message' => 'Category deleted successfully'
         ]);
     }
+
+    /**
+     * Add stock to an inventory item
+     */
+    public function addStock(Request $request, $id)
+    {
+        $clientIdentifier = $request->client_identifier;
+        $item = RetailItem::where('client_identifier', $clientIdentifier)->findOrFail($id);
+
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'nullable|string|max:500',
+            'reference_number' => 'nullable|string|max:255',
+            'performed_by' => 'nullable|string|max:255',
+        ]);
+
+        DB::transaction(function () use ($item, $request, $clientIdentifier) {
+            $quantity = $request->quantity;
+            $previousQuantity = $item->quantity;
+            $newQuantity = $previousQuantity + $quantity;
+
+            // Create transaction record
+            RetailStockTransaction::create([
+                'client_identifier' => $clientIdentifier,
+                'retail_item_id' => $item->id,
+                'transaction_type' => 'add',
+                'quantity' => $quantity,
+                'previous_quantity' => $previousQuantity,
+                'new_quantity' => $newQuantity,
+                'reason' => $request->reason,
+                'reference_number' => $request->reference_number,
+                'performed_by' => $request->performed_by,
+                'transaction_date' => now(),
+            ]);
+
+            // Update stock
+            $item->increment('quantity', $quantity);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Stock added successfully',
+            'data' => $item->fresh()
+        ]);
+    }
+
+    /**
+     * Remove stock from an inventory item
+     */
+    public function removeStock(Request $request, $id)
+    {
+        $clientIdentifier = $request->client_identifier;
+        $item = RetailItem::where('client_identifier', $clientIdentifier)->findOrFail($id);
+
+        $request->validate([
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'nullable|string|max:500',
+            'reference_number' => 'nullable|string|max:255',
+            'performed_by' => 'nullable|string|max:255',
+        ]);
+
+        if ($item->quantity < $request->quantity) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Insufficient stock. Available: ' . $item->quantity
+            ], 400);
+        }
+
+        DB::transaction(function () use ($item, $request, $clientIdentifier) {
+            $quantity = $request->quantity;
+            $previousQuantity = $item->quantity;
+            $newQuantity = $previousQuantity - $quantity;
+
+            // Create transaction record
+            RetailStockTransaction::create([
+                'client_identifier' => $clientIdentifier,
+                'retail_item_id' => $item->id,
+                'transaction_type' => 'remove',
+                'quantity' => $quantity,
+                'previous_quantity' => $previousQuantity,
+                'new_quantity' => $newQuantity,
+                'reason' => $request->reason,
+                'reference_number' => $request->reference_number,
+                'performed_by' => $request->performed_by,
+                'transaction_date' => now(),
+            ]);
+
+            // Update stock
+            $item->decrement('quantity', $quantity);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Stock removed successfully',
+            'data' => $item->fresh()
+        ]);
+    }
+
+    /**
+     * Adjust stock (for corrections)
+     */
+    public function adjustStock(Request $request, $id)
+    {
+        $clientIdentifier = $request->client_identifier;
+        $item = RetailItem::where('client_identifier', $clientIdentifier)->findOrFail($id);
+
+        $request->validate([
+            'new_quantity' => 'required|integer|min:0',
+            'reason' => 'required|string|max:500',
+            'reference_number' => 'nullable|string|max:255',
+            'performed_by' => 'nullable|string|max:255',
+        ]);
+
+        $oldQuantity = $item->quantity;
+        $newQuantity = $request->new_quantity;
+        $difference = abs($newQuantity - $oldQuantity);
+
+        DB::transaction(function () use ($item, $request, $clientIdentifier, $oldQuantity, $newQuantity, $difference) {
+            // Create transaction record
+            RetailStockTransaction::create([
+                'client_identifier' => $clientIdentifier,
+                'retail_item_id' => $item->id,
+                'transaction_type' => 'adjustment',
+                'quantity' => $difference,
+                'previous_quantity' => $oldQuantity,
+                'new_quantity' => $newQuantity,
+                'reason' => $request->reason,
+                'reference_number' => $request->reference_number,
+                'performed_by' => $request->performed_by,
+                'transaction_date' => now(),
+            ]);
+
+            // Update stock
+            $item->update(['quantity' => $newQuantity]);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Stock adjusted successfully',
+            'data' => $item->fresh()
+        ]);
+    }
+
+    /**
+     * Get transaction history for an item
+     */
+    public function getStockHistory(Request $request, $id)
+    {
+        $clientIdentifier = $request->client_identifier;
+        
+        $item = RetailItem::where('client_identifier', $clientIdentifier)->findOrFail($id);
+        
+        $transactions = RetailStockTransaction::forClient($clientIdentifier)
+            ->where('retail_item_id', $id)
+            ->orderBy('transaction_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Stock history retrieved successfully',
+            'data' => [
+                'item' => $item,
+                'transactions' => $transactions
+            ]
+        ]);
+    }
 }
+

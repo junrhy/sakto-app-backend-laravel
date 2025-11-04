@@ -196,6 +196,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/categories', [InventoryController::class, 'storeCategory']);
         Route::put('/categories/{id}', [InventoryController::class, 'updateCategory']);
         Route::delete('/categories/{id}', [InventoryController::class, 'destroyCategory']);
+        
+        // Stock management
+        Route::post('/{id}/stock/add', [InventoryController::class, 'addStock']);
+        Route::post('/{id}/stock/remove', [InventoryController::class, 'removeStock']);
+        Route::post('/{id}/stock/adjust', [InventoryController::class, 'adjustStock']);
+        Route::get('/{id}/stock/history', [InventoryController::class, 'getStockHistory']);
     });
 
     // Pos Retail Routes

@@ -16,4 +16,12 @@ class RetailItem extends Model
     {
         return $this->belongsTo(RetailCategory::class);
     }
+
+    /**
+     * Get the stock transactions for the retail item.
+     */
+    public function stockTransactions()
+    {
+        return $this->hasMany(RetailStockTransaction::class);
+    }
 }
