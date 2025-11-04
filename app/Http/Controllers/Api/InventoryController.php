@@ -168,4 +168,77 @@ class InventoryController extends Controller
 
         return response()->json(['urls' => $imageUrls]);
     }
+
+    /**
+     * Store a newly created category in storage.
+     */
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'client_identifier' => 'required|string',
+        ]);
+
+        $category = RetailCategory::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'client_identifier' => $request->client_identifier,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Category created successfully',
+            'data' => $category
+        ], 201);
+    }
+
+    /**
+     * Update the specified category in storage.
+     */
+    public function updateCategory(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $category = RetailCategory::where('client_identifier', $request->client_identifier)
+            ->findOrFail($id);
+        
+        $category->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Category updated successfully',
+            'data' => $category
+        ]);
+    }
+
+    /**
+     * Remove the specified category from storage.
+     */
+    public function destroyCategory(Request $request, $id)
+    {
+        $category = RetailCategory::where('client_identifier', $request->client_identifier)
+            ->findOrFail($id);
+
+        // Check if category has items
+        if ($category->items()->count() > 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot delete category with existing products'
+            ], 400);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Category deleted successfully'
+        ]);
+    }
 }

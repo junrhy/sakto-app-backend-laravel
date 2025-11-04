@@ -191,6 +191,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [InventoryController::class, 'update']);
         Route::delete('/{id}', [InventoryController::class, 'destroy']);
         Route::post('/bulk-destroy', [InventoryController::class, 'bulkDestroy']);
+        
+        // Category Routes
+        Route::post('/categories', [InventoryController::class, 'storeCategory']);
+        Route::put('/categories/{id}', [InventoryController::class, 'updateCategory']);
+        Route::delete('/categories/{id}', [InventoryController::class, 'destroyCategory']);
     });
 
     // Pos Retail Routes

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RetailCategory extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'description', 'client_identifier'];
 
     public function items()
     {
