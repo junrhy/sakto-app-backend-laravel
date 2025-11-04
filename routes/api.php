@@ -79,6 +79,7 @@ use App\Http\Controllers\Api\PatientMedicalHistoryController;
 use App\Http\Controllers\Api\ChatConversationController;
 use App\Http\Controllers\Api\ChatMessageController;
 use App\Http\Controllers\Api\ChatAuthController;
+use App\Http\Controllers\Api\FileStorageController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -1035,7 +1036,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/mark-as-read', [ChatMessageController::class, 'markAsRead']);
     });
 
-
+    Route::prefix('file-storage')->group(function () {
+        Route::get('/', [FileStorageController::class, 'index']);
+        Route::post('/', [FileStorageController::class, 'store']);
+        Route::get('/folders', [FileStorageController::class, 'getFolders']);
+        Route::get('/{id}', [FileStorageController::class, 'show']);
+        Route::put('/{id}', [FileStorageController::class, 'update']);
+        Route::delete('/{id}', [FileStorageController::class, 'destroy']);
+    });
+    
     // Future authenticated routes will go here...
 });
 
