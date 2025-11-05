@@ -80,6 +80,10 @@ use App\Http\Controllers\Api\ChatConversationController;
 use App\Http\Controllers\Api\ChatMessageController;
 use App\Http\Controllers\Api\ChatAuthController;
 use App\Http\Controllers\Api\FileStorageController;
+use App\Http\Controllers\Api\JobBoardController;
+use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\JobApplicantController;
+use App\Http\Controllers\Api\JobApplicationController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -1043,6 +1047,46 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [FileStorageController::class, 'show']);
         Route::put('/{id}', [FileStorageController::class, 'update']);
         Route::delete('/{id}', [FileStorageController::class, 'destroy']);
+    });
+
+    // Job Board Routes
+    Route::prefix('job-boards')->group(function () {
+        Route::get('/', [JobBoardController::class, 'index']);
+        Route::post('/', [JobBoardController::class, 'store']);
+        Route::get('/{id}', [JobBoardController::class, 'show']);
+        Route::put('/{id}', [JobBoardController::class, 'update']);
+        Route::delete('/{id}', [JobBoardController::class, 'destroy']);
+    });
+
+    // Job Routes
+    Route::prefix('jobs')->group(function () {
+        Route::get('/', [JobController::class, 'index']);
+        Route::post('/', [JobController::class, 'store']);
+        Route::get('/{id}', [JobController::class, 'show']);
+        Route::put('/{id}', [JobController::class, 'update']);
+        Route::delete('/{id}', [JobController::class, 'destroy']);
+        Route::post('/{id}/publish', [JobController::class, 'publish']);
+        Route::post('/{id}/close', [JobController::class, 'close']);
+    });
+
+    // Job Applicant Routes
+    Route::prefix('job-applicants')->group(function () {
+        Route::get('/', [JobApplicantController::class, 'index']);
+        Route::post('/', [JobApplicantController::class, 'store']);
+        Route::get('/find-by-email', [JobApplicantController::class, 'findByEmail']);
+        Route::get('/{id}', [JobApplicantController::class, 'show']);
+        Route::put('/{id}', [JobApplicantController::class, 'update']);
+        Route::delete('/{id}', [JobApplicantController::class, 'destroy']);
+    });
+
+    // Job Application Routes
+    Route::prefix('job-applications')->group(function () {
+        Route::get('/', [JobApplicationController::class, 'index']);
+        Route::post('/', [JobApplicationController::class, 'store']);
+        Route::get('/{id}', [JobApplicationController::class, 'show']);
+        Route::put('/{id}', [JobApplicationController::class, 'update']);
+        Route::delete('/{id}', [JobApplicationController::class, 'destroy']);
+        Route::post('/{id}/update-status', [JobApplicationController::class, 'updateStatus']);
     });
     
     // Future authenticated routes will go here...
