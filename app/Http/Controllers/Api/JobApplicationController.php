@@ -77,7 +77,7 @@ class JobApplicationController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'client_identifier' => 'required|string',
-            'job_id' => 'required|exists:jobs,id',
+            'job_id' => 'required|exists:job_postings,id',
             'applicant_id' => 'nullable|exists:job_applicants,id',
             'cover_letter' => 'nullable|string',
             'status' => ['nullable', Rule::in(['pending', 'reviewed', 'shortlisted', 'interviewed', 'accepted', 'rejected'])],

@@ -18,11 +18,14 @@ class JobBoardController extends Controller
     {
         $clientIdentifier = $request->query('client_identifier');
         
-        if (!$clientIdentifier) {
+        // If searching by slug, don't require client_identifier (for public access)
+        if ($request->has('slug')) {
+            $query = JobBoard::where('slug', $request->slug);
+        } elseif (!$clientIdentifier) {
             return response()->json(['error' => 'Client identifier is required'], 400);
+        } else {
+            $query = JobBoard::forClient($clientIdentifier);
         }
-
-        $query = JobBoard::forClient($clientIdentifier);
 
         // Apply filters
         if ($request->has('is_active')) {
