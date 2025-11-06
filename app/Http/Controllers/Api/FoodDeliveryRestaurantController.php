@@ -32,7 +32,12 @@ class FoodDeliveryRestaurantController extends Controller
 
         // Filter by status
         if ($request->has('status')) {
-            $query->where('status', $request->status);
+            // Allow 'all' to get restaurants with any status
+            if ($request->status === 'all') {
+                // Don't filter by status
+            } else {
+                $query->where('status', $request->status);
+            }
         } else {
             $query->where('status', 'active');
         }

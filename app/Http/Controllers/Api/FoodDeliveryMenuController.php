@@ -155,7 +155,9 @@ class FoodDeliveryMenuController extends Controller
 
         // Filter by restaurant
         if ($request->has('restaurant_id')) {
-            $query->where('restaurant_id', $request->restaurant_id);
+            $restaurantId = $request->restaurant_id;
+            // Handle both string and integer restaurant_id
+            $query->where('restaurant_id', (int) $restaurantId);
         }
 
         // Filter by category
@@ -165,7 +167,10 @@ class FoodDeliveryMenuController extends Controller
 
         // Filter by availability
         if ($request->has('is_available')) {
-            $query->where('is_available', $request->is_available);
+            $isAvailable = filter_var($request->is_available, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($isAvailable !== null) {
+                $query->where('is_available', $isAvailable);
+            }
         }
 
         // Filter by featured
