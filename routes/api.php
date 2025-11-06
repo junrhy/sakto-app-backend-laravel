@@ -84,6 +84,11 @@ use App\Http\Controllers\Api\JobBoardController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\JobApplicantController;
 use App\Http\Controllers\Api\JobApplicationController;
+use App\Http\Controllers\Api\ParcelDeliveryController;
+use App\Http\Controllers\Api\ParcelDeliveryTrackingController;
+use App\Http\Controllers\Api\ParcelDeliveryPricingController;
+use App\Http\Controllers\Api\ParcelDeliveryCourierController;
+use App\Http\Controllers\Api\ParcelDeliveryExternalController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -933,6 +938,44 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [TransportationPricingConfigController::class, 'show']);
         Route::put('/{id}', [TransportationPricingConfigController::class, 'update']);
         Route::delete('/{id}', [TransportationPricingConfigController::class, 'destroy']);
+    });
+
+    // Parcel Delivery Routes
+    Route::prefix('parcel-deliveries')->group(function () {
+        Route::get('/', [ParcelDeliveryController::class, 'index']);
+        Route::post('/', [ParcelDeliveryController::class, 'store']);
+        Route::post('/calculate-pricing', [ParcelDeliveryController::class, 'calculatePricing']);
+        Route::get('/track/{reference}', [ParcelDeliveryController::class, 'getByReference']);
+        Route::get('/{id}', [ParcelDeliveryController::class, 'show']);
+        Route::put('/{id}', [ParcelDeliveryController::class, 'update']);
+        Route::delete('/{id}', [ParcelDeliveryController::class, 'destroy']);
+        Route::post('/{id}/assign-courier', [ParcelDeliveryController::class, 'assignCourier']);
+        Route::put('/{id}/update-status', [ParcelDeliveryController::class, 'updateStatus']);
+        Route::get('/{id}/tracking', [ParcelDeliveryTrackingController::class, 'index']);
+    });
+
+    // Parcel Delivery Pricing Routes
+    Route::prefix('parcel-delivery-pricing')->group(function () {
+        Route::get('/', [ParcelDeliveryPricingController::class, 'index']);
+        Route::put('/', [ParcelDeliveryPricingController::class, 'update']);
+        Route::post('/calculate', [ParcelDeliveryPricingController::class, 'calculate']);
+    });
+
+    // Parcel Delivery Courier Routes
+    Route::prefix('parcel-delivery-couriers')->group(function () {
+        Route::get('/', [ParcelDeliveryCourierController::class, 'index']);
+        Route::post('/', [ParcelDeliveryCourierController::class, 'store']);
+        Route::get('/{id}', [ParcelDeliveryCourierController::class, 'show']);
+        Route::put('/{id}', [ParcelDeliveryCourierController::class, 'update']);
+        Route::delete('/{id}', [ParcelDeliveryCourierController::class, 'destroy']);
+    });
+
+    // Parcel Delivery External Integration Routes
+    Route::prefix('parcel-delivery-external')->group(function () {
+        Route::get('/', [ParcelDeliveryExternalController::class, 'index']);
+        Route::post('/', [ParcelDeliveryExternalController::class, 'store']);
+        Route::put('/{id}', [ParcelDeliveryExternalController::class, 'update']);
+        Route::delete('/{id}', [ParcelDeliveryExternalController::class, 'destroy']);
     });
 
     // User Data Management Routes
