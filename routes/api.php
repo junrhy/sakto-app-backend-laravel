@@ -39,7 +39,6 @@ use App\Http\Controllers\Api\ClinicSettingsController;
 use App\Http\Controllers\Api\LogisticsSettingsController;
 use App\Http\Controllers\Api\FnbRestaurantController;
 use App\Http\Controllers\Api\EventController;
-use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use App\Http\Controllers\Api\ChallengeController;
 use App\Http\Controllers\Api\PagesController;
 use App\Http\Controllers\Api\HealthInsuranceController;
@@ -89,6 +88,12 @@ use App\Http\Controllers\Api\ParcelDeliveryTrackingController;
 use App\Http\Controllers\Api\ParcelDeliveryPricingController;
 use App\Http\Controllers\Api\ParcelDeliveryCourierController;
 use App\Http\Controllers\Api\ParcelDeliveryExternalController;
+use App\Http\Controllers\Api\FoodDeliveryRestaurantController;
+use App\Http\Controllers\Api\FoodDeliveryMenuController;
+use App\Http\Controllers\Api\FoodDeliveryOrderController;
+use App\Http\Controllers\Api\FoodDeliveryDriverController;
+use App\Http\Controllers\Api\FoodDeliveryTrackingController;
+use App\Http\Controllers\Api\FoodDeliveryPaymentController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -664,15 +669,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/bulk-delete', [EventController::class, 'bulkDestroy']);
     });
 
-    // Food Delivery Order Routes
-    Route::prefix('food-delivery-orders')->group(function () {
-        Route::get('/', [FoodDeliveryOrderController::class, 'index']);
-        Route::post('/', [FoodDeliveryOrderController::class, 'store']);
-        Route::get('/{id}', [FoodDeliveryOrderController::class, 'show']);
-        Route::put('/{id}', [FoodDeliveryOrderController::class, 'update']);
-        Route::delete('/{id}', [FoodDeliveryOrderController::class, 'destroy']);
-    });
-
     // Challenge Routes
     Route::prefix('challenges')->group(function () {
         Route::get('/', [ChallengeController::class, 'index']);
@@ -976,6 +972,60 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [ParcelDeliveryExternalController::class, 'store']);
         Route::put('/{id}', [ParcelDeliveryExternalController::class, 'update']);
         Route::delete('/{id}', [ParcelDeliveryExternalController::class, 'destroy']);
+    });
+
+    // Food Delivery Routes
+    Route::prefix('food-delivery-restaurants')->group(function () {
+        Route::get('/', [FoodDeliveryRestaurantController::class, 'index']);
+        Route::post('/', [FoodDeliveryRestaurantController::class, 'store']);
+        Route::get('/{id}', [FoodDeliveryRestaurantController::class, 'show']);
+        Route::put('/{id}', [FoodDeliveryRestaurantController::class, 'update']);
+        Route::delete('/{id}', [FoodDeliveryRestaurantController::class, 'destroy']);
+    });
+
+    Route::prefix('food-delivery-menu')->group(function () {
+        // Categories
+        Route::get('/categories', [FoodDeliveryMenuController::class, 'categories']);
+        Route::post('/categories', [FoodDeliveryMenuController::class, 'storeCategory']);
+        Route::put('/categories/{id}', [FoodDeliveryMenuController::class, 'updateCategory']);
+        Route::delete('/categories/{id}', [FoodDeliveryMenuController::class, 'destroyCategory']);
+        
+        // Menu Items
+        Route::get('/items', [FoodDeliveryMenuController::class, 'items']);
+        Route::post('/items', [FoodDeliveryMenuController::class, 'storeItem']);
+        Route::get('/items/{id}', [FoodDeliveryMenuController::class, 'showItem']);
+        Route::put('/items/{id}', [FoodDeliveryMenuController::class, 'updateItem']);
+        Route::delete('/items/{id}', [FoodDeliveryMenuController::class, 'destroyItem']);
+    });
+
+    Route::prefix('food-delivery-orders')->group(function () {
+        Route::get('/', [FoodDeliveryOrderController::class, 'index']);
+        Route::post('/', [FoodDeliveryOrderController::class, 'store']);
+        Route::get('/track/{reference}', [FoodDeliveryOrderController::class, 'getByReference']);
+        Route::get('/{id}', [FoodDeliveryOrderController::class, 'show']);
+        Route::put('/{id}/update-status', [FoodDeliveryOrderController::class, 'updateStatus']);
+        Route::post('/{id}/assign-driver', [FoodDeliveryOrderController::class, 'assignDriver']);
+        Route::post('/{id}/cancel', [FoodDeliveryOrderController::class, 'cancel']);
+    });
+
+    Route::prefix('food-delivery-drivers')->group(function () {
+        Route::get('/', [FoodDeliveryDriverController::class, 'index']);
+        Route::post('/', [FoodDeliveryDriverController::class, 'store']);
+        Route::get('/find-nearest', [FoodDeliveryDriverController::class, 'findNearest']);
+        Route::get('/{id}', [FoodDeliveryDriverController::class, 'show']);
+        Route::put('/{id}', [FoodDeliveryDriverController::class, 'update']);
+        Route::delete('/{id}', [FoodDeliveryDriverController::class, 'destroy']);
+    });
+
+    Route::prefix('food-delivery-tracking')->group(function () {
+        Route::get('/order/{orderId}', [FoodDeliveryTrackingController::class, 'index']);
+        Route::post('/', [FoodDeliveryTrackingController::class, 'store']);
+    });
+
+    Route::prefix('food-delivery-payments')->group(function () {
+        Route::get('/order/{orderId}', [FoodDeliveryPaymentController::class, 'index']);
+        Route::post('/order/{orderId}/process', [FoodDeliveryPaymentController::class, 'processPayment']);
+        Route::post('/order/{orderId}/mark-paid', [FoodDeliveryPaymentController::class, 'markAsPaid']);
     });
 
     // User Data Management Routes
