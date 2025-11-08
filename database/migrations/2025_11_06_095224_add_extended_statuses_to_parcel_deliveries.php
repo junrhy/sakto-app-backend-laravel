@@ -121,7 +121,12 @@ return new class extends Migration
 
     private function ensureEnumTypeExists(string $enumType, array $values): void
     {
-        $enumList = "'" . implode("','", $values) . "'";
+        $escapedValues = array_map(
+            static fn (string $value) => str_replace("'", "''", $value),
+            $values
+        );
+
+        $enumList = "''" . implode("'',''", $escapedValues) . "''";
 
         DB::statement(<<<SQL
             DO $$
