@@ -64,6 +64,8 @@ use App\Http\Controllers\Api\TransportationCargoMonitoringController;
 use App\Http\Controllers\Api\CargoUnloadingController;
 use App\Http\Controllers\Api\TransportationBookingController;
 use App\Http\Controllers\Api\TransportationPricingConfigController;
+use App\Http\Controllers\Api\TravelBookingController;
+use App\Http\Controllers\Api\TravelPackageController;
 use App\Http\Controllers\Api\UserDataController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\ClinicInventoryController;
@@ -934,6 +936,27 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [TransportationPricingConfigController::class, 'show']);
         Route::put('/{id}', [TransportationPricingConfigController::class, 'update']);
         Route::delete('/{id}', [TransportationPricingConfigController::class, 'destroy']);
+    });
+
+    // Travel Management Routes
+    Route::prefix('travel-packages')->group(function () {
+        Route::get('/', [TravelPackageController::class, 'index']);
+        Route::post('/', [TravelPackageController::class, 'store']);
+        Route::get('/{id}', [TravelPackageController::class, 'show']);
+        Route::put('/{id}', [TravelPackageController::class, 'update']);
+        Route::delete('/{id}', [TravelPackageController::class, 'destroy']);
+        Route::patch('/{id}/status', [TravelPackageController::class, 'updateStatus']);
+        Route::patch('/{id}/featured', [TravelPackageController::class, 'toggleFeatured']);
+    });
+
+    Route::prefix('travel-bookings')->group(function () {
+        Route::get('/', [TravelBookingController::class, 'index']);
+        Route::post('/', [TravelBookingController::class, 'store']);
+        Route::get('/{id}', [TravelBookingController::class, 'show']);
+        Route::put('/{id}', [TravelBookingController::class, 'update']);
+        Route::delete('/{id}', [TravelBookingController::class, 'destroy']);
+        Route::patch('/{id}/status', [TravelBookingController::class, 'updateStatus']);
+        Route::patch('/{id}/payment-status', [TravelBookingController::class, 'updatePaymentStatus']);
     });
 
     // Parcel Delivery Routes
