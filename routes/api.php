@@ -96,6 +96,10 @@ use App\Http\Controllers\Api\FoodDeliveryOrderController;
 use App\Http\Controllers\Api\FoodDeliveryDriverController;
 use App\Http\Controllers\Api\FoodDeliveryTrackingController;
 use App\Http\Controllers\Api\FoodDeliveryPaymentController;
+use App\Http\Controllers\Api\HandymanInventoryController;
+use App\Http\Controllers\Api\HandymanTaskController;
+use App\Http\Controllers\Api\HandymanTechnicianController;
+use App\Http\Controllers\Api\HandymanWorkOrderController;
 
 // Public driver routes (no authentication required)
 Route::prefix('driver')->group(function () {
@@ -319,6 +323,35 @@ Route::middleware('auth:sanctum')->group(function () {
     // F & B Sales Routes
     Route::prefix('fnb-sales')->group(function () {
         Route::get('/', [FnbSaleController::class, 'index']);
+    });
+
+    Route::prefix('handyman')->group(function () {
+        Route::get('/technicians', [HandymanTechnicianController::class, 'index']);
+        Route::post('/technicians', [HandymanTechnicianController::class, 'store']);
+        Route::get('/technicians/{id}', [HandymanTechnicianController::class, 'show']);
+        Route::put('/technicians/{id}', [HandymanTechnicianController::class, 'update']);
+        Route::delete('/technicians/{id}', [HandymanTechnicianController::class, 'destroy']);
+
+        Route::get('/tasks', [HandymanTaskController::class, 'index']);
+        Route::post('/tasks', [HandymanTaskController::class, 'store']);
+        Route::get('/tasks-overview', [HandymanTaskController::class, 'overview']);
+        Route::put('/tasks/{id}', [HandymanTaskController::class, 'update']);
+        Route::delete('/tasks/{id}', [HandymanTaskController::class, 'destroy']);
+
+        Route::get('/work-orders', [HandymanWorkOrderController::class, 'index']);
+        Route::post('/work-orders', [HandymanWorkOrderController::class, 'store']);
+        Route::get('/work-orders/{id}', [HandymanWorkOrderController::class, 'show']);
+        Route::put('/work-orders/{id}', [HandymanWorkOrderController::class, 'update']);
+        Route::delete('/work-orders/{id}', [HandymanWorkOrderController::class, 'destroy']);
+        Route::post('/work-orders/{id}/attachments', [HandymanWorkOrderController::class, 'storeAttachment']);
+
+        Route::get('/inventory', [HandymanInventoryController::class, 'index']);
+        Route::post('/inventory', [HandymanInventoryController::class, 'store']);
+        Route::put('/inventory/{id}', [HandymanInventoryController::class, 'update']);
+        Route::delete('/inventory/{id}', [HandymanInventoryController::class, 'destroy']);
+        Route::get('/inventory/low-stock', [HandymanInventoryController::class, 'lowStock']);
+        Route::get('/inventory-transactions', [HandymanInventoryController::class, 'transactions']);
+        Route::post('/inventory-transactions', [HandymanInventoryController::class, 'recordTransaction']);
     });
 
     // F & B Reservation Routes
