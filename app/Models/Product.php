@@ -26,13 +26,16 @@ class Product extends Model
         'metadata',
         'client_identifier',
         'contact_id',
+        'created_by_email',
+        'created_by_identifier',
+        'created_by_name',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'weight' => 'decimal:2',
         'stock_quantity' => 'integer',
-        'tags' => 'array',
+        // 'tags' => 'array', // Removed - using accessor/mutator instead to avoid conflicts
         'metadata' => 'array',
     ];
 
@@ -165,6 +168,15 @@ class Product extends Model
      */
     public function getTagsAttribute($value)
     {
+        if ($value === null || $value === '') {
+            return [];
+        }
+        
+        // If it's already an array, return it (from accessor casting)
+        if (is_array($value)) {
+            return $value;
+        }
+        
         $decoded = json_decode($value, true);
         return is_array($decoded) ? $decoded : [];
     }
@@ -204,6 +216,31 @@ class Product extends Model
     public function scopeByContact($query, $contactId)
     {
         return $query->where('contact_id', $contactId);
+    }
+
+    /**
+     * Filter products by creator email
+     */
+    public function scopeByCreatorEmail($query, $email)
+    {
+        return $query->where('created_by_email', $email);
+    }
+
+    /**
+     * Filter products by creator identifier
+     */
+    public function scopeByCreatorIdentifier($query, $identifier)
+    {
+        return $query->where('created_by_identifier', $identifier);
+    }
+
+    /**
+     * Filter products by creator (email and identifier for verification)
+     */
+    public function scopeByCreator($query, $email, $identifier)
+    {
+        return $query->where('created_by_email', $email)
+                    ->where('created_by_identifier', $identifier);
     }
 
     /**

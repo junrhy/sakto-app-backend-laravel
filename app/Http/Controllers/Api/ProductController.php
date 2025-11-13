@@ -69,6 +69,19 @@ class ProductController extends Controller
             $query->byContact($request->contact_id);
         }
 
+        // Filter by creator (for "My Products" functionality)
+        // Use both identifier and email for better verification
+        if ($request->has('customer_identifier') && $request->has('customer_email')) {
+            // Use both for maximum verification
+            $query->byCreator($request->customer_email, $request->customer_identifier);
+        } elseif ($request->has('customer_identifier')) {
+            // Primary: use identifier (more reliable than email)
+            $query->byCreatorIdentifier($request->customer_identifier);
+        } elseif ($request->has('customer_email')) {
+            // Fallback: use email only if identifier is not provided
+            $query->byCreatorEmail($request->customer_email);
+        }
+
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
@@ -121,6 +134,9 @@ class ProductController extends Controller
             'purchase_records.*.payment_terms' => 'nullable|string|max:255',
             'client_identifier' => 'required|string',
             'contact_id' => 'nullable|integer|exists:contacts,id',
+            'created_by_email' => 'nullable|email|max:255',
+            'created_by_identifier' => 'nullable|string|max:255',
+            'created_by_name' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -190,7 +206,13 @@ class ProductController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {   
-            $product = Product::find($id);
+            $clientIdentifier = $request->get('client_identifier');
+            
+            if (!$clientIdentifier) {
+                return response()->json(['error' => 'Client identifier is required'], 400);
+            }
+            
+            $product = Product::forClient($clientIdentifier)->find($id);
 
             if (!$product) {
                 return response()->json(['error' => 'Product not found'], 404);
@@ -334,9 +356,12 @@ class ProductController extends Controller
             // Reload the product with all relationships
             $product->load(['activeVariants', 'suppliers', 'purchaseRecords']);
 
-            return response()->json($product);
+            // Convert to array explicitly to avoid serialization issues with accessors/casts
+            return response()->json($product->toArray());
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 
