@@ -93,6 +93,7 @@ class BillPaymentController extends Controller
         $validator = Validator::make($request->all(), [
             'bill_title' => 'required|string|max:255',
             'bill_description' => 'nullable|string',
+            'biller_id' => 'required|exists:billers,id',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
             'payment_date' => 'nullable|date',
@@ -100,6 +101,9 @@ class BillPaymentController extends Controller
             'payment_method' => 'nullable|string|max:255',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'email' => 'required|email|max:255',
+            'contact_number' => 'required|string|max:255',
+            'customer_name' => 'nullable|string|max:255',
             'client_identifier' => 'required|string',
             'category' => 'nullable|string|max:255',
             'priority' => 'nullable|in:low,medium,high,urgent',
@@ -123,18 +127,26 @@ class BillPaymentController extends Controller
 
             $billPayment = BillPayment::create($request->all());
 
+            $nextRecurringBill = null;
             // If this is a recurring bill and payment is made, create next bill
             if ($billPayment->is_recurring && $billPayment->status === 'paid' && $billPayment->next_due_date) {
-                $this->createNextRecurringBill($billPayment);
+                $nextRecurringBill = $this->createNextRecurringBill($billPayment);
             }
 
             DB::commit();
 
-            return response()->json([
+            $responseData = [
                 'success' => true,
                 'message' => 'Bill payment created successfully',
-                'data' => $billPayment->load('client')
-            ], 201);
+                'data' => $billPayment->load(['client', 'biller'])
+            ];
+
+            // Include next recurring bill if created
+            if ($nextRecurringBill) {
+                $responseData['next_recurring_bill'] = $nextRecurringBill->load(['client', 'biller']);
+            }
+
+            return response()->json($responseData, 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -183,6 +195,7 @@ class BillPaymentController extends Controller
         $validator = Validator::make($request->all(), [
             'bill_title' => 'sometimes|required|string|max:255',
             'bill_description' => 'nullable|string',
+            'biller_id' => 'required|exists:billers,id',
             'amount' => 'sometimes|required|numeric|min:0',
             'due_date' => 'sometimes|required|date',
             'payment_date' => 'nullable|date',
@@ -190,6 +203,9 @@ class BillPaymentController extends Controller
             'payment_method' => 'nullable|string|max:255',
             'reference_number' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'email' => 'required|email|max:255',
+            'contact_number' => 'required|string|max:255',
+            'customer_name' => 'nullable|string|max:255',
             'category' => 'nullable|string|max:255',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'is_recurring' => 'nullable|boolean',
@@ -213,19 +229,27 @@ class BillPaymentController extends Controller
             $oldStatus = $billPayment->status;
             $billPayment->update($request->all());
 
+            $nextRecurringBill = null;
             // If status changed to paid and it's a recurring bill, create next bill
             if ($oldStatus !== 'paid' && $billPayment->status === 'paid' && 
                 $billPayment->is_recurring && $billPayment->next_due_date) {
-                $this->createNextRecurringBill($billPayment);
+                $nextRecurringBill = $this->createNextRecurringBill($billPayment);
             }
 
             DB::commit();
 
-            return response()->json([
+            $responseData = [
                 'success' => true,
                 'message' => 'Bill payment updated successfully',
-                'data' => $billPayment->load('client')
-            ]);
+                'data' => $billPayment->load(['client', 'biller'])
+            ];
+
+            // Include next recurring bill if created
+            if ($nextRecurringBill) {
+                $responseData['next_recurring_bill'] = $nextRecurringBill->load(['client', 'biller']);
+            }
+
+            return response()->json($responseData);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -469,6 +493,8 @@ class BillPaymentController extends Controller
         );
 
         $nextBill->save();
+        
+        return $nextBill;
     }
 
     /**
